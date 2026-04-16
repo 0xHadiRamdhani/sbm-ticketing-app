@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "469061446199",
+    "project_id": "ticketing-app-sbm",
+    "storage_bucket": "ticketing-app-sbm.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:469061446199:android:80b0254a3ed07aacf22db2",
+        "android_client_info": {
+          "package_name": "com.ticketing.sbm"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCFILh1_qoRtr1KhIAkZTMNvYYxb1jRFvg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
