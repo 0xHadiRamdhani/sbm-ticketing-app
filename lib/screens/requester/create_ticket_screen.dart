@@ -63,7 +63,13 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
     var isLoading = Provider.of<TicketProvider>(context).isLoading;
 
     return Scaffold(
-      appBar: AppBar(title: Text('Buat Tiket Baru')),
+      appBar: AppBar(
+        title: Text('Buat Tiket Baru'),
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: Icon(Icons.arrow_back_ios_new, color: Colors.white),
+        ),
+      ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16),
         child: Form(
