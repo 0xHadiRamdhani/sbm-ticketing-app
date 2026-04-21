@@ -81,7 +81,7 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
                 value: _category,
                 decoration: InputDecoration(
                   labelText: 'Kategori Kerusakan',
-                  border: OutlineInputBorder(),
+
                 ),
                 items: ['Laptop', 'Printer', 'Jaringan', 'Proyektor', 'Lainnya']
                     .map((e) => DropdownMenuItem(value: e, child: Text(e)))
@@ -95,7 +95,7 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
                 value: _priority,
                 decoration: InputDecoration(
                   labelText: 'Prioritas',
-                  border: OutlineInputBorder(),
+
                 ),
                 items: ['Low', 'Medium', 'High']
                     .map((e) => DropdownMenuItem(value: e, child: Text(e)))
@@ -109,7 +109,7 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
                 controller: _locationController,
                 decoration: InputDecoration(
                   labelText: 'Lokasi (mis: Lab Komputer SBM)',
-                  border: OutlineInputBorder(),
+
                 ),
                 validator: (val) => val!.isEmpty ? 'Wajib diisi' : null,
               ),
@@ -118,7 +118,7 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
                 controller: _descController,
                 decoration: InputDecoration(
                   labelText: 'Detail Masalah',
-                  border: OutlineInputBorder(),
+
                   floatingLabelBehavior: FloatingLabelBehavior.always,
                 ),
                 maxLines: 4,

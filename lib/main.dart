@@ -5,6 +5,7 @@ import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
 import 'providers/ticket_provider.dart';
 import 'screens/dashboard_wrapper.dart';
+import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,6 +17,7 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+    await NotificationService().init();
     isFirebaseInitialized = true;
   } catch (e) {
     debugPrint("Firebase Initialization Error: $e");
@@ -104,11 +106,42 @@ class TicketingApp extends StatelessWidget {
         ),
         useMaterial3: true,
         fontFamily: 'Inter',
+        scaffoldBackgroundColor: Colors.grey[50], // Modern lighter background 
         appBarTheme: AppBarTheme(
           centerTitle: true,
           backgroundColor: Colors.blue.shade800,
           foregroundColor: Colors.white,
           elevation: 0,
+        ),
+
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blue.shade800,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8), // Less rounded corners
+            ),
+            padding: EdgeInsets.symmetric(vertical: 16),
+            textStyle: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Colors.blue.shade800, width: 2),
+          ),
         ),
       ),
       home: DashboardWrapper(),

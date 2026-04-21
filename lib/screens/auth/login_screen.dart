@@ -104,9 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       decoration: InputDecoration(
                         labelText: 'Nama Lengkap',
                         prefixIcon: Icon(Icons.person_outline),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+
                       ),
                       validator: (val) =>
                           val!.isEmpty ? 'Nama tidak boleh kosong' : null,
@@ -117,9 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       decoration: InputDecoration(
                         labelText: 'Peran / Role',
                         prefixIcon: Icon(Icons.badge_outlined),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+
                       ),
                       items: [
                         DropdownMenuItem(
@@ -147,9 +143,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       decoration: InputDecoration(
                         labelText: 'Departemen/Angkatan (Opsional)',
                         prefixIcon: Icon(Icons.apartment_outlined),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+
                       ),
                     ),
                     SizedBox(height: 16),
@@ -213,9 +207,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: auth.isLoading ? null : _submit,
                         style: ElevatedButton.styleFrom(
                           padding: EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+
                           backgroundColor: Colors.blue[800],
                           foregroundColor: Colors.white,
                         ),
