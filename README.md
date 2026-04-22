@@ -6,7 +6,7 @@ SBM ITB Ticketing App adalah aplikasi pelaporan keluhan fasilitas, perangkat IT,
 
 - **Sistem Autentikasi**: Login dan Pendaftaran aman yang terintegrasi dengan Firebase Authentication. Mendukung validasi domain email (`@itb.ac.id` / `@sbm-itb.ac.id`).
 - **Akses Berbasis Peran (Role-Based Access)**:
-  - **Pemohon (Mahasiswa/Staf)**: Dapat membuat tiket keluhan baru, mengunggah foto pendukung, dan memantau status penyelesaian tiket mereka (Open, In Progress, Resolved).
+  - **Pemohon (Mahasiswa/Staf)**: Dapat membuat tiket keluhan baru, dan memantau status penyelesaian tiket mereka (Open, In Progress, Resolved).
   - **Teknisi IT**: Memiliki dashboard khusus untuk melihat daftar tiket yang tersedia (*Open*), mengambil alih tiket untuk dikerjakan (*In Progress*), dan menandai tiket yang sudah diselesaikan (*Resolved*).
   - **Admin**: Akses menyeluruh untuk mengelola sistem dan melihat statistik.
 - **Notifikasi Real-Time**: Teknisi menerima pemberitahuan langsung ketika ada tiket baru masuk menggunakan `flutter_local_notifications`.
