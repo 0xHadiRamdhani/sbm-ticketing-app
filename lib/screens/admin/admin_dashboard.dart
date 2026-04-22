@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../settings_screen.dart';
 
 class AdminDashboard extends StatelessWidget {
   @override
@@ -12,8 +13,13 @@ class AdminDashboard extends StatelessWidget {
         title: Text('Admin Dashboard'),
         actions: [
           IconButton(
-            icon: Icon(Icons.logout),
-            onPressed: () => authProvider.logout(),
+            icon: Icon(Icons.settings),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => SettingsScreen()),
+              );
+            },
           )
         ],
       ),

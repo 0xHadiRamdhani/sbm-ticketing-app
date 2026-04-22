@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="Ticketing SBM App"
+        android:label="SBM Ticketing App ITB"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

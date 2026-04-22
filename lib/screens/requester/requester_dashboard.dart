@@ -6,6 +6,7 @@ import '../../providers/ticket_provider.dart';
 import '../../models/ticket_model.dart';
 import 'create_ticket_screen.dart';
 import '../technician/ticket_detail_screen.dart';
+import '../settings_screen.dart';
 
 class RequesterDashboard extends StatelessWidget {
   @override
@@ -18,9 +19,12 @@ class RequesterDashboard extends StatelessWidget {
         title: Text('Tiket Saya'),
         actions: [
           IconButton(
-            icon: Icon(Icons.logout),
+            icon: Icon(Icons.settings),
             onPressed: () {
-              authProvider.logout();
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => SettingsScreen()),
+              );
             },
           )
         ],

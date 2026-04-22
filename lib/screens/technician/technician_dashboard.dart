@@ -6,6 +6,7 @@ import '../../providers/ticket_provider.dart';
 import '../../models/ticket_model.dart';
 import '../../services/notification_service.dart';
 import 'ticket_detail_screen.dart';
+import '../settings_screen.dart';
 import 'dart:async';
 
 class TechnicianDashboard extends StatefulWidget {
@@ -75,8 +76,13 @@ class _TechnicianDashboardState extends State<TechnicianDashboard> {
         title: Text('Dashboard Teknisi'),
         actions: [
           IconButton(
-            icon: Icon(Icons.logout),
-            onPressed: () => authProvider.logout(),
+            icon: Icon(Icons.settings),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => SettingsScreen()),
+              );
+            },
           ),
         ],
       ),
