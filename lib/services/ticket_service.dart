@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import '../models/ticket_model.dart';
@@ -49,13 +51,29 @@ class TicketService {
   }) async {
     String? imageUrl;
     
-    // Jika ada gambar, upload dulu ke Firebase Storage
+    // Jika ada gambar, upload ke ImgBB
     if (imageFile != null) {
-      String fileName = DateTime.now().millisecondsSinceEpoch.toString() + '_' + imageFile.name;
-      Reference ref = _storage.ref().child('ticket_images').child(fileName);
-      UploadTask uploadTask = ref.putFile(File(imageFile.path));
-      TaskSnapshot targetSnapshot = await uploadTask;
-      imageUrl = await targetSnapshot.ref.getDownloadURL();
+      try {
+        final bytes = await File(imageFile.path).readAsBytes();
+        final base64Image = base64Encode(bytes);
+
+        final response = await http.post(
+          Uri.parse('https://api.imgbb.com/1/upload'),
+          body: {
+            'key': '639f57d0cc80d6da8ddb0c1927ea1a8a',
+            'image': base64Image,
+          },
+        );
+
+        if (response.statusCode == 200) {
+          final responseData = json.decode(response.body);
+          imageUrl = responseData['data']['url'];
+        } else {
+          print('ImgBB Upload Failed: ${response.body}');
+        }
+      } catch (e) {
+        print('Error uploading to ImgBB: $e');
+      }
     }
 
     TicketModel newTicket = TicketModel(
@@ -74,11 +92,42 @@ class TicketService {
   }
 
   // Update status tiket (Misal Teknisi mengambil atau menyelesaikannya)
-  Future<void> updateTicketStatus(String ticketId, String newStatus, {String? technicianId}) async {
+  Future<void> updateTicketStatus(String ticketId, String newStatus, {String? technicianId, List<XFile>? resolvedImages}) async {
     Map<String, dynamic> updateData = {'status': newStatus};
     if (technicianId != null) {
       updateData['technician_id'] = technicianId;
     }
+
+    if (resolvedImages != null && resolvedImages.isNotEmpty) {
+      List<String> imageUrls = [];
+      for (var imageFile in resolvedImages) {
+        try {
+          final bytes = await File(imageFile.path).readAsBytes();
+          final base64Image = base64Encode(bytes);
+
+          final response = await http.post(
+            Uri.parse('https://api.imgbb.com/1/upload'),
+            body: {
+              'key': '639f57d0cc80d6da8ddb0c1927ea1a8a',
+              'image': base64Image,
+            },
+          );
+
+          if (response.statusCode == 200) {
+            final responseData = json.decode(response.body);
+            imageUrls.add(responseData['data']['url']);
+          } else {
+            print('ImgBB Upload Failed: ${response.body}');
+          }
+        } catch (e) {
+          print('Error uploading resolved image to ImgBB: $e');
+        }
+      }
+      if (imageUrls.isNotEmpty) {
+        updateData['resolved_image_urls'] = imageUrls;
+      }
+    }
+
     await _firestore.collection('tickets').doc(ticketId).update(updateData);
   }
 }

@@ -11,6 +11,7 @@ class TicketModel {
   final String? technicianId;
   final String? imageUrl;
   final String? location;
+  final List<String>? resolvedImageUrls;
 
   TicketModel({
     required this.ticketId,
@@ -23,6 +24,7 @@ class TicketModel {
     this.technicianId,
     this.imageUrl,
     this.location,
+    this.resolvedImageUrls,
   });
 
   factory TicketModel.fromMap(Map<String, dynamic> data, String documentId) {
@@ -37,6 +39,9 @@ class TicketModel {
       technicianId: data['technician_id'],
       imageUrl: data['image_url'],
       location: data['location'],
+      resolvedImageUrls: data['resolved_image_urls'] != null 
+          ? List<String>.from(data['resolved_image_urls']) 
+          : null,
     );
   }
 
@@ -51,6 +56,7 @@ class TicketModel {
       if (technicianId != null) 'technician_id': technicianId,
       if (imageUrl != null) 'image_url': imageUrl,
       if (location != null) 'location': location,
+      if (resolvedImageUrls != null) 'resolved_image_urls': resolvedImageUrls,
     };
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -65,9 +67,7 @@ class TicketDetailScreen extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => ChatScreen(ticket: ticket),
-                ),
+                MaterialPageRoute(builder: (_) => ChatScreen(ticket: ticket)),
               );
             },
           ),
@@ -109,6 +109,51 @@ class TicketDetailScreen extends StatelessWidget {
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: Colors.black87,
+              ),
+            ),
+            SizedBox(height: 24),
+
+            Text(
+              'Lampiran Foto',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[800],
+              ),
+            ),
+            SizedBox(height: 12),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Image.network(
+                ticket.imageUrl!,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: 150,
+                    color: Colors.grey[200],
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Icons.broken_image,
+                      color: Colors.grey[400],
+                      size: 50,
+                    ),
+                  );
+                },
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Container(
+                    height: 150,
+                    color: Colors.grey[100],
+                    alignment: Alignment.center,
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                                loadingProgress.expectedTotalBytes!
+                          : null,
+                    ),
+                  );
+                },
               ),
             ),
             SizedBox(height: 24),
@@ -222,6 +267,81 @@ class TicketDetailScreen extends StatelessWidget {
               ),
             ),
 
+            // // Image Attachment
+            // if (ticket.imageUrl != null && ticket.imageUrl!.isNotEmpty) ...[
+            //   SizedBox(height: 24),
+            //   Text(
+            //     'Lampiran Foto',
+            //     style: TextStyle(
+            //       fontSize: 16,
+            //       fontWeight: FontWeight.w600,
+            //       color: Colors.grey[800],
+            //     ),
+            //   ),
+            //   SizedBox(height: 12),
+            //   ClipRRect(
+            //     borderRadius: BorderRadius.circular(10),
+            //     child: Image.network(
+            //       ticket.imageUrl!,
+            //       width: double.infinity,
+            //       fit: BoxFit.cover,
+            //       errorBuilder: (context, error, stackTrace) {
+            //         return Container(
+            //           height: 150,
+            //           color: Colors.grey[200],
+            //           alignment: Alignment.center,
+            //           child: Icon(Icons.broken_image, color: Colors.grey[400], size: 50),
+            //         );
+            //       },
+            //     ),
+            //   ),
+            // ],
+
+            // Resolved Image Attachments
+            if (ticket.resolvedImageUrls != null &&
+                ticket.resolvedImageUrls!.isNotEmpty) ...[
+              SizedBox(height: 12),
+              Text(
+                'Bukti Penyelesaian',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[800],
+                ),
+              ),
+              SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: ticket.resolvedImageUrls!
+                    .map(
+                      (url) => ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.network(
+                          url,
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              width: 100,
+                              height: 100,
+                              color: Colors.grey[200],
+                              alignment: Alignment.center,
+                              child: Icon(
+                                Icons.broken_image,
+                                color: Colors.grey[400],
+                                size: 30,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ),
+            ],
+
             SizedBox(height: 40),
 
             // Technician Action Buttons
@@ -270,45 +390,9 @@ class TicketDetailScreen extends StatelessWidget {
                 )
               else if (ticket.status == 'In Progress' &&
                   ticket.technicianId == user?.uid)
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: ticketProvider.isLoading
-                        ? null
-                        : () async {
-                            await ticketProvider.updateTicketStatus(
-                              ticket.ticketId,
-                              'Resolved',
-                            );
-                            if (!context.mounted) return;
-                            Navigator.pop(context);
-                          },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green[700],
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ), // Semi-rounded corners
-                    ),
-                    child: ticketProvider.isLoading
-                        ? SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : Text(
-                            'Tandai Selesai',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                  ),
+                _ResolveTicketAction(
+                  ticketId: ticket.ticketId,
+                  ticketProvider: ticketProvider,
                 ),
             ],
           ],
@@ -348,6 +432,143 @@ class TicketDetailScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _ResolveTicketAction extends StatefulWidget {
+  final String ticketId;
+  final TicketProvider ticketProvider;
+
+  _ResolveTicketAction({required this.ticketId, required this.ticketProvider});
+
+  @override
+  __ResolveTicketActionState createState() => __ResolveTicketActionState();
+}
+
+class __ResolveTicketActionState extends State<_ResolveTicketAction> {
+  List<XFile> _resolvedImages = [];
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickImages() async {
+    if (_resolvedImages.length >= 3) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Maksimal 3 foto')));
+      return;
+    }
+    final List<XFile> selectedImages = await _picker.pickMultiImage();
+    if (selectedImages.isNotEmpty) {
+      setState(() {
+        _resolvedImages.addAll(selectedImages);
+        if (_resolvedImages.length > 3) {
+          _resolvedImages = _resolvedImages.sublist(0, 3);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Hanya 3 foto pertama yang diambil')),
+          );
+        }
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (_resolvedImages.isNotEmpty)
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _resolvedImages
+                .map(
+                  (img) => Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.file(
+                          File(img.path),
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _resolvedImages.remove(img);
+                            });
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.black54,
+                              shape: BoxShape.circle,
+                            ),
+                            padding: EdgeInsets.all(2),
+                            child: Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+                .toList(),
+          ),
+        SizedBox(height: 12),
+        OutlinedButton.icon(
+          onPressed: _resolvedImages.length < 3 ? _pickImages : null,
+          icon: Icon(Icons.add_a_photo),
+          label: Text('Tambah Foto Bukti (Maks 3)'),
+          style: OutlinedButton.styleFrom(
+            padding: EdgeInsets.symmetric(vertical: 12),
+          ),
+        ),
+        SizedBox(height: 12),
+        SizedBox(
+          height: 50,
+          child: ElevatedButton(
+            onPressed: widget.ticketProvider.isLoading
+                ? null
+                : () async {
+                    await widget.ticketProvider.updateTicketStatus(
+                      widget.ticketId,
+                      'Resolved',
+                      resolvedImages: _resolvedImages,
+                    );
+                    if (!context.mounted) return;
+                    Navigator.pop(context);
+                  },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green[700],
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: widget.ticketProvider.isLoading
+                ? SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : Text(
+                    'Tandai Selesai',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+          ),
+        ),
+      ],
     );
   }
 }

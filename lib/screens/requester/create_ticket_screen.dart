@@ -125,38 +125,38 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
                 validator: (val) => val!.isEmpty ? 'Wajib diisi' : null,
               ),
               SizedBox(height: 16),
-              // GestureDetector(
-              //   onTap: _pickImage,
-              //   child: Container(
-              //     height: 150,
-              //     decoration: BoxDecoration(
-              //       color: Colors.grey[200],
-              //       borderRadius: BorderRadius.circular(12),
-              //       border: Border.all(color: Colors.grey),
-              //     ),
-              //     child: _imageFile != null
-              //         ? ClipRRect(
-              //             borderRadius: BorderRadius.circular(12),
-              //             child: Image.file(
-              //               File(_imageFile!.path),
-              //               fit: BoxFit.cover,
-              //             ),
-              //           )
-              //         : Column(
-              //             mainAxisAlignment: MainAxisAlignment.center,
-              //             children: [
-              //               Icon(
-              //                 Icons.camera_alt,
-              //                 size: 40,
-              //                 color: Colors.grey[600],
-              //               ),
-              //               SizedBox(height: 8),
-              //               Text('Ketuk untuk unggah foto (opsional)'),
-              //             ],
-              //           ),
-              //   ),
-              // ),
-              // SizedBox(height: 32),
+              GestureDetector(
+                onTap: _pickImage,
+                child: Container(
+                  height: 150,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey),
+                  ),
+                  child: _imageFile != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.file(
+                            File(_imageFile!.path),
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                      : Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.camera_alt,
+                              size: 40,
+                              color: Colors.grey[600],
+                            ),
+                            SizedBox(height: 8),
+                            Text('Ketuk untuk unggah foto (opsional)'),
+                          ],
+                        ),
+                ),
+              ),
+              SizedBox(height: 32),
               ElevatedButton(
                 onPressed: isLoading ? null : _submit,
                 style: ElevatedButton.styleFrom(

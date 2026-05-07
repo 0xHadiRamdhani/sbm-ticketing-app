@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import 'about_screen.dart';
+import 'help_center_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   @override
@@ -71,8 +72,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: Text('Pusat Bantuan', style: TextStyle(fontWeight: FontWeight.w500)),
                   trailing: Icon(Icons.chevron_right, color: Colors.grey),
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Halaman Pusat Bantuan sedang dalam pengembangan.')),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => HelpCenterScreen()),
                     );
                   },
                 ),
