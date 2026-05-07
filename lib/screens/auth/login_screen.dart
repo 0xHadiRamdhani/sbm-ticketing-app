@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import 'phone_login_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -104,7 +105,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       decoration: InputDecoration(
                         labelText: 'Nama Lengkap',
                         prefixIcon: Icon(Icons.person_outline),
-
                       ),
                       validator: (val) =>
                           val!.isEmpty ? 'Nama tidak boleh kosong' : null,
@@ -115,7 +115,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       decoration: InputDecoration(
                         labelText: 'Peran / Role',
                         prefixIcon: Icon(Icons.badge_outlined),
-
                       ),
                       items: [
                         DropdownMenuItem(
@@ -143,7 +142,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       decoration: InputDecoration(
                         labelText: 'Departemen/Angkatan (Opsional)',
                         prefixIcon: Icon(Icons.apartment_outlined),
-
                       ),
                     ),
                     SizedBox(height: 16),
@@ -237,6 +235,48 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
+
+                  // Divider
+                  // if (_isLogin) ...[
+                  //   Row(
+                  //     children: [
+                  //       Expanded(child: Divider(color: Colors.grey.shade300)),
+                  //       Padding(
+                  //         padding: EdgeInsets.symmetric(horizontal: 12),
+                  //         child: Text('atau', style: TextStyle(color: Colors.grey)),
+                  //       ),
+                  //       Expanded(child: Divider(color: Colors.grey.shade300)),
+                  //     ],
+                  //   ),
+                  //   SizedBox(height: 12),
+                  //   OutlinedButton.icon(
+                  //     onPressed: () {
+                  //       Navigator.push(
+                  //         context,
+                  //         MaterialPageRoute(
+                  //           builder: (_) => const PhoneLoginScreen(),
+                  //         ),
+                  //       );
+                  //     },
+                  //     icon: Icon(Icons.phone_android_rounded, color: Colors.blue[800]),
+                  //     label: Text(
+                  //       'Masuk via Nomor Telepon',
+                  //       style: TextStyle(
+                  //         color: Colors.blue[800],
+                  //         fontWeight: FontWeight.bold,
+                  //         fontSize: 15,
+                  //       ),
+                  //     ),
+                  //     style: OutlinedButton.styleFrom(
+                  //       padding: EdgeInsets.symmetric(vertical: 14),
+                  //       side: BorderSide(color: Colors.blue.shade200),
+                  //       shape: RoundedRectangleBorder(
+                  //         borderRadius: BorderRadius.circular(12),
+                  //       ),
+                  //     ),
+                  //   ),
+                  //   SizedBox(height: 8),
+                  // ],
                 ],
               ),
             ),

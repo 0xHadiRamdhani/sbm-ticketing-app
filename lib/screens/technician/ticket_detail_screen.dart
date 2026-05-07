@@ -5,6 +5,7 @@ import '../../providers/ticket_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import '../../models/ticket_model.dart';
+import '../chat_screen.dart';
 
 class TicketDetailScreen extends StatelessWidget {
   final TicketModel ticket;
@@ -57,6 +58,20 @@ class TicketDetailScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
           icon: Icon(Icons.arrow_back_ios_new, size: 20),
         ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.chat_bubble_outline),
+            tooltip: 'Chat',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ChatScreen(ticket: ticket),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(20),

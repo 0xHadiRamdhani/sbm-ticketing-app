@@ -61,6 +61,65 @@ class AuthService {
     }
   }
 
+  // --- PHONE AUTH ---
+
+  /// Kirim OTP ke nomor telepon. Panggil [onCodeSent] jika berhasil.
+  Future<void> verifyPhoneNumber({
+    required String phoneNumber,
+    required void Function(String verificationId) onCodeSent,
+    required void Function(String error) onError,
+  }) async {
+    await _auth.verifyPhoneNumber(
+      phoneNumber: phoneNumber,
+      timeout: const Duration(seconds: 60),
+      verificationCompleted: (PhoneAuthCredential credential) async {
+        // Auto-retrieval (Android only). Sign in langsung.
+        await _auth.signInWithCredential(credential);
+      },
+      verificationFailed: (FirebaseAuthException e) {
+        onError(e.message ?? 'Verifikasi gagal');
+      },
+      codeSent: (String verificationId, int? resendToken) {
+        onCodeSent(verificationId);
+      },
+      codeAutoRetrievalTimeout: (_) {},
+    );
+  }
+
+  /// Verifikasi OTP & login. Jika user belum terdaftar di Firestore, simpan data minimal.
+  Future<UserModel?> signInWithOtp({
+    required String verificationId,
+    required String smsCode,
+    String? name,
+    String? role,
+    String? department,
+  }) async {
+    final credential = PhoneAuthProvider.credential(
+      verificationId: verificationId,
+      smsCode: smsCode,
+    );
+    final userCred = await _auth.signInWithCredential(credential);
+    final uid = userCred.user!.uid;
+    final phone = userCred.user!.phoneNumber ?? '';
+
+    final doc = await _firestore.collection('users').doc(uid).get();
+    if (doc.exists) {
+      return UserModel.fromMap(doc.data() as Map<String, dynamic>, uid);
+    } else {
+      // User baru — simpan data awal ke Firestore
+      final newUser = UserModel(
+        uid: uid,
+        name: name ?? phone,
+        email: phone, // gunakan nomor telepon sebagai identifier
+        role: role ?? 'student',
+        department: department ?? '',
+        phoneNumber: phone,
+      );
+      await _firestore.collection('users').doc(uid).set(newUser.toMap());
+      return newUser;
+    }
+  }
+
   // Logout
   Future<void> logout() async {
     await _auth.signOut();

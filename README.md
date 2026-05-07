@@ -2,6 +2,10 @@
 
 SBM ITB Ticketing App adalah aplikasi pelaporan keluhan fasilitas, perangkat IT, dan operasional lainnya yang dirancang khusus untuk civitas akademika School of Business and Management (SBM) ITB. Aplikasi ini mempermudah pelaporan, pemantauan, dan penyelesaian masalah secara *real-time*.
 
+## Arsitektur Alur Sistem
+
+![Alur Sistem Ticketing SBM ITB](assets/helpdesk_sequence_diagram_ticketing_sbm_itb.svg)
+
 ## Fitur Utama
 
 - **Sistem Autentikasi**: Login dan Pendaftaran aman yang terintegrasi dengan Firebase Authentication. Mendukung validasi domain email (`@itb.ac.id` / `@sbm-itb.ac.id`).
