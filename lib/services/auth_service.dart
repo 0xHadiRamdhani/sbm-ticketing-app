@@ -17,17 +17,23 @@ class AuthService {
     DocumentSnapshot doc = await _firestore.collection('users').doc(currentUser.uid).get();
     if (doc.exists) {
       return UserModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+    } else {
+      // Auto-create missing document to prevent silent login failures
+      UserModel newUser = UserModel(
+        uid: currentUser.uid,
+        name: currentUser.displayName ?? 'Pengguna',
+        email: currentUser.email ?? '',
+        role: 'student', // default
+        department: '',
+      );
+      await _firestore.collection('users').doc(newUser.uid).set(newUser.toMap());
+      return newUser;
     }
-    return null;
   }
 
-  // Registrasi
+  // Registrasi (menerima semua email termasuk Gmail)
   Future<UserModel?> registerWithEmail(String email, String password, String name, String role, String department) async {
     try {
-      if (!email.endsWith('@itb.ac.id') && !email.endsWith('@sbm-itb.ac.id')) {
-        throw Exception("Harap gunakan email institusi (@itb.ac.id / @sbm-itb.ac.id)");
-      }
-
       UserCredential credential = await _auth.createUserWithEmailAndPassword(email: email, password: password);
       
       UserModel newUser = UserModel(
@@ -43,6 +49,22 @@ class AuthService {
       return newUser;
     } catch (e) {
       rethrow;
+    }
+  }
+
+  // Cek apakah email sudah terdaftar dengan query ke Firestore
+  // (lebih andal dari Firebase Auth karena versi terbaru mengaktifkan
+  //  Email Enumeration Protection yang menyembunyikan status email)
+  Future<bool> isEmailRegistered(String email) async {
+    try {
+      final query = await _firestore
+          .collection('users')
+          .where('email', isEqualTo: email)
+          .limit(1)
+          .get();
+      return query.docs.isNotEmpty;
+    } catch (_) {
+      return false;
     }
   }
 

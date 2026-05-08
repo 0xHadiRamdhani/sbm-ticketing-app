@@ -1,40 +1,37 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
 import '../settings_screen.dart';
+import '../shared/ticket_card.dart';
+import 'admin_tickets_screen.dart';
+import 'user_management_screen.dart';
 
 class AdminDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Admin Dashboard'),
-        actions: [
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: buildSbmAppBar(
+        onSettingsTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => SettingsScreen()),
+          );
+        },
+        extraActions: [
           IconButton(
-            icon: Icon(Icons.settings),
+            icon: const Icon(Icons.people_outline_rounded, color: Color(0xFF1A3A5C), size: 24),
+            tooltip: 'Manajemen User',
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => SettingsScreen()),
+                MaterialPageRoute(builder: (_) => UserManagementScreen()),
               );
             },
-          )
+          ),
+          const SizedBox(width: 8),
         ],
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.admin_panel_settings, size: 100, color: Colors.blue[800]),
-            SizedBox(height: 16),
-            Text('Dashboard Admin', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-            SizedBox(height: 8),
-            Text('Fitur statistik dan manajemen sedang dikembangkan', style: TextStyle(color: Colors.grey)),
-          ],
-        ),
-      ),
+      // Admin dashboard fokus pada daftar tiket (sama seperti Requester & Technician)
+      body: AdminTicketsScreen(),
     );
   }
 }

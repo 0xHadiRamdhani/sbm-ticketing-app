@@ -21,11 +21,20 @@ class AuthProvider with ChangeNotifier {
         if (firebaseUser == null) {
           _user = null;
         } else {
-          _user = await _authService.getCurrentUser();
+          UserModel? fetchedUser = await _authService.getCurrentUser();
+          if (fetchedUser != null) {
+            _user = fetchedUser;
+          } else {
+            // Failsafe: Jika fetch gagal tapi _user sudah disetel sebelumnya oleh login/register, 
+            // jangan hapus _user (Race condition protection).
+            if (_user == null || _user!.uid != firebaseUser.uid) {
+              _user = null;
+            }
+          }
         }
       } catch (e) {
         debugPrint("Error fetching user data from Firestore: $e");
-        _user = null; // Terjadi error (misal Firestore permissions)
+        // Jangan hapus _user jika hanya error jaringan sementara
       } finally {
         _isLoading = false;
         notifyListeners();

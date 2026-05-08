@@ -18,25 +18,28 @@ class TicketService {
       query = query
           .where('requester_id', isEqualTo: uid)
           .orderBy('created_at', descending: true);
-    } else if (role == 'technician') {
-      if (status == 'Open') {
-        query = query
-            .where('status', isEqualTo: 'Open')
-            .orderBy('created_at', descending: true);
-      } else {
-        query = query
-            .where('technician_id', isEqualTo: uid)
-            .orderBy('created_at', descending: true);
-      }
     } else {
-      // Admin: lihat semua tiket
+      // For technician and admin, fetch all to avoid composite index crashes,
+      // and perform filtering locally in memory.
       query = query.orderBy('created_at', descending: true);
     }
 
     return query.snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) {
+      var tickets = snapshot.docs.map((doc) {
         return TicketModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
       }).toList();
+
+      // Technician base filter: Only see 'Open' tickets OR tickets assigned to them
+      if (role == 'technician') {
+        tickets = tickets.where((t) => t.status == 'Open' || t.technicianId == uid).toList();
+      }
+
+      // Explicit status filter from parameter
+      if (status != null && status.isNotEmpty) {
+        tickets = tickets.where((t) => t.status == status).toList();
+      }
+
+      return tickets;
     });
   }
 
@@ -92,10 +95,13 @@ class TicketService {
   }
 
   // Update status tiket (Misal Teknisi mengambil atau menyelesaikannya)
-  Future<void> updateTicketStatus(String ticketId, String newStatus, {String? technicianId, List<XFile>? resolvedImages}) async {
+  Future<void> updateTicketStatus(String ticketId, String newStatus, {String? technicianId, List<XFile>? resolvedImages, String? note}) async {
     Map<String, dynamic> updateData = {'status': newStatus};
     if (technicianId != null) {
       updateData['technician_id'] = technicianId;
+    }
+    if (note != null && note.isNotEmpty) {
+      updateData['note'] = note;
     }
 
     if (resolvedImages != null && resolvedImages.isNotEmpty) {
@@ -129,5 +135,17 @@ class TicketService {
     }
 
     await _firestore.collection('tickets').doc(ticketId).update(updateData);
+  }
+
+  // Menghapus tiket (Hanya Admin)
+  Future<void> deleteTicket(String ticketId) async {
+    await _firestore.collection('tickets').doc(ticketId).delete();
+  }
+
+  // Mengubah tanggal tiket (Hanya Admin)
+  Future<void> updateTicketDate(String ticketId, DateTime newDate) async {
+    await _firestore.collection('tickets').doc(ticketId).update({
+      'created_at': Timestamp.fromDate(newDate),
+    });
   }
 }

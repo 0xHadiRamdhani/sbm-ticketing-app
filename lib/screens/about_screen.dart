@@ -4,86 +4,133 @@ class AboutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: Text('Tentang Aplikasi'),
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        shadowColor: Colors.black12,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20,
+            color: Color(0xFF1A3A5C),
+          ),
           onPressed: () => Navigator.pop(context),
         ),
+        title: const Text(
+          'Tentang Aplikasi',
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF1A3A5C),
+          ),
+        ),
+        centerTitle: false,
+        titleSpacing: 0,
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(24),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            SizedBox(height: 24),
-            // Logo App
+            // Logo App Container
             Container(
-              width: 120,
-              height: 120,
+              width: 130,
+              height: 130,
               decoration: BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFFE2E8F0)),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: Offset(0, 4),
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
                   ),
                 ],
               ),
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               child: Image.asset(
                 'assets/sbm.png',
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) {
-                  return Icon(Icons.confirmation_num, size: 60, color: Colors.blue[800]);
+                  return const Icon(
+                    Icons.confirmation_num_rounded,
+                    size: 60,
+                    color: Color(0xFF1A3A5C),
+                  );
                 },
               ),
             ),
-            SizedBox(height: 24),
-            Text(
-              'SBM ITB Ticketing',
+            const SizedBox(height: 32),
+
+            const Text(
+              'SBM ITB Support',
               style: TextStyle(
-                fontSize: 24,
+                fontSize: 26,
                 fontWeight: FontWeight.bold,
-                color: Colors.blue[900],
+                color: Color(0xFF0F172A),
+                letterSpacing: -0.5,
               ),
             ),
-            SizedBox(height: 8),
-            Text(
-              'Versi 1.0.0',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            SizedBox(height: 32),
+            const SizedBox(height: 8),
             Container(
-              padding: EdgeInsets.all(20),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade200),
+                color: const Color(0xFFEEF2FF),
+                borderRadius: BorderRadius.circular(20),
               ),
-              child: Text(
-                'Aplikasi SBM ITB Ticketing dibuat untuk mempermudah civitas akademika SBM ITB dalam melaporkan kendala fasilitas, IT, dan operasional lainnya.\n\nDengan aplikasi ini, Anda dapat melacak status tiket keluhan Anda secara real-time dan memastikan teknisi yang tepat segera menangani masalah Anda.',
-                textAlign: TextAlign.center,
+              child: const Text(
+                'Versi 1.0.0',
                 style: TextStyle(
-                  fontSize: 15,
-                  height: 1.6,
-                  color: Colors.grey[800],
+                  fontSize: 13,
+                  color: Color(0xFF1A73E8),
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
-            SizedBox(height: 32),
-            Text(
-              '© 2026 SBM ITB',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[500],
+            const SizedBox(height: 40),
+
+            // Info Box
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.02),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
+              child: const Text(
+                'Aplikasi SBM ITB Support dirancang khusus untuk mempermudah civitas akademika SBM ITB dalam melaporkan berbagai kendala seperti keluhan Fasilitas, IT Support, maupun Akademik.\n\nDengan sistem pelacakan tiket yang terintegrasi, Anda dapat memonitor status penyelesaian masalah secara real-time dan memastikan tim teknisi segera memberikan solusi terbaik.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1.7,
+                  color: Color(0xFF64748B),
+                ),
+              ),
+            ),
+            const SizedBox(height: 48),
+
+            // Footer
+            const Text(
+              '© 2026 SBM ITB. All rights reserved.',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF94A3B8),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Code by Hadi Ramdhani',
+              style: TextStyle(fontSize: 12, color: Color(0xFFCBD5E1)),
             ),
           ],
         ),

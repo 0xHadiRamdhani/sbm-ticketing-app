@@ -36,10 +36,28 @@ class TicketProvider with ChangeNotifier {
     }
   }
 
-  Future<void> updateTicketStatus(String ticketId, String status, {String? technicianId, List<XFile>? resolvedImages}) async {
+  Future<void> updateTicketStatus(String ticketId, String status, {String? technicianId, List<XFile>? resolvedImages, String? note}) async {
     _setLoading(true);
     try {
-      await _ticketService.updateTicketStatus(ticketId, status, technicianId: technicianId, resolvedImages: resolvedImages);
+      await _ticketService.updateTicketStatus(ticketId, status, technicianId: technicianId, resolvedImages: resolvedImages, note: note);
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> deleteTicket(String ticketId) async {
+    _setLoading(true);
+    try {
+      await _ticketService.deleteTicket(ticketId);
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> updateTicketDate(String ticketId, DateTime newDate) async {
+    _setLoading(true);
+    try {
+      await _ticketService.updateTicketDate(ticketId, newDate);
     } finally {
       _setLoading(false);
     }

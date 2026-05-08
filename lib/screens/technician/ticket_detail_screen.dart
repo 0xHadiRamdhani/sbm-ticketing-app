@@ -1,432 +1,888 @@
 import 'dart:io';
-import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
+import '../../models/ticket_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/ticket_provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:intl/intl.dart';
-import '../../models/ticket_model.dart';
 import '../chat_screen.dart';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Warna & helpers
+// ─────────────────────────────────────────────────────────────────────────────
+Color _statusColor(String status) {
+  switch (status.toLowerCase()) {
+    case 'in progress':
+      return const Color(0xFF1A73E8);
+    case 'resolved':
+      return const Color(0xFF1E8C45);
+    case 'pending':
+      return const Color(0xFFF29900);
+    default:
+      return const Color(0xFF9E9E9E);
+  }
+}
+
+Color _statusBg(String status) {
+  switch (status.toLowerCase()) {
+    case 'in progress':
+      return const Color(0xFFE8F0FE);
+    case 'resolved':
+      return const Color(0xFFE6F4EA);
+    case 'pending':
+      return const Color(0xFFFEF7E0);
+    default:
+      return const Color(0xFFF5F5F5);
+  }
+}
+
+String _statusLabel(String status) {
+  switch (status.toLowerCase()) {
+    case 'in progress':
+      return 'In Progress';
+    case 'resolved':
+      return 'Resolved';
+    case 'pending':
+      return 'Pending';
+    case 'open':
+      return 'Open';
+    default:
+      return status;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Main Screen
+// ─────────────────────────────────────────────────────────────────────────────
 class TicketDetailScreen extends StatelessWidget {
   final TicketModel ticket;
-
-  TicketDetailScreen({required this.ticket});
-
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'open':
-        return Colors.red;
-      case 'in progress':
-        return Colors.orange.shade700;
-      case 'resolved':
-        return Colors.green;
-      default:
-        return Colors.grey.shade700;
-    }
-  }
-
-  Color _getStatusBgColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'open':
-        return Colors.red.shade50;
-      case 'in progress':
-        return Colors.orange.shade50;
-      case 'resolved':
-        return Colors.green.shade50;
-      default:
-        return Colors.grey.shade100;
-    }
-  }
+  const TicketDetailScreen({Key? key, required this.ticket}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final user = Provider.of<AuthProvider>(context, listen: false).user;
+    final isTech = user?.role == 'technician';
     final ticketProvider = Provider.of<TicketProvider>(context);
 
+    final isAdmin = user?.role == 'admin';
+
+    // Short ticket ID display
+    final shortId =
+        '#TKT-${ticket.ticketId.substring(0, 8).toUpperCase()}';
+
+    final techKey = GlobalKey<_TechnicianActionState>();
+
+    Future<void> _deleteTicket(BuildContext ctx) async {
+      final confirm = await showDialog<bool>(
+        context: ctx,
+        builder: (c) => AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text('Hapus Tiket', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1A3A5C))),
+          content: const Text('Apakah Anda yakin ingin menghapus tiket ini secara permanen?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(c, false),
+              child: const Text('Batal', style: TextStyle(color: Color(0xFF64748B))),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(c, true),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade700, elevation: 0),
+              child: const Text('Hapus', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      );
+      if (confirm == true && ctx.mounted) {
+        await ctx.read<TicketProvider>().deleteTicket(ticket.ticketId);
+        if (ctx.mounted) Navigator.pop(ctx);
+      }
+    }
+
+    Future<void> _changeDate(BuildContext ctx) async {
+      final picked = await showDatePicker(
+        context: ctx,
+        initialDate: ticket.createdAt,
+        firstDate: DateTime(2020),
+        lastDate: DateTime(2030),
+        builder: (c, child) {
+          return Theme(
+            data: Theme.of(c).copyWith(
+              colorScheme: const ColorScheme.light(
+                primary: Color(0xFF1A3A5C), // header background color
+                onPrimary: Colors.white, // header text color
+                onSurface: Color(0xFF1A3A5C), // body text color
+              ),
+            ),
+            child: child!,
+          );
+        },
+      );
+
+      if (picked != null && ctx.mounted) {
+        final time = await showTimePicker(
+          context: ctx,
+          initialTime: TimeOfDay.fromDateTime(ticket.createdAt),
+          builder: (c, child) {
+            return Theme(
+              data: Theme.of(c).copyWith(
+                colorScheme: const ColorScheme.light(
+                  primary: Color(0xFF1A3A5C),
+                  onSurface: Color(0xFF1A3A5C),
+                ),
+              ),
+              child: child!,
+            );
+          },
+        );
+
+        if (time != null && ctx.mounted) {
+          final newDate = DateTime(picked.year, picked.month, picked.day, time.hour, time.minute);
+          await ctx.read<TicketProvider>().updateTicketDate(ticket.ticketId, newDate);
+          if (ctx.mounted) {
+             ScaffoldMessenger.of(ctx).showSnackBar(
+               const SnackBar(content: Text('Tanggal tiket berhasil diperbarui. Silakan refresh halaman untuk melihat perubahan.'), backgroundColor: Color(0xFF16A34A)),
+             );
+          }
+        }
+      }
+    }
+
     return Scaffold(
-      backgroundColor: Colors.grey[50], // Lighter background
-      appBar: AppBar(
-        title: Text(
-          'Detail Tiket',
-          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.blue[800],
-        foregroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: Icon(Icons.arrow_back_ios_new, size: 20),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.chat_bubble_outline),
-            tooltip: 'Chat',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => ChatScreen(ticket: ticket)),
-              );
-            },
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Status Badge
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: _getStatusBgColor(ticket.status),
-                borderRadius: BorderRadius.circular(
-                  6,
-                ), // Slightly rounded instead of circular
-                border: Border.all(
-                  color: _getStatusColor(ticket.status).withOpacity(0.3),
-                ),
-              ),
-              child: Text(
-                ticket.status.toUpperCase(),
-                style: TextStyle(
-                  color: _getStatusColor(ticket.status),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ),
-            SizedBox(height: 16),
-
-            // Category Title
-            Text(
-              ticket.category,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-            SizedBox(height: 24),
-
-            Text(
-              'Lampiran Foto',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[800],
-              ),
-            ),
-            SizedBox(height: 12),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: Image.network(
-                ticket.imageUrl!,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    height: 150,
-                    color: Colors.grey[200],
-                    alignment: Alignment.center,
-                    child: Icon(
-                      Icons.broken_image,
-                      color: Colors.grey[400],
-                      size: 50,
-                    ),
-                  );
-                },
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Container(
-                    height: 150,
-                    color: Colors.grey[100],
-                    alignment: Alignment.center,
-                    child: CircularProgressIndicator(
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded /
-                                loadingProgress.expectedTotalBytes!
-                          : null,
-                    ),
-                  );
-                },
-              ),
-            ),
-            SizedBox(height: 24),
-
-            // Detail Cards
-            Container(
+      backgroundColor: const Color(0xFFF7F9FC),
+      // ── Bottom Button (Teknisi) ──────────────────────────────────────────
+      bottomNavigationBar: isTech
+          ? Container(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(10), // Not too round
-                border: Border.all(color: Colors.grey.shade200),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.02),
-                    blurRadius: 10,
-                    offset: Offset(0, 4),
+                    color: Colors.black.withOpacity(0.07),
+                    blurRadius: 12,
+                    offset: const Offset(0, -4),
                   ),
                 ],
               ),
+              child: Consumer<TicketProvider>(
+                builder: (_, tp, __) => ElevatedButton.icon(
+                  onPressed: tp.isLoading
+                      ? null
+                      : () => techKey.currentState?._submit(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1A3A5C),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
+                    minimumSize: const Size(double.infinity, 52),
+                  ),
+                  icon: tp.isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                              color: Colors.white, strokeWidth: 2),
+                        )
+                      : const Icon(Icons.check_circle_outline_rounded,
+                          size: 20),
+                  label: Text(
+                    tp.isLoading ? 'Menyimpan...' : 'Selesaikan Tiket  ▶',
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            )
+          : null,
+      // ── AppBar ──────────────────────────────────────────────────────────
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        shadowColor: Colors.black12,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              size: 20, color: Color(0xFF1A3A5C)),
+          onPressed: () => Navigator.pop(context),
+          tooltip: 'Kembali ke Kotak Masuk',
+        ),
+        title: const Text(
+          'Kembali ke Kotak Masuk',
+          style: TextStyle(
+            fontSize: 13,
+            color: Color(0xFF1A3A5C),
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        titleSpacing: 0,
+        centerTitle: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.chat_bubble_outline_rounded,
+                color: Color(0xFF1A73E8)),
+            tooltip: 'Chat',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => ChatScreen(ticket: ticket)),
+            ),
+          ),
+          if (isAdmin)
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert_rounded, color: Color(0xFF1A3A5C)),
+              onSelected: (val) {
+                if (val == 'edit_date') {
+                  _changeDate(context);
+                } else if (val == 'delete') {
+                  _deleteTicket(context);
+                }
+              },
+              itemBuilder: (ctx) => [
+                const PopupMenuItem(
+                  value: 'edit_date',
+                  child: Row(
+                    children: [
+                      Icon(Icons.edit_calendar_rounded, color: Color(0xFF1A3A5C), size: 20),
+                      SizedBox(width: 8),
+                      Text('Ubah Tanggal', style: TextStyle(color: Color(0xFF1A3A5C))),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete_outline_rounded, color: Colors.red, size: 20),
+                      SizedBox(width: 8),
+                      Text('Hapus Tiket', style: TextStyle(color: Colors.red)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          const SizedBox(width: 4),
+        ],
+      ),
+
+      // ── Body ─────────────────────────────────────────────────────────────
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Status chip + ticket ID
+            Row(
+              children: [
+                _StatusChip(status: ticket.status),
+                const SizedBox(width: 10),
+                Text(
+                  shortId,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF6B7280),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Title
+            Text(
+              ticket.category,
+              style: const TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1A1A2E),
+                height: 1.2,
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // ── Detail Laporan Card ─────────────────────────────────────
+            _SectionCard(
+              title: 'Detail Laporan',
               child: Column(
                 children: [
-                  _buildDetailRow(
-                    icon: Icons.person_outline,
-                    title: 'Pelapor',
-                    child: FutureBuilder<DocumentSnapshot>(
-                      future: FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(ticket.requesterId)
-                          .get(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return Text(
-                            'Memuat...',
-                            style: TextStyle(color: Colors.grey),
-                          );
-                        }
-                        if (snapshot.hasError ||
-                            !snapshot.hasData ||
-                            !snapshot.data!.exists) {
-                          return Text(
-                            'Tidak diketahui',
-                            style: TextStyle(fontWeight: FontWeight.w500),
-                          );
-                        }
-                        var userData =
-                            snapshot.data!.data() as Map<String, dynamic>;
-                        return Text(
-                          userData['name'] ?? 'Tidak diketahui',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 15,
-                          ),
+                  _DetailRow(
+                    icon: Icons.location_on_outlined,
+                    label: 'Lokasi',
+                    value: ticket.location ?? 'Tidak tersedia',
+                  ),
+                  const _Divider(),
+                  _DetailRow(
+                    icon: Icons.category_outlined,
+                    label: 'Kategori',
+                    value: ticket.category,
+                  ),
+                  const _Divider(),
+                  // Pelapor — async fetch
+                  _RequesterRow(requesterId: ticket.requesterId),
+                  const _Divider(),
+                  _DetailRow(
+                    icon: Icons.access_time_rounded,
+                    label: 'Waktu Laporan',
+                    value: DateFormat("dd MMM yyyy, HH:mm 'WIB'")
+                        .format(ticket.createdAt),
+                  ),
+                  const SizedBox(height: 12),
+                  // Deskripsi
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF7F9FC),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFE5E7EB)),
+                      ),
+                      child: Text(
+                        '"${ticket.description}"',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          height: 1.55,
+                          color: Color(0xFF374151),
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // ── Lampiran Foto ───────────────────────────────────────────
+            if (ticket.imageUrl != null && ticket.imageUrl!.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              _SectionCard(
+                title: 'Lampiran Foto',
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.network(
+                      ticket.imageUrl!,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        height: 150,
+                        color: const Color(0xFFF3F4F6),
+                        alignment: Alignment.center,
+                        child: const Icon(Icons.broken_image_outlined,
+                            color: Color(0xFF9CA3AF), size: 48),
+                      ),
+                      loadingBuilder: (_, child, progress) {
+                        if (progress == null) return child;
+                        return Container(
+                          height: 150,
+                          alignment: Alignment.center,
+                          child: const CircularProgressIndicator(strokeWidth: 2),
                         );
                       },
                     ),
                   ),
-                  Divider(height: 1, color: Colors.grey.shade100),
-                  _buildDetailRow(
-                    icon: Icons.calendar_today_outlined,
-                    title: 'Tanggal',
-                    child: Text(
-                      DateFormat('dd MMM yyyy, HH:mm').format(ticket.createdAt),
-                      style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 15,
-                      ),
-                    ),
-                  ),
-                  Divider(height: 1, color: Colors.grey.shade100),
-                  _buildDetailRow(
-                    icon: Icons.location_on_outlined,
-                    title: 'Lokasi',
-                    child: Text(
-                      ticket.location ?? 'Tidak diketahui',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 15,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 24),
-
-            // Description
-            Text(
-              'Deskripsi Masalah',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[800],
-              ),
-            ),
-            SizedBox(height: 12),
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10), // Not too round
-                border: Border.all(color: Colors.grey.shade200),
-              ),
-              child: Text(
-                ticket.description,
-                style: TextStyle(
-                  fontSize: 15,
-                  height: 1.5,
-                  color: Colors.black87,
                 ),
-              ),
-            ),
-
-            // // Image Attachment
-            // if (ticket.imageUrl != null && ticket.imageUrl!.isNotEmpty) ...[
-            //   SizedBox(height: 24),
-            //   Text(
-            //     'Lampiran Foto',
-            //     style: TextStyle(
-            //       fontSize: 16,
-            //       fontWeight: FontWeight.w600,
-            //       color: Colors.grey[800],
-            //     ),
-            //   ),
-            //   SizedBox(height: 12),
-            //   ClipRRect(
-            //     borderRadius: BorderRadius.circular(10),
-            //     child: Image.network(
-            //       ticket.imageUrl!,
-            //       width: double.infinity,
-            //       fit: BoxFit.cover,
-            //       errorBuilder: (context, error, stackTrace) {
-            //         return Container(
-            //           height: 150,
-            //           color: Colors.grey[200],
-            //           alignment: Alignment.center,
-            //           child: Icon(Icons.broken_image, color: Colors.grey[400], size: 50),
-            //         );
-            //       },
-            //     ),
-            //   ),
-            // ],
-
-            // Resolved Image Attachments
-            if (ticket.resolvedImageUrls != null &&
-                ticket.resolvedImageUrls!.isNotEmpty) ...[
-              SizedBox(height: 12),
-              Text(
-                'Bukti Penyelesaian',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey[800],
-                ),
-              ),
-              SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: ticket.resolvedImageUrls!
-                    .map(
-                      (url) => ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: Image.network(
-                          url,
-                          width: 100,
-                          height: 100,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              width: 100,
-                              height: 100,
-                              color: Colors.grey[200],
-                              alignment: Alignment.center,
-                              child: Icon(
-                                Icons.broken_image,
-                                color: Colors.grey[400],
-                                size: 30,
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    )
-                    .toList(),
               ),
             ],
 
-            SizedBox(height: 40),
-
-            // Technician Action Buttons
-            if (user?.role == 'technician') ...[
-              if (ticket.status == 'Open')
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: ticketProvider.isLoading
-                        ? null
-                        : () async {
-                            await ticketProvider.updateTicketStatus(
-                              ticket.ticketId,
-                              'In Progress',
-                              technicianId: user?.uid,
-                            );
-                            if (!context.mounted) return;
-                            Navigator.pop(context);
-                          },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue[800],
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ), // Semi-rounded corners
-                    ),
-                    child: ticketProvider.isLoading
-                        ? SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : Text(
-                            'Ambil Tiket Ini',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
+            // ── Tindakan / Catatan Teknisi ─────────────────────────────
+            if ((ticket.note != null && ticket.note!.isNotEmpty) ||
+                (ticket.resolvedImageUrls != null && ticket.resolvedImageUrls!.isNotEmpty)) ...[
+              const SizedBox(height: 20),
+              _SectionCard(
+                title: 'Tindakan Teknisi',
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (ticket.note != null && ticket.note!.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF0FDF4),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: const Color(0xFFBBF7D0)),
+                          ),
+                          child: Text(
+                            ticket.note!,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              height: 1.55,
+                              color: Color(0xFF166534),
                             ),
                           ),
+                        ),
+                      ],
+                      if (ticket.resolvedImageUrls != null && ticket.resolvedImageUrls!.isNotEmpty) ...[
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Foto Perbaikan:',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF6B7280),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: ticket.resolvedImageUrls!
+                              .map(
+                                (url) => ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.network(
+                                    url,
+                                    width: 100,
+                                    height: 100,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) => Container(
+                                      width: 100,
+                                      height: 100,
+                                      color: const Color(0xFFF3F4F6),
+                                      alignment: Alignment.center,
+                                      child: const Icon(Icons.broken_image_outlined,
+                                          color: Color(0xFF9CA3AF), size: 32),
+                                    ),
+                                    loadingBuilder: (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return Container(
+                                        width: 100,
+                                        height: 100,
+                                        color: const Color(0xFFF3F4F6),
+                                        alignment: Alignment.center,
+                                        child: const SizedBox(
+                                          width: 24,
+                                          height: 24,
+                                          child: CircularProgressIndicator(strokeWidth: 2),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                        ),
+                      ],
+                    ],
                   ),
-                )
-              else if (ticket.status == 'In Progress' &&
-                  ticket.technicianId == user?.uid)
-                _ResolveTicketAction(
-                  ticketId: ticket.ticketId,
-                  ticketProvider: ticketProvider,
                 ),
+              ),
+            ],
+
+            // ── Aksi Teknisi ────────────────────────────────────────────
+            if (isTech) ...[
+              const SizedBox(height: 20),
+              _TechnicianAction(
+                key: techKey,
+                ticket: ticket,
+                ticketProvider: ticketProvider,
+                technicianId: user?.uid,
+              ),
             ],
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildDetailRow({
-    required IconData icon,
-    required String title,
-    required Widget child,
-  }) {
+// ─────────────────────────────────────────────────────────────────────────────
+// Teknisi: Pembaruan Status + Catatan + Foto
+// ─────────────────────────────────────────────────────────────────────────────
+class _TechnicianAction extends StatefulWidget {
+  final TicketModel ticket;
+  final TicketProvider ticketProvider;
+  final String? technicianId;
+
+  const _TechnicianAction({
+    super.key,
+    required this.ticket,
+    required this.ticketProvider,
+    this.technicianId,
+  });
+
+  @override
+  State<_TechnicianAction> createState() => _TechnicianActionState();
+}
+
+class _TechnicianActionState extends State<_TechnicianAction> {
+  late String _selectedStatus;
+  final _noteController = TextEditingController();
+  XFile? _beforeImage;
+  XFile? _afterImage;
+  final _picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedStatus = widget.ticket.status;
+    if (widget.ticket.note != null) {
+      _noteController.text = widget.ticket.note!;
+    }
+  }
+
+  @override
+  void dispose() {
+    _noteController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickImage(bool isBefore) async {
+    final img = await _picker.pickImage(
+        source: ImageSource.gallery, imageQuality: 80);
+    if (img != null) {
+      setState(() {
+        if (isBefore) {
+          _beforeImage = img;
+        } else {
+          _afterImage = img;
+        }
+      });
+    }
+  }
+
+  Future<void> _submit() async {
+    final images = [
+      if (_beforeImage != null) _beforeImage!,
+      if (_afterImage != null) _afterImage!,
+    ];
+    
+    await widget.ticketProvider.updateTicketStatus(
+      widget.ticket.ticketId,
+      _selectedStatus,
+      technicianId: widget.technicianId,
+      resolvedImages: images,
+      note: _noteController.text.trim(),
+    );
+    
+    if (!mounted) return;
+    Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final statuses = ['Pending', 'In Progress', 'Resolved'];
+
+    return _SectionCard(
+      title: 'Pembaruan Status',
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Status toggle chips
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: statuses.map((s) {
+                final selected = _selectedStatus == s;
+                return ChoiceChip(
+                  label: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        selected
+                            ? Icons.check_circle_rounded
+                            : Icons.radio_button_unchecked_rounded,
+                        size: 16,
+                        color: selected ? Colors.white : _statusColor(s),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(s),
+                    ],
+                  ),
+                  selected: selected,
+                  onSelected: (_) => setState(() => _selectedStatus = s),
+                  selectedColor: _statusColor(s),
+                  backgroundColor: _statusBg(s),
+                  labelStyle: TextStyle(
+                    color: selected ? Colors.white : _statusColor(s),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    side: BorderSide(
+                      color: selected
+                          ? _statusColor(s)
+                          : _statusColor(s).withOpacity(0.4),
+                    ),
+                  ),
+                  showCheckmark: false,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 20),
+
+            // Catatan Perbaikan
+            const Text(
+              'Catatan Perbaikan',
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF374151)),
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _noteController,
+              minLines: 4,
+              maxLines: 6,
+              decoration: InputDecoration(
+                hintText: 'Masukkan detail tindakan yang telah dilakukan...',
+                hintStyle: const TextStyle(
+                    color: Color(0xFFADB5BD), fontSize: 13),
+                filled: true,
+                fillColor: const Color(0xFFF7F9FC),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide:
+                      const BorderSide(color: Color(0xFFE5E7EB)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide:
+                      const BorderSide(color: Color(0xFFE5E7EB)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                      color: Color(0xFF1A73E8), width: 1.5),
+                ),
+                contentPadding: const EdgeInsets.all(14),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Bukti Foto Perbaikan
+            const Text(
+              'Bukti Foto Perbaikan',
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF374151)),
+            ),
+            const SizedBox(height: 10),
+
+            Row(
+              children: [
+                Expanded(
+                  child: _PhotoUploadBox(
+                    label: 'Unggah Foto Sebelum',
+                    image: _beforeImage,
+                    onTap: () => _pickImage(true),
+                    onRemove: () => setState(() => _beforeImage = null),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _PhotoUploadBox(
+                    label: 'Unggah Foto Sesudah',
+                    image: _afterImage,
+                    onTap: () => _pickImage(false),
+                    onRemove: () => setState(() => _afterImage = null),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Format didukung: JPG, PNG (Maks 5MB per foto)',
+              style: TextStyle(fontSize: 11, color: Color(0xFF9CA3AF)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Photo Upload Box
+// ─────────────────────────────────────────────────────────────────────────────
+class _PhotoUploadBox extends StatelessWidget {
+  final String label;
+  final XFile? image;
+  final VoidCallback onTap;
+  final VoidCallback onRemove;
+
+  const _PhotoUploadBox({
+    required this.label,
+    required this.image,
+    required this.onTap,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 130,
+        decoration: BoxDecoration(
+          color: const Color(0xFFF7F9FC),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: const Color(0xFFD1D5DB),
+            style: BorderStyle.solid,
+          ),
+        ),
+        child: image == null
+            ? Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.add_photo_alternate_outlined,
+                      size: 36, color: Colors.grey[400]),
+                  const SizedBox(height: 8),
+                  Text(
+                    label,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        fontSize: 12, color: Colors.grey[500]),
+                  ),
+                ],
+              )
+            : Stack(
+                fit: StackFit.expand,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(11),
+                    child: Image.file(
+                      File(image!.path),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  Positioned(
+                    top: 6,
+                    right: 6,
+                    child: GestureDetector(
+                      onTap: onRemove,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.black54,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.close,
+                            color: Colors.white, size: 14),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Reusable Widgets
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _StatusChip extends StatelessWidget {
+  final String status;
+  const _StatusChip({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      decoration: BoxDecoration(
+        color: _statusBg(status),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+            color: _statusColor(status).withOpacity(0.3)),
+      ),
+      child: Text(
+        _statusLabel(status),
+        style: TextStyle(
+          color: _statusColor(status),
+          fontWeight: FontWeight.w700,
+          fontSize: 12,
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionCard extends StatelessWidget {
+  final String title;
+  final Widget child;
+  const _SectionCard({required this.title, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1A1A2E),
+              ),
+            ),
+          ),
+          const Divider(height: 1, color: Color(0xFFE5E7EB)),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  const _DetailRow(
+      {required this.icon, required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 22, color: Colors.blue[700]),
-          SizedBox(width: 14),
+          Icon(icon, size: 20, color: const Color(0xFF6B7280)),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey[500],
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                SizedBox(height: 4),
-                child,
+                Text(label,
+                    style: const TextStyle(
+                        fontSize: 12, color: Color(0xFF9CA3AF))),
+                const SizedBox(height: 3),
+                Text(value,
+                    style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1F2937))),
               ],
             ),
           ),
@@ -436,139 +892,65 @@ class TicketDetailScreen extends StatelessWidget {
   }
 }
 
-class _ResolveTicketAction extends StatefulWidget {
-  final String ticketId;
-  final TicketProvider ticketProvider;
-
-  _ResolveTicketAction({required this.ticketId, required this.ticketProvider});
-
-  @override
-  __ResolveTicketActionState createState() => __ResolveTicketActionState();
-}
-
-class __ResolveTicketActionState extends State<_ResolveTicketAction> {
-  List<XFile> _resolvedImages = [];
-  final ImagePicker _picker = ImagePicker();
-
-  Future<void> _pickImages() async {
-    if (_resolvedImages.length >= 3) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Maksimal 3 foto')));
-      return;
-    }
-    final List<XFile> selectedImages = await _picker.pickMultiImage();
-    if (selectedImages.isNotEmpty) {
-      setState(() {
-        _resolvedImages.addAll(selectedImages);
-        if (_resolvedImages.length > 3) {
-          _resolvedImages = _resolvedImages.sublist(0, 3);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Hanya 3 foto pertama yang diambil')),
-          );
-        }
-      });
-    }
-  }
+class _RequesterRow extends StatelessWidget {
+  final String requesterId;
+  const _RequesterRow({required this.requesterId});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (_resolvedImages.isNotEmpty)
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: _resolvedImages
-                .map(
-                  (img) => Stack(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.file(
-                          File(img.path),
-                          width: 80,
-                          height: 80,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      Positioned(
-                        right: 0,
-                        top: 0,
-                        child: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _resolvedImages.remove(img);
-                            });
-                          },
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.black54,
-                              shape: BoxShape.circle,
-                            ),
-                            padding: EdgeInsets.all(2),
-                            child: Icon(
-                              Icons.close,
-                              color: Colors.white,
-                              size: 16,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-                .toList(),
-          ),
-        SizedBox(height: 12),
-        OutlinedButton.icon(
-          onPressed: _resolvedImages.length < 3 ? _pickImages : null,
-          icon: Icon(Icons.add_a_photo),
-          label: Text('Tambah Foto Bukti (Maks 3)'),
-          style: OutlinedButton.styleFrom(
-            padding: EdgeInsets.symmetric(vertical: 12),
-          ),
-        ),
-        SizedBox(height: 12),
-        SizedBox(
-          height: 50,
-          child: ElevatedButton(
-            onPressed: widget.ticketProvider.isLoading
-                ? null
-                : () async {
-                    await widget.ticketProvider.updateTicketStatus(
-                      widget.ticketId,
-                      'Resolved',
-                      resolvedImages: _resolvedImages,
-                    );
-                    if (!context.mounted) return;
-                    Navigator.pop(context);
-                  },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green[700],
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: widget.ticketProvider.isLoading
-                ? SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
+    return FutureBuilder<DocumentSnapshot>(
+      future: FirebaseFirestore.instance
+          .collection('users')
+          .doc(requesterId)
+          .get(),
+      builder: (context, snap) {
+        String name = 'Memuat...';
+        String role = '';
+        if (snap.hasData && snap.data!.exists) {
+          final data = snap.data!.data() as Map<String, dynamic>;
+          name = data['name'] ?? 'Tidak diketahui';
+          final r = data['role'] ?? '';
+          if (r == 'student') role = 'Mahasiswa';
+          else if (r == 'staff') role = 'Staf / Dosen';
+          else role = r;
+        }
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.person_outline_rounded,
+                  size: 20, color: Color(0xFF6B7280)),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Pelapor',
+                        style: TextStyle(
+                            fontSize: 12, color: Color(0xFF9CA3AF))),
+                    const SizedBox(height: 3),
+                    Text(
+                      role.isNotEmpty ? '$name ($role)' : name,
+                      style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1F2937)),
                     ),
-                  )
-                : Text(
-                    'Tandai Selesai',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ),
-      ],
+        );
+      },
     );
   }
+}
+
+class _Divider extends StatelessWidget {
+  const _Divider();
+  @override
+  Widget build(BuildContext context) =>
+      const Divider(height: 1, color: Color(0xFFF3F4F6), indent: 50);
 }

@@ -1,13 +1,12 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
+import '../../models/ticket_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/ticket_provider.dart';
-import '../../models/ticket_model.dart';
 import '../../services/notification_service.dart';
-import 'ticket_detail_screen.dart';
 import '../settings_screen.dart';
-import 'dart:async';
+import '../shared/ticket_card.dart';
 
 class TechnicianDashboard extends StatefulWidget {
   @override
@@ -15,199 +14,200 @@ class TechnicianDashboard extends StatefulWidget {
 }
 
 class _TechnicianDashboardState extends State<TechnicianDashboard> {
-  // Toggle between 'Open' (Available) and 'In Progress'/'Resolved' (My Tickets)
-  bool _showOpenTickets = true;
-  StreamSubscription<List<TicketModel>>? _notificationSubscription;
-  bool _isFirstNotificationLoad = true;
-  Set<String> _knownOpenTickets = {};
+  String _filterStatus = 'All';
+  String _searchQuery = '';
+  final _searchCtrl = TextEditingController();
+
+  StreamSubscription<List<TicketModel>>? _notifSub;
+  bool _isFirstLoad = true;
+  Set<String> _knownTickets = {};
+
+  final _filters = ['All', 'Assigned', 'In Progress', 'Completed'];
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _startNotificationListener();
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _startNotifListener());
   }
 
-  void _startNotificationListener() {
-    final provider = Provider.of<TicketProvider>(context, listen: false);
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-
-    _notificationSubscription = provider
-        .fetchTickets(
-          role: 'technician',
-          uid: authProvider.user?.uid,
-          status: 'Open',
-        )
-        .listen((tickets) {
-          if (_isFirstNotificationLoad) {
-            _knownOpenTickets = tickets.map((t) => t.ticketId).toSet();
-            _isFirstNotificationLoad = false;
-            return;
-          }
-
-          for (var ticket in tickets) {
-            if (!_knownOpenTickets.contains(ticket.ticketId)) {
-              _knownOpenTickets.add(ticket.ticketId);
-              NotificationService().showNotification(
-                id: ticket.ticketId.hashCode,
-                title: 'Tiket Baru Masuk!',
-                body:
-                    '${ticket.category} - ${ticket.location ?? "Tanpa Lokasi"}',
-              );
+  void _startNotifListener() {
+    final tp = Provider.of<TicketProvider>(context, listen: false);
+    final uid = Provider.of<AuthProvider>(context, listen: false).user?.uid;
+    _notifSub =
+        tp.fetchTickets(role: 'technician', uid: uid, status: 'Open').listen(
+          (tickets) {
+            if (_isFirstLoad) {
+              _knownTickets = tickets.map((t) => t.ticketId).toSet();
+              _isFirstLoad = false;
+              return;
             }
-          }
-        });
+            for (var t in tickets) {
+              if (!_knownTickets.contains(t.ticketId)) {
+                _knownTickets.add(t.ticketId);
+                NotificationService().showNotification(
+                  id: t.ticketId.hashCode,
+                  title: 'Tiket Baru Masuk!',
+                  body: '${t.category} - ${t.location ?? "Tanpa Lokasi"}',
+                );
+              }
+            }
+          },
+        );
   }
 
   @override
   void dispose() {
-    _notificationSubscription?.cancel();
+    _notifSub?.cancel();
+    _searchCtrl.dispose();
     super.dispose();
   }
 
+  String? _firestoreStatus() => null;
+
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-    final user = authProvider.user;
+    final user = Provider.of<AuthProvider>(context, listen: false).user;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Dashboard Teknisi'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.settings),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => SettingsScreen()),
-              );
-            },
-          ),
-        ],
+      backgroundColor: const Color(0xFFF7F9FC),
+      appBar: buildSbmAppBar(
+        onSettingsTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => SettingsScreen()),
+        ),
       ),
       body: Column(
         children: [
+          // ── Search + Filter ─────────────────────────────────────────────
           Container(
-            padding: EdgeInsets.all(5),
-            child: Row(
+            color: Colors.white,
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: Column(
               children: [
-                Expanded(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _showOpenTickets
-                          ? Colors.blue[800]
-                          : Colors.grey[200],
-                      foregroundColor: _showOpenTickets
-                          ? Colors.white
-                          : Colors.black,
+                TextField(
+                  controller: _searchCtrl,
+                  onChanged: (v) =>
+                      setState(() => _searchQuery = v.toLowerCase()),
+                  decoration: InputDecoration(
+                    hintText: 'Cari ID Tiket, Lokasi, atau Pelapor...',
+                    hintStyle: const TextStyle(
+                        color: Color(0xFFADB5BD), fontSize: 13),
+                    prefixIcon: const Icon(Icons.search_rounded,
+                        color: Color(0xFF9CA3AF), size: 20),
+                    suffixIcon: const Icon(Icons.tune_rounded,
+                        color: Color(0xFF9CA3AF), size: 20),
+                    filled: true,
+                    fillColor: const Color(0xFFF3F4F6),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
                     ),
-                    onPressed: () => setState(() => _showOpenTickets = true),
-                    child: Text('Tiket Tersedia (Open)'),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 10),
                   ),
                 ),
-                Expanded(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: !_showOpenTickets
-                          ? Colors.blue[800]
-                          : Colors.grey[200],
-                      foregroundColor: !_showOpenTickets
-                          ? Colors.white
-                          : Colors.black,
-                    ),
-                    onPressed: () => setState(() => _showOpenTickets = false),
-                    child: Text('Tiket Saya'),
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 38,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _filters.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 8),
+                    itemBuilder: (_, i) {
+                      final opt = _filters[i];
+                      final sel = _filterStatus == opt;
+                      return GestureDetector(
+                        onTap: () => setState(() => _filterStatus = opt),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 18, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: sel
+                                ? const Color(0xFF1A3A5C)
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: sel
+                                  ? const Color(0xFF1A3A5C)
+                                  : const Color(0xFFE5E7EB),
+                            ),
+                          ),
+                          child: Text(
+                            opt,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: sel
+                                  ? Colors.white
+                                  : const Color(0xFF6B7280),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
+                const SizedBox(height: 12),
               ],
             ),
           ),
+
+          // ── Ticket List ─────────────────────────────────────────────────
           Expanded(
             child: StreamBuilder<List<TicketModel>>(
               stream: Provider.of<TicketProvider>(context, listen: false)
                   .fetchTickets(
                     role: 'technician',
                     uid: user?.uid,
-                    status: _showOpenTickets ? 'Open' : null,
+                    status: _firestoreStatus(),
                   ),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
+              builder: (context, snap) {
+                if (snap.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                      child: CircularProgressIndicator(
+                          color: Color(0xFF1A73E8)));
                 }
-                if (snapshot.hasError) {
-                  return Center(child: Text("Terjadi kesalahan."));
-                }
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return Center(child: Text("Tidak ada tiket."));
+                if (snap.hasError) {
+                  return const DashboardEmptyState(
+                      icon: Icons.error_outline,
+                      message: 'Terjadi kesalahan.');
                 }
 
-                final tickets = snapshot.data!;
+                var tickets = snap.data ?? [];
+                
+                // 1. Filter Status Chip
+                if (_filterStatus != 'All') {
+                  tickets = tickets.where((t) {
+                    if (_filterStatus == 'Assigned') {
+                      return t.status != 'Open';
+                    } else if (_filterStatus == 'Completed') {
+                      return t.status == 'Resolved';
+                    } else {
+                      return t.status == _filterStatus;
+                    }
+                  }).toList();
+                }
+
+                // 2. Filter Text Search
+                if (_searchQuery.isNotEmpty) {
+                  tickets = tickets.where((t) {
+                    return t.ticketId.toLowerCase().contains(_searchQuery) ||
+                        (t.location ?? '').toLowerCase().contains(_searchQuery) ||
+                        t.category.toLowerCase().contains(_searchQuery);
+                  }).toList();
+                }
+
+                if (tickets.isEmpty) {
+                  return const DashboardEmptyState(
+                      icon: Icons.inbox_outlined,
+                      message: 'Tidak ada tiket ditemukan.');
+                }
+
                 return ListView.builder(
-                  padding: EdgeInsets.all(16),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 12),
                   itemCount: tickets.length,
-                  itemBuilder: (context, index) {
-                    final ticket = tickets[index];
-                    return Card(
-                      child: ListTile(
-                        title: Text(
-                          ticket.category,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Lokasi: ${ticket.location ?? "-"}'),
-                            Text(
-                              DateFormat(
-                                'dd MMM yyyy, HH:mm',
-                              ).format(ticket.createdAt),
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                        trailing: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: _getStatusBgColor(ticket.status),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(
-                              color: _getStatusColor(
-                                ticket.status,
-                              ).withOpacity(0.3),
-                            ),
-                          ),
-                          child: Text(
-                            ticket.status.toUpperCase(),
-                            style: TextStyle(
-                              color: _getStatusColor(ticket.status),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  TicketDetailScreen(ticket: ticket),
-                            ),
-                          );
-                        },
-                      ),
-                    );
-                  },
+                  itemBuilder: (_, i) => TicketCard(ticket: tickets[i]),
                 );
               },
             ),
@@ -215,31 +215,5 @@ class _TechnicianDashboardState extends State<TechnicianDashboard> {
         ],
       ),
     );
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'open':
-        return Colors.red;
-      case 'in progress':
-        return Colors.orange.shade700;
-      case 'resolved':
-        return Colors.green;
-      default:
-        return Colors.grey.shade700;
-    }
-  }
-
-  Color _getStatusBgColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'open':
-        return Colors.red.shade50;
-      case 'in progress':
-        return Colors.orange.shade50;
-      case 'resolved':
-        return Colors.green.shade50;
-      default:
-        return Colors.grey.shade100;
-    }
   }
 }
