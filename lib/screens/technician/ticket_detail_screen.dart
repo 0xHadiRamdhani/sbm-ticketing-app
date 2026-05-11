@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/ticket_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/ticket_provider.dart';
@@ -69,8 +70,7 @@ class TicketDetailScreen extends StatelessWidget {
     final isAdmin = user?.role == 'admin';
 
     // Short ticket ID display
-    final shortId =
-        '#TKT-${ticket.ticketId.substring(0, 8).toUpperCase()}';
+    final shortId = '#TKT-${ticket.ticketId.substring(0, 8).toUpperCase()}';
 
     final techKey = GlobalKey<_TechnicianActionState>();
 
@@ -79,17 +79,33 @@ class TicketDetailScreen extends StatelessWidget {
         context: ctx,
         builder: (c) => AlertDialog(
           backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text('Hapus Tiket', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1A3A5C))),
-          content: const Text('Apakah Anda yakin ingin menghapus tiket ini secara permanen?'),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text(
+            'Hapus Tiket',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1A3A5C),
+            ),
+          ),
+          content: const Text(
+            'Apakah Anda yakin ingin menghapus tiket ini secara permanen?',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(c, false),
-              child: const Text('Batal', style: TextStyle(color: Color(0xFF64748B))),
+              child: const Text(
+                'Batal',
+                style: TextStyle(color: Color(0xFF64748B)),
+              ),
             ),
             ElevatedButton(
               onPressed: () => Navigator.pop(c, true),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade700, elevation: 0),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade700,
+                elevation: 0,
+              ),
               child: const Text('Hapus', style: TextStyle(color: Colors.white)),
             ),
           ],
@@ -139,14 +155,76 @@ class TicketDetailScreen extends StatelessWidget {
         );
 
         if (time != null && ctx.mounted) {
-          final newDate = DateTime(picked.year, picked.month, picked.day, time.hour, time.minute);
-          await ctx.read<TicketProvider>().updateTicketDate(ticket.ticketId, newDate);
+          final newDate = DateTime(
+            picked.year,
+            picked.month,
+            picked.day,
+            time.hour,
+            time.minute,
+          );
+          await ctx.read<TicketProvider>().updateTicketDate(
+            ticket.ticketId,
+            newDate,
+          );
           if (ctx.mounted) {
-             ScaffoldMessenger.of(ctx).showSnackBar(
-               const SnackBar(content: Text('Tanggal tiket berhasil diperbarui. Silakan refresh halaman untuk melihat perubahan.'), backgroundColor: Color(0xFF16A34A)),
-             );
+            ScaffoldMessenger.of(ctx).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Tanggal tiket berhasil diperbarui. Silakan refresh halaman untuk melihat perubahan.',
+                ),
+                backgroundColor: Color(0xFF16A34A),
+              ),
+            );
           }
         }
+      }
+    }
+
+    Future<void> _makeCall(bool isVideo) async {
+      final currentUserId = user?.uid;
+      final otherUserId = ticket.requesterId == currentUserId
+          ? ticket.technicianId
+          : ticket.requesterId;
+
+      if (otherUserId == null || otherUserId.isEmpty) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Pengguna lain belum tersedia')),
+          );
+        }
+        return;
+      }
+
+      try {
+        final doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(otherUserId)
+            .get();
+        final phoneNumber = doc.data()?['phoneNumber'] as String?;
+
+        if (phoneNumber == null || phoneNumber.isEmpty) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Nomor telepon tidak tersedia')),
+            );
+          }
+          return;
+        }
+
+        if (isVideo) {
+          final roomName = 'sbm_ticket_${ticket.ticketId}';
+          final Uri launchUri = Uri.parse('https://meet.jit.si/$roomName');
+          if (await canLaunchUrl(launchUri)) {
+            await launchUrl(launchUri, mode: LaunchMode.externalApplication);
+          }
+        } else {
+          final Uri launchUri = Uri(scheme: 'tel', path: phoneNumber);
+          if (await canLaunchUrl(launchUri)) {
+            await launchUrl(launchUri);
+          }
+        }
+      } catch (e) {
+        debugPrint('Error: $e');
       }
     }
 
@@ -177,7 +255,8 @@ class TicketDetailScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                     minimumSize: const Size(double.infinity, 52),
                   ),
                   icon: tp.isLoading
@@ -185,14 +264,20 @@ class TicketDetailScreen extends StatelessWidget {
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(
-                              color: Colors.white, strokeWidth: 2),
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
                         )
-                      : const Icon(Icons.check_circle_outline_rounded,
-                          size: 20),
+                      : const Icon(
+                          Icons.check_circle_outline_rounded,
+                          size: 20,
+                        ),
                   label: Text(
-                    tp.isLoading ? 'Menyimpan...' : 'Selesaikan Tiket  ▶',
+                    tp.isLoading ? 'Menyimpan...' : 'Selesaikan Tiket',
                     style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.bold),
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -204,8 +289,11 @@ class TicketDetailScreen extends StatelessWidget {
         elevation: 0.5,
         shadowColor: Colors.black12,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              size: 20, color: Color(0xFF1A3A5C)),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20,
+            color: Color(0xFF1A3A5C),
+          ),
           onPressed: () => Navigator.pop(context),
           tooltip: 'Kembali ke Kotak Masuk',
         ),
@@ -220,9 +308,21 @@ class TicketDetailScreen extends StatelessWidget {
         titleSpacing: 0,
         centerTitle: false,
         actions: [
+          // IconButton(
+          //   icon: const Icon(Icons.phone_outlined, color: Color(0xFF1A73E8)),
+          //   tooltip: 'Telepon',
+          //   onPressed: () => _makeCall(false),
+          // ),
+          // IconButton(
+          //   icon: const Icon(Icons.video_call_outlined, color: Color(0xFF1A73E8)),
+          //   tooltip: 'Video Call',
+          //   onPressed: () => _makeCall(true),
+          // ),
           IconButton(
-            icon: const Icon(Icons.chat_bubble_outline_rounded,
-                color: Color(0xFF1A73E8)),
+            icon: const Icon(
+              Icons.chat_bubble_outline_rounded,
+              color: Color(0xFF1A73E8),
+            ),
             tooltip: 'Chat',
             onPressed: () => Navigator.push(
               context,
@@ -231,7 +331,10 @@ class TicketDetailScreen extends StatelessWidget {
           ),
           if (isAdmin)
             PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert_rounded, color: Color(0xFF1A3A5C)),
+              icon: const Icon(
+                Icons.more_vert_rounded,
+                color: Color(0xFF1A3A5C),
+              ),
               onSelected: (val) {
                 if (val == 'edit_date') {
                   _changeDate(context);
@@ -244,9 +347,16 @@ class TicketDetailScreen extends StatelessWidget {
                   value: 'edit_date',
                   child: Row(
                     children: [
-                      Icon(Icons.edit_calendar_rounded, color: Color(0xFF1A3A5C), size: 20),
+                      Icon(
+                        Icons.edit_calendar_rounded,
+                        color: Color(0xFF1A3A5C),
+                        size: 20,
+                      ),
                       SizedBox(width: 8),
-                      Text('Ubah Tanggal', style: TextStyle(color: Color(0xFF1A3A5C))),
+                      Text(
+                        'Ubah Tanggal',
+                        style: TextStyle(color: Color(0xFF1A3A5C)),
+                      ),
                     ],
                   ),
                 ),
@@ -254,7 +364,11 @@ class TicketDetailScreen extends StatelessWidget {
                   value: 'delete',
                   child: Row(
                     children: [
-                      Icon(Icons.delete_outline_rounded, color: Colors.red, size: 20),
+                      Icon(
+                        Icons.delete_outline_rounded,
+                        color: Colors.red,
+                        size: 20,
+                      ),
                       SizedBox(width: 8),
                       Text('Hapus Tiket', style: TextStyle(color: Colors.red)),
                     ],
@@ -324,8 +438,9 @@ class TicketDetailScreen extends StatelessWidget {
                   _DetailRow(
                     icon: Icons.access_time_rounded,
                     label: 'Waktu Laporan',
-                    value: DateFormat("dd MMM yyyy, HH:mm 'WIB'")
-                        .format(ticket.createdAt),
+                    value: DateFormat(
+                      "dd MMM yyyy, HH:mm 'WIB'",
+                    ).format(ticket.createdAt),
                   ),
                   const SizedBox(height: 12),
                   // Deskripsi
@@ -371,15 +486,20 @@ class TicketDetailScreen extends StatelessWidget {
                         height: 150,
                         color: const Color(0xFFF3F4F6),
                         alignment: Alignment.center,
-                        child: const Icon(Icons.broken_image_outlined,
-                            color: Color(0xFF9CA3AF), size: 48),
+                        child: const Icon(
+                          Icons.broken_image_outlined,
+                          color: Color(0xFF9CA3AF),
+                          size: 48,
+                        ),
                       ),
                       loadingBuilder: (_, child, progress) {
                         if (progress == null) return child;
                         return Container(
                           height: 150,
                           alignment: Alignment.center,
-                          child: const CircularProgressIndicator(strokeWidth: 2),
+                          child: const CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
                         );
                       },
                     ),
@@ -390,7 +510,8 @@ class TicketDetailScreen extends StatelessWidget {
 
             // ── Tindakan / Catatan Teknisi ─────────────────────────────
             if ((ticket.note != null && ticket.note!.isNotEmpty) ||
-                (ticket.resolvedImageUrls != null && ticket.resolvedImageUrls!.isNotEmpty)) ...[
+                (ticket.resolvedImageUrls != null &&
+                    ticket.resolvedImageUrls!.isNotEmpty)) ...[
               const SizedBox(height: 20),
               _SectionCard(
                 title: 'Tindakan Teknisi',
@@ -419,7 +540,8 @@ class TicketDetailScreen extends StatelessWidget {
                           ),
                         ),
                       ],
-                      if (ticket.resolvedImageUrls != null && ticket.resolvedImageUrls!.isNotEmpty) ...[
+                      if (ticket.resolvedImageUrls != null &&
+                          ticket.resolvedImageUrls!.isNotEmpty) ...[
                         const SizedBox(height: 16),
                         const Text(
                           'Foto Perbaikan:',
@@ -442,28 +564,37 @@ class TicketDetailScreen extends StatelessWidget {
                                     width: 100,
                                     height: 100,
                                     fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) => Container(
-                                      width: 100,
-                                      height: 100,
-                                      color: const Color(0xFFF3F4F6),
-                                      alignment: Alignment.center,
-                                      child: const Icon(Icons.broken_image_outlined,
-                                          color: Color(0xFF9CA3AF), size: 32),
-                                    ),
-                                    loadingBuilder: (context, child, loadingProgress) {
-                                      if (loadingProgress == null) return child;
-                                      return Container(
-                                        width: 100,
-                                        height: 100,
-                                        color: const Color(0xFFF3F4F6),
-                                        alignment: Alignment.center,
-                                        child: const SizedBox(
-                                          width: 24,
-                                          height: 24,
-                                          child: CircularProgressIndicator(strokeWidth: 2),
-                                        ),
-                                      );
-                                    },
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            Container(
+                                              width: 100,
+                                              height: 100,
+                                              color: const Color(0xFFF3F4F6),
+                                              alignment: Alignment.center,
+                                              child: const Icon(
+                                                Icons.broken_image_outlined,
+                                                color: Color(0xFF9CA3AF),
+                                                size: 32,
+                                              ),
+                                            ),
+                                    loadingBuilder:
+                                        (context, child, loadingProgress) {
+                                          if (loadingProgress == null)
+                                            return child;
+                                          return Container(
+                                            width: 100,
+                                            height: 100,
+                                            color: const Color(0xFFF3F4F6),
+                                            alignment: Alignment.center,
+                                            child: const SizedBox(
+                                              width: 24,
+                                              height: 24,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                              ),
+                                            ),
+                                          );
+                                        },
                                   ),
                                 ),
                               )
@@ -536,7 +667,9 @@ class _TechnicianActionState extends State<_TechnicianAction> {
 
   Future<void> _pickImage(bool isBefore) async {
     final img = await _picker.pickImage(
-        source: ImageSource.gallery, imageQuality: 80);
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
     if (img != null) {
       setState(() {
         if (isBefore) {
@@ -553,7 +686,7 @@ class _TechnicianActionState extends State<_TechnicianAction> {
       if (_beforeImage != null) _beforeImage!,
       if (_afterImage != null) _afterImage!,
     ];
-    
+
     await widget.ticketProvider.updateTicketStatus(
       widget.ticket.ticketId,
       _selectedStatus,
@@ -561,7 +694,7 @@ class _TechnicianActionState extends State<_TechnicianAction> {
       resolvedImages: images,
       note: _noteController.text.trim(),
     );
-    
+
     if (!mounted) return;
     Navigator.pop(context);
   }
@@ -616,8 +749,10 @@ class _TechnicianActionState extends State<_TechnicianAction> {
                     ),
                   ),
                   showCheckmark: false,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                 );
               }).toList(),
             ),
@@ -627,9 +762,10 @@ class _TechnicianActionState extends State<_TechnicianAction> {
             const Text(
               'Catatan Perbaikan',
               style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF374151)),
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF374151),
+              ),
             ),
             const SizedBox(height: 8),
             TextFormField(
@@ -639,23 +775,25 @@ class _TechnicianActionState extends State<_TechnicianAction> {
               decoration: InputDecoration(
                 hintText: 'Masukkan detail tindakan yang telah dilakukan...',
                 hintStyle: const TextStyle(
-                    color: Color(0xFFADB5BD), fontSize: 13),
+                  color: Color(0xFFADB5BD),
+                  fontSize: 13,
+                ),
                 filled: true,
                 fillColor: const Color(0xFFF7F9FC),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide:
-                      const BorderSide(color: Color(0xFFE5E7EB)),
+                  borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide:
-                      const BorderSide(color: Color(0xFFE5E7EB)),
+                  borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: const BorderSide(
-                      color: Color(0xFF1A73E8), width: 1.5),
+                    color: Color(0xFF1A73E8),
+                    width: 1.5,
+                  ),
                 ),
                 contentPadding: const EdgeInsets.all(14),
               ),
@@ -666,9 +804,10 @@ class _TechnicianActionState extends State<_TechnicianAction> {
             const Text(
               'Bukti Foto Perbaikan',
               style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF374151)),
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF374151),
+              ),
             ),
             const SizedBox(height: 10),
 
@@ -739,14 +878,16 @@ class _PhotoUploadBox extends StatelessWidget {
             ? Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.add_photo_alternate_outlined,
-                      size: 36, color: Colors.grey[400]),
+                  Icon(
+                    Icons.add_photo_alternate_outlined,
+                    size: 36,
+                    color: Colors.grey[400],
+                  ),
                   const SizedBox(height: 8),
                   Text(
                     label,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                        fontSize: 12, color: Colors.grey[500]),
+                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                   ),
                 ],
               )
@@ -755,10 +896,7 @@ class _PhotoUploadBox extends StatelessWidget {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(11),
-                    child: Image.file(
-                      File(image!.path),
-                      fit: BoxFit.cover,
-                    ),
+                    child: Image.file(File(image!.path), fit: BoxFit.cover),
                   ),
                   Positioned(
                     top: 6,
@@ -771,8 +909,11 @@ class _PhotoUploadBox extends StatelessWidget {
                           color: Colors.black54,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.close,
-                            color: Colors.white, size: 14),
+                        child: const Icon(
+                          Icons.close,
+                          color: Colors.white,
+                          size: 14,
+                        ),
                       ),
                     ),
                   ),
@@ -798,8 +939,7 @@ class _StatusChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: _statusBg(status),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-            color: _statusColor(status).withOpacity(0.3)),
+        border: Border.all(color: _statusColor(status).withOpacity(0.3)),
       ),
       child: Text(
         _statusLabel(status),
@@ -858,8 +998,11 @@ class _DetailRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
-  const _DetailRow(
-      {required this.icon, required this.label, required this.value});
+  const _DetailRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -874,15 +1017,22 @@ class _DetailRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label,
-                    style: const TextStyle(
-                        fontSize: 12, color: Color(0xFF9CA3AF))),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF9CA3AF),
+                  ),
+                ),
                 const SizedBox(height: 3),
-                Text(value,
-                    style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF1F2937))),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1F2937),
+                  ),
+                ),
               ],
             ),
           ),
@@ -910,32 +1060,40 @@ class _RequesterRow extends StatelessWidget {
           final data = snap.data!.data() as Map<String, dynamic>;
           name = data['name'] ?? 'Tidak diketahui';
           final r = data['role'] ?? '';
-          if (r == 'student') role = 'Mahasiswa';
-          else if (r == 'staff') role = 'Staf / Dosen';
-          else role = r;
+          if (r == 'student')
+            role = 'Mahasiswa';
+          else if (r == 'staff')
+            role = 'Staf / Dosen';
+          else
+            role = r;
         }
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.person_outline_rounded,
-                  size: 20, color: Color(0xFF6B7280)),
+              const Icon(
+                Icons.person_outline_rounded,
+                size: 20,
+                color: Color(0xFF6B7280),
+              ),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Pelapor',
-                        style: TextStyle(
-                            fontSize: 12, color: Color(0xFF9CA3AF))),
+                    const Text(
+                      'Pelapor',
+                      style: TextStyle(fontSize: 12, color: Color(0xFF9CA3AF)),
+                    ),
                     const SizedBox(height: 3),
                     Text(
                       role.isNotEmpty ? '$name ($role)' : name,
                       style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF1F2937)),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1F2937),
+                      ),
                     ),
                   ],
                 ),

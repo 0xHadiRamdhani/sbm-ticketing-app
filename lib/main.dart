@@ -17,11 +17,17 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    await NotificationService().init();
     isFirebaseInitialized = true;
   } catch (e) {
     debugPrint("Firebase Initialization Error: $e");
     errorMessage = e.toString();
+  }
+
+  // Initialize notifications separately — failure here is non-fatal
+  try {
+    await NotificationService().init();
+  } catch (e) {
+    debugPrint("Notification Service Init Error (non-fatal): $e");
   }
 
   runApp(

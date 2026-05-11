@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../../models/ticket_model.dart';
-import '../../models/message_model.dart';
-import '../../services/chat_service.dart';
-import '../../providers/auth_provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/ticket_model.dart';
+import '../models/message_model.dart';
+import '../services/chat_service.dart';
+import '../providers/auth_provider.dart';
+import 'voice_call_screen.dart';
+import 'video_call_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   final TicketModel ticket;
@@ -39,6 +42,57 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  Future<String> _getOtherUserName() async {
+    final otherUserId = widget.ticket.requesterId == currentUserId
+        ? widget.ticket.technicianId
+        : widget.ticket.requesterId;
+
+    if (otherUserId == null || otherUserId.isEmpty) return 'Pengguna';
+
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(otherUserId)
+          .get();
+      if (doc.exists) {
+        return doc.data()?['name'] as String? ?? 'Pengguna';
+      }
+    } catch (e) {
+      debugPrint('Error fetching user name: $e');
+    }
+    return 'Pengguna';
+  }
+
+  void _makeVoiceCall() async {
+    final otherName = await _getOtherUserName();
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => VoiceCallScreen(
+          channelId: widget.ticket.ticketId,
+          currentUserId: currentUserId,
+          otherUserName: otherName,
+        ),
+      ),
+    );
+  }
+
+  void _makeVideoCall() async {
+    final otherName = await _getOtherUserName();
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => VideoCallScreen(
+          channelId: widget.ticket.ticketId,
+          currentUserId: currentUserId,
+          otherUserName: otherName,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,6 +103,19 @@ class _ChatScreenState extends State<ChatScreen> {
           icon: Icon(Icons.arrow_back_ios_new, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.call_rounded),
+            onPressed: _makeVoiceCall,
+            tooltip: 'Panggilan Suara',
+          ),
+          IconButton(
+            icon: const Icon(Icons.video_call),
+            onPressed: _makeVideoCall,
+            tooltip: 'Video Call',
+          ),
+          const SizedBox(width: 8),
+        ],
         backgroundColor: Colors.white,
         foregroundColor: Colors.black87,
         elevation: 1,

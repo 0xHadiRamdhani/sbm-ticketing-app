@@ -45,5 +45,14 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>https</string>
+	</array>
+	<!-- Agora permissions for in-app voice & video calling -->
+	<key>NSCameraUsageDescription</key>
+	<string>Izin kamera diperlukan untuk video call dengan teknisi.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Izin mikrofon diperlukan untuk panggilan suara dan video call.</string>
 </dict>
 </plist>
