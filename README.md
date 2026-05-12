@@ -4,7 +4,7 @@ SBM ITB Ticketing App adalah aplikasi pelaporan keluhan fasilitas, perangkat IT,
 
 ## Arsitektur Alur Sistem
 
-![Alur Sistem Ticketing SBM ITB](assets/helpdesk_sequence_diagram_ticketing_sbm_itb.svg)
+![Alur Sistem Ticketing SBM ITB](diagram/image.png)
 
 > [!NOTE]
 > Anda juga dapat melihat diagram interaktif *Actor Workflow* di file: [`diagram/actor_workflow.drawio`](diagram/actor_workflow.drawio)
