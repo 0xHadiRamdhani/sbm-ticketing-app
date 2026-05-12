@@ -77,25 +77,44 @@ Ikuti langkah-langkah di bawah ini untuk menjalankan aplikasi di komputer lokal 
 
 ```
 lib/
-├── main.dart                   # Titik masuk aplikasi & konfigurasi Tema Global
-├── firebase_options.dart       # Konfigurasi otomatis dari FlutterFire
+├── main.dart                          # Titik masuk aplikasi & konfigurasi Tema Global
+├── firebase_options.dart              # Konfigurasi otomatis dari FlutterFire
 ├── models/
-│   ├── ticket_model.dart       # Model struktur data Tiket
-│   └── user_model.dart         # Model struktur data Pengguna
+│   ├── message_model.dart             # Model struktur data Pesan Chat
+│   ├── ticket_model.dart              # Model struktur data Tiket Keluhan
+│   └── user_model.dart                # Model struktur data Pengguna
 ├── providers/
-│   ├── auth_provider.dart      # Mengatur state login/register/logout
-│   └── ticket_provider.dart    # Mengatur pengambilan dan update data tiket
-├── screens/
-│   ├── admin/                  # Dashboard dan fungsionalitas Admin
-│   ├── auth/                   # Halaman Login dan Registrasi
-│   ├── requester/              # Dashboard dan Form Pembuatan Tiket (Mahasiswa/Staf)
-│   ├── technician/             # Dashboard Teknisi & Detail Tiket
-│   ├── about_screen.dart       # Halaman Tentang Aplikasi
-│   └── settings_screen.dart    # Halaman Pengaturan (Notifikasi, Profil)
-└── services/
-    ├── auth_service.dart       # Logika Firebase Authentication
-    ├── notification_service.dart # Konfigurasi Local Notification
-    └── ticket_service.dart     # Logika CRUD Firebase Firestore untuk Tiket
+│   ├── auth_provider.dart             # Mengatur state login/register/logout & autentikasi
+│   └── ticket_provider.dart           # Mengatur state list dan filter data tiket
+├── services/
+│   ├── auth_service.dart              # Logika API Firebase Authentication
+│   ├── chat_service.dart              # Logika Database Real-time Chat
+│   ├── email_otp_service.dart         # Layanan otentikasi menggunakan OTP Email (Resend/SendGrid)
+│   ├── notification_service.dart      # Konfigurasi `flutter_local_notifications`
+│   └── ticket_service.dart            # Logika CRUD Firebase Firestore & ImgBB Upload
+└── screens/
+    ├── admin/                         # UI Khusus Peran Admin
+    │   ├── admin_dashboard.dart       # Statistik jumlah tiket per status
+    │   ├── admin_tickets_screen.dart  # Tabel daftar seluruh tiket & fitur filter
+    │   └── user_management_screen.dart# Kelola peran (role) pengguna dan akun
+    ├── auth/                          # UI Autentikasi
+    │   ├── email_otp_screen.dart      # Layar Verifikasi OTP menggunakan Email
+    │   ├── login_screen.dart          # Layar Login utama (Email & Password)
+    │   └── phone_login_screen.dart    # Layar Login menggunakan Nomor Telepon
+    ├── requester/                     # UI Khusus Pemohon (Mahasiswa/Staff)
+    │   ├── create_ticket_screen.dart  # Form lapor keluhan & upload bukti gambar
+    │   ├── requester_dashboard.dart   # Dashboard berisi daftar tiket milik pemohon
+    │   └── requester_ticket_detail_screen.dart # Detail tiket, timeline status, dan tombol Chat
+    ├── technician/                    # UI Khusus Teknisi
+    │   ├── technician_dashboard.dart  # Dashboard tiket *Open* dan penugasan teknisi
+    │   └── ticket_detail_screen.dart  # Detail tiket untuk teknisi mengupdate status & bukti perbaikan
+    ├── shared/                        # UI Komponen yang Dibagikan
+    │   └── ticket_card.dart           # Widget kartu tiket yang dinamis untuk dashboard
+    ├── about_screen.dart              # Layar informasi aplikasi & kebijakan
+    ├── chat_screen.dart               # Layar fitur komunikasi langsung Pemohon - Teknisi
+    ├── dashboard_wrapper.dart         # Pengarah (router) otomatis berdasarkan Role ke Dashboard
+    ├── help_center_screen.dart        # Layar FAQ dan Bantuan Pengguna
+    └── settings_screen.dart           # Layar Pengaturan Profil & Notifikasi
 ```
 
 ## Catatan Rilis
