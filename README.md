@@ -23,6 +23,34 @@ SBM ITB Ticketing App adalah aplikasi pelaporan keluhan fasilitas, perangkat IT,
   <img src="screenshots/screen_8.png" width="200" style="margin: 8px;"/>
 </p>
 
+## Teknologi & Library yang Digunakan
+
+### 1. Library Utama (Dependencies)
+Aplikasi ini memanfaatkan berbagai library populer dari ekosistem Flutter:
+- **Firebase Suite**:
+  - `firebase_auth`: Untuk manajemen sesi dan autentikasi pengguna.
+  - `cloud_firestore`: Database NoSQL real-time untuk menyimpan data tiket dan pesan.
+  - `firebase_storage`: Media storage untuk lampiran foto.
+- **State Management**:
+  - `provider`: Digunakan untuk manajemen state global (Auth, Tickets).
+- **UI & UX**:
+  - `shimmer`: Memberikan efek loading skeleton yang halus.
+  - `intl_phone_field`: Input nomor telepon dengan validasi kode negara.
+  - `cupertino_icons`: Ikon standar gaya iOS.
+- **Utilitas & Layanan**:
+  - `flutter_local_notifications`: Menangani notifikasi push lokal saat ada pembaruan tiket.
+  - `image_picker`: Memungkinkan akses kamera dan galeri untuk unggah bukti.
+  - `intl`: Memformat tanggal, waktu, dan mata uang secara konsisten.
+  - `http`: Digunakan untuk integrasi API pihak ketiga (seperti ImgBB).
+  - `url_launcher`: Membuka tautan eksternal atau melakukan panggilan telepon/video.
+
+### 2. Algoritma & Logika Utama
+- **Role-Based Access Control (RBAC)**: Implementasi logika pengalihan (*routing*) otomatis yang membedakan akses antara *Requester*, *Technician*, dan *Admin* berdasarkan metadata profil di Firestore.
+- **Real-time Data Streaming**: Penggunaan algoritma *Stream-based synchronization* menggunakan `StreamBuilder` untuk memastikan daftar tiket dan pesan chat selalu sinkron tanpa perlu *refresh* manual.
+- **State Comparison Notification**: Algoritma pembanding state dalam `StreamSubscription` yang mendeteksi perubahan spesifik pada *field* `status` atau `note` untuk memicu notifikasi lokal hanya saat ada pembaruan relevan.
+- **Optimistic UI Update**: Memanfaatkan kapabilitas sinkronisasi *offline-first* dari Firestore untuk memberikan pengalaman antarmuka yang instan meskipun koneksi internet lambat.
+- **Client-side Filtering & Search**: Logika penyaringan dinamis menggunakan metode `where` dan `toLowerCase` untuk melakukan pencarian tiket secara cepat di sisi klien.
+
 ## Fitur Utama
 
 - **Sistem Autentikasi**: Login dan Pendaftaran aman yang terintegrasi dengan Firebase Authentication. Mendukung validasi domain email (`@itb.ac.id` / `@sbm-itb.ac.id`).
