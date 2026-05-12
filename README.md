@@ -92,10 +92,23 @@ lib/
 │   └── ticket_service.dart            # Logika CRUD Firestore & ImgBB Upload
 └── screens/
     ├── admin/                         # Modul Pengawas (Dashboard & User Management)
+    │   ├── admin_dashboard.dart       # Statistik tiket masuk per status
+    │   ├── admin_tickets_screen.dart  # Daftar kelola seluruh tiket (view & filter)
+    │   └── user_management_screen.dart# Manajemen data akun & hak akses pengguna
     ├── auth/                          # Modul Login, Register, & OTP (Email/Phone)
+    │   ├── email_otp_screen.dart      # Verifikasi OTP via email terdaftar
+    │   ├── login_screen.dart          # Form login email & password utama
+    │   └── phone_login_screen.dart    # Login menggunakan nomor telepon & SMS
     ├── requester/                     # Modul Pelapor (Form & Monitoring)
+    │   ├── create_ticket_screen.dart  # Form pelaporan dengan fitur lampiran gambar
+    │   ├── requester_dashboard.dart   # List monitoring tiket milik pemohon
+    │   └── requester_ticket_detail_screen.dart # Detail laporan, timeline, & akses chat
     ├── technician/                    # Modul Teknisi (Update Status & Evidence)
+    │   ├── technician_dashboard.dart  # Antrean tiket masuk (Open) untuk ditangani
+    │   └── ticket_detail_screen.dart  # Update pengerjaan & upload bukti (Before/After)
     ├── shared/                        # Komponen UI Global (Card, Badge, dsb)
+    │   └── ticket_card.dart           # Komponen kartu tiket yang digunakan lintas dashboard
+    ├── about_screen.dart              # Halaman informasi versi & pengembang
     ├── chat_screen.dart               # Layar komunikasi real-time
     ├── dashboard_wrapper.dart         # Router otomatis berdasarkan Role
     ├── help_center_screen.dart        # Pusat bantuan & FAQ
@@ -106,7 +119,7 @@ lib/
 
 ## Panduan Penggunaan
 
-1. **Clone Repository**: `git clone <repo-url>`
+1. **Clone Repository**: `git clone https://github.com/0xHadiRamdhani/sbm-ticketing-app`
 2. **Install Dependencies**: `flutter pub get`
 3. **Configure Firebase**: Hubungkan aplikasi dengan proyek Firebase menggunakan `flutterfire configure`.
 4. **Environment Setup**: Pastikan API Key ImgBB dan EmailJS telah terkonfigurasi di dalam folder `services/`.
