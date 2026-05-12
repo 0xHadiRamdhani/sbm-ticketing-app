@@ -5,6 +5,7 @@ import '../../models/ticket_model.dart';
 import '../../models/message_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/ticket_provider.dart';
+import '../chat_screen.dart';
 import '../../services/chat_service.dart';
 
 class RequesterTicketDetailScreen extends StatefulWidget {
@@ -19,26 +20,11 @@ class RequesterTicketDetailScreen extends StatefulWidget {
 
 class _RequesterTicketDetailScreenState
     extends State<RequesterTicketDetailScreen> {
-  final ChatService _chatService = ChatService();
-  final TextEditingController _commentController = TextEditingController();
-
   bool _isCancelling = false;
 
   @override
   void dispose() {
-    _commentController.dispose();
     super.dispose();
-  }
-
-  void _sendComment() async {
-    final text = _commentController.text.trim();
-    if (text.isEmpty) return;
-
-    final user = Provider.of<AuthProvider>(context, listen: false).user;
-    if (user == null) return;
-
-    _commentController.clear();
-    await _chatService.sendMessage(widget.ticket.ticketId, user.uid, text);
   }
 
   Future<void> _cancelTicket() async {
@@ -166,6 +152,18 @@ class _RequesterTicketDetailScreenState
             ],
           ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChatScreen(ticket: widget.ticket),
+            ),
+          );
+        },
+        backgroundColor: const Color(0xFF1A3A5C),
+        child: const Icon(Icons.chat_bubble_outline_rounded, color: Colors.white),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -331,223 +329,7 @@ class _RequesterTicketDetailScreenState
             ),
             const SizedBox(height: 16),
 
-            // Card 2: Komentar & Update (Chat)
-            _buildCardWrapper(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Komentar & Update',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F172A),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
 
-                  // Message List
-                  StreamBuilder<List<MessageModel>>(
-                    stream: _chatService.getMessages(widget.ticket.ticketId),
-                    builder: (context, snapshot) {
-                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return const Padding(
-                          padding: EdgeInsets.only(bottom: 16),
-                          child: Text(
-                            'Belum ada komentar.',
-                            style: TextStyle(
-                              color: Color(0xFF94A3B8),
-                              fontSize: 13,
-                            ),
-                          ),
-                        );
-                      }
-
-                      final msgs = snapshot.data!
-                          .take(3)
-                          .toList()
-                          .reversed
-                          .toList(); // show last 3 messages for brevity
-                      return Column(
-                        children: msgs.map((m) {
-                          if (m.senderId == 'system') {
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 12),
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFFFBEB),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: const Color(0xFFFDE68A)),
-                              ),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Icon(Icons.info_outline, size: 16, color: Color(0xFFD97706)),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      m.text,
-                                      style: const TextStyle(fontSize: 12, color: Color(0xFF92400E), fontWeight: FontWeight.w500),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }
-                          final isTech =
-                              m.senderId != widget.ticket.requesterId;
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: isTech
-                                  ? const Color(0xFFF1F5F9)
-                                  : const Color(0xFFEFF6FF),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: isTech
-                                    ? const Color(0xFFE2E8F0)
-                                    : const Color(0xFFDBEAFE),
-                              ),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        CircleAvatar(
-                                          radius: 12,
-                                          backgroundColor: isTech
-                                              ? const Color(0xFF0F172A)
-                                              : const Color(0xFF3B82F6),
-                                          child: Text(
-                                            isTech ? 'TS' : 'Me',
-                                            style: const TextStyle(
-                                              fontSize: 10,
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          isTech ? 'Tim Support' : 'Anda',
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                            color: Color(0xFF334155),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Text(
-                                      DateFormat('HH:mm').format(m.timestamp) +
-                                          ' WIB',
-                                      style: const TextStyle(
-                                        fontSize: 11,
-                                        color: Color(0xFF94A3B8),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  m.text,
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    color: Color(0xFF475569),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                      );
-                    },
-                  ),
-
-                  // Input Box
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const CircleAvatar(
-                        radius: 16,
-                        backgroundColor: Color(0xFFE2E8F0),
-                        child: Icon(
-                          Icons.person_outline,
-                          size: 18,
-                          color: Color(0xFF64748B),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            TextField(
-                              controller: _commentController,
-                              maxLines: 3,
-                              minLines: 2,
-                              style: const TextStyle(fontSize: 13),
-                              decoration: InputDecoration(
-                                hintText: 'Tambahkan komentar...',
-                                hintStyle: const TextStyle(
-                                  color: Color(0xFF94A3B8),
-                                ),
-                                filled: true,
-                                fillColor: Colors.white,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 12,
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: const BorderSide(
-                                    color: Color(0xFFCBD5E1),
-                                  ),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: const BorderSide(
-                                    color: Color(0xFF1A3A5C),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            ElevatedButton.icon(
-                              onPressed: _sendComment,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF0F172A),
-                                foregroundColor: Colors.white,
-                                elevation: 0,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 8,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                              ),
-                              icon: const Icon(Icons.send_rounded, size: 14),
-                              label: const Text(
-                                'Kirim',
-                                style: TextStyle(fontSize: 13),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
 
             // Card 3: Status Perjalanan
             _buildCardWrapper(
@@ -596,6 +378,44 @@ class _RequesterTicketDetailScreenState
               ),
             ),
             const SizedBox(height: 16),
+
+            // Card Catatan Teknisi
+            if (widget.ticket.note != null && widget.ticket.note!.isNotEmpty) ...[
+              _buildCardWrapper(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Catatan Teknisi',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0F172A),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: Text(
+                        widget.ticket.note!,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF475569),
+                          height: 1.5,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
 
             // Card Bukti Perbaikan (Before & After)
             if (widget.ticket.photoBeforeUrl != null || widget.ticket.photoAfterUrl != null) ...[

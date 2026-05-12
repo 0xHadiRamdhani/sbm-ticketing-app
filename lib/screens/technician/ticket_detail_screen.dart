@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../../models/ticket_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/ticket_provider.dart';
+import '../chat_screen.dart';
 
 class TicketDetailScreen extends StatefulWidget {
   final TicketModel ticket;
@@ -37,17 +38,58 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   }
 
   Future<void> _pickImage(bool isBefore) async {
-    final XFile? image = await _picker.pickImage(
-      source: ImageSource.camera,
-      imageQuality: 70,
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Pilih dari Galeri'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _processPickImage(isBefore, ImageSource.gallery);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Ambil dari Kamera'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _processPickImage(isBefore, ImageSource.camera);
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
-    if (image != null) {
-      setState(() {
-        if (isBefore)
-          _photoBefore = image;
-        else
-          _photoAfter = image;
-      });
+  }
+
+  Future<void> _processPickImage(bool isBefore, ImageSource source) async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: source,
+        imageQuality: 70,
+      );
+      if (image != null) {
+        setState(() {
+          if (isBefore)
+            _photoBefore = image;
+          else
+            _photoAfter = image;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal membuka sumber gambar: $e')),
+        );
+      }
     }
   }
 
@@ -193,13 +235,13 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.notifications_outlined,
-              color: Color(0xFF475569),
-            ),
-            onPressed: () {},
-          ),
+          // IconButton(
+          //   icon: const Icon(
+          //     Icons.notifications_outlined,
+          //     color: Color(0xFF475569),
+          //   ),
+          //   onPressed: () {},
+          // ),
           if (isAdmin)
             PopupMenuButton<String>(
               icon: const Icon(Icons.more_vert, color: Color(0xFF475569)),
@@ -217,6 +259,21 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               ],
             ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChatScreen(ticket: widget.ticket),
+            ),
+          );
+        },
+        backgroundColor: const Color(0xFF1A3A5C),
+        child: const Icon(
+          Icons.chat_bubble_outline_rounded,
+          color: Colors.white,
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -517,7 +574,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 20),
           ],
         ),
       ),

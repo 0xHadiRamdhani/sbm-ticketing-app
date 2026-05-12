@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/ticket_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/ticket_provider.dart';
+import '../../services/notification_service.dart';
 import '../settings_screen.dart';
 import '../shared/ticket_card.dart';
 import 'create_ticket_screen.dart';
@@ -17,10 +19,54 @@ class _RequesterDashboardState extends State<RequesterDashboard> {
   String _searchQuery = '';
   final _searchCtrl = TextEditingController();
 
+  StreamSubscription<List<TicketModel>>? _notifSub;
+  bool _isFirstLoad = true;
+  Map<String, TicketModel> _knownTickets = {};
+
   final _filters = ['All', 'Open', 'In Progress', 'Resolved'];
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _startNotifListener());
+  }
+
+  void _startNotifListener() {
+    final tp = Provider.of<TicketProvider>(context, listen: false);
+    final uid = Provider.of<AuthProvider>(context, listen: false).user?.uid;
+    _notifSub = tp.fetchTickets(role: 'requester', uid: uid).listen(
+      (tickets) {
+        if (_isFirstLoad) {
+          _knownTickets = {for (var t in tickets) t.ticketId: t};
+          _isFirstLoad = false;
+          return;
+        }
+        for (var t in tickets) {
+          final oldT = _knownTickets[t.ticketId];
+          if (oldT != null) {
+            if (oldT.status != t.status) {
+              NotificationService().showNotification(
+                id: t.ticketId.hashCode,
+                title: 'Status Tiket Diperbarui',
+                body: 'Tiket ${t.category} Anda sekarang berstatus ${t.status}.',
+              );
+            } else if (oldT.note != t.note && t.note != null && t.note!.isNotEmpty) {
+              NotificationService().showNotification(
+                id: t.ticketId.hashCode ^ 1,
+                title: 'Catatan Teknisi Baru',
+                body: 'Teknisi menambahkan catatan: "${t.note}"',
+              );
+            }
+          }
+          _knownTickets[t.ticketId] = t;
+        }
+      },
+    );
+  }
+
+  @override
   void dispose() {
+    _notifSub?.cancel();
     _searchCtrl.dispose();
     super.dispose();
   }

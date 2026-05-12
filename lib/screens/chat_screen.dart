@@ -104,8 +104,33 @@ class _ChatScreenState extends State<ChatScreen> {
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final message = messages[index];
-                    final isMe = message.senderId == currentUserId;
+                    
+                    if (message.senderId == 'system') {
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFFBEB),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFFDE68A)),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(Icons.info_outline, size: 18, color: Color(0xFFD97706)),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                message.text,
+                                style: const TextStyle(fontSize: 13, color: Color(0xFF92400E), fontWeight: FontWeight.w500),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
 
+                    final isMe = message.senderId == currentUserId;
                     return _buildMessageBubble(message, isMe);
                   },
                 );

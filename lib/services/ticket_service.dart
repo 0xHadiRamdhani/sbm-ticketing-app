@@ -160,7 +160,7 @@ class TicketService {
       await _firestore.collection('tickets').doc(ticketId).collection('messages').add({
         'sender_id': 'system',
         'text': 'Pembaruan Sistem: Status tiket telah diubah menjadi $newStatus.',
-        'timestamp': DateTime.now(),
+        'timestamp': FieldValue.serverTimestamp(),
       });
     }
 
@@ -168,7 +168,7 @@ class TicketService {
       await _firestore.collection('tickets').doc(ticketId).collection('messages').add({
         'sender_id': 'system',
         'text': 'Pembaruan Sistem: Teknisi menambahkan catatan baru: "$note".',
-        'timestamp': DateTime.now(),
+        'timestamp': FieldValue.serverTimestamp(),
       });
     }
   }

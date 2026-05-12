@@ -6,6 +6,23 @@ SBM ITB Ticketing App adalah aplikasi pelaporan keluhan fasilitas, perangkat IT,
 
 ![Alur Sistem Ticketing SBM ITB](assets/helpdesk_sequence_diagram_ticketing_sbm_itb.svg)
 
+> [!NOTE]
+> Anda juga dapat melihat diagram interaktif *Actor Workflow* di file: [`diagram/actor_workflow.drawio`](diagram/actor_workflow.drawio)
+
+## Screenshots
+
+<p align="center">
+  <img src="screenshots/screen_1.png" width="200" style="margin: 8px;"/>
+  <img src="screenshots/screen_2.png" width="200" style="margin: 8px;"/>
+  <img src="screenshots/screen_3.png" width="200" style="margin: 8px;"/>
+  <img src="screenshots/screen_4.png" width="200" style="margin: 8px;"/>
+  <br/>
+  <img src="screenshots/screen_5.png" width="200" style="margin: 8px;"/>
+  <img src="screenshots/screen_6.png" width="200" style="margin: 8px;"/>
+  <img src="screenshots/screen_7.png" width="200" style="margin: 8px;"/>
+  <img src="screenshots/screen_8.png" width="200" style="margin: 8px;"/>
+</p>
+
 ## Fitur Utama
 
 - **Sistem Autentikasi**: Login dan Pendaftaran aman yang terintegrasi dengan Firebase Authentication. Mendukung validasi domain email (`@itb.ac.id` / `@sbm-itb.ac.id`).
@@ -13,7 +30,7 @@ SBM ITB Ticketing App adalah aplikasi pelaporan keluhan fasilitas, perangkat IT,
   - **Pemohon (Mahasiswa/Staf)**: Dapat membuat tiket keluhan baru, dan memantau status penyelesaian tiket mereka (Open, In Progress, Resolved).
   - **Teknisi IT**: Memiliki dashboard khusus untuk melihat daftar tiket yang tersedia (*Open*), mengambil alih tiket untuk dikerjakan (*In Progress*), dan menandai tiket yang sudah diselesaikan (*Resolved*).
   - **Admin**: Akses menyeluruh untuk mengelola sistem dan melihat statistik.
-- **Notifikasi Real-Time**: Teknisi menerima pemberitahuan langsung ketika ada tiket baru masuk menggunakan `flutter_local_notifications`.
+- **Notifikasi Real-Time**: Pengguna menerima pemberitahuan langsung ketika ada pembaruan status tiket atau pesan baru menggunakan `flutter_local_notifications`.
 - **Desain UI/UX Modern**: Antarmuka responsif dan bersih dengan elemen berdesain kekinian (sudut kartu melengkung dinamis, warna status badge, animasi transisi).
 - **Pengaturan & Pusat Bantuan**: Integrasi menu pengaturan terpadu termasuk kebijakan privasi, pengelolaan notifikasi, dan informasi aplikasi.
 
