@@ -94,8 +94,36 @@ class TicketService {
     await _firestore.collection('tickets').add(newTicket.toMap());
   }
 
+  Future<String?> _uploadToImgBB(XFile imageFile) async {
+    try {
+      final bytes = await File(imageFile.path).readAsBytes();
+      final base64Image = base64Encode(bytes);
+      final response = await http.post(
+        Uri.parse('https://api.imgbb.com/1/upload'),
+        body: {
+          'key': '639f57d0cc80d6da8ddb0c1927ea1a8a',
+          'image': base64Image,
+        },
+      );
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        return responseData['data']['url'];
+      }
+    } catch (e) {
+      print('ImgBB Upload Error: $e');
+    }
+    return null;
+  }
+
   // Update status tiket (Misal Teknisi mengambil atau menyelesaikannya)
-  Future<void> updateTicketStatus(String ticketId, String newStatus, {String? technicianId, List<XFile>? resolvedImages, String? note}) async {
+  Future<void> updateTicketStatus(String ticketId, String newStatus, {String? technicianId, List<XFile>? resolvedImages, String? note, XFile? photoBefore, XFile? photoAfter}) async {
+    final docSnapshot = await _firestore.collection('tickets').doc(ticketId).get();
+    if (!docSnapshot.exists) return;
+
+    final oldData = docSnapshot.data() as Map<String, dynamic>;
+    final oldStatus = oldData['status'] ?? 'Open';
+    final oldNote = oldData['note'] ?? '';
+
     Map<String, dynamic> updateData = {'status': newStatus};
     if (technicianId != null) {
       updateData['technician_id'] = technicianId;
@@ -104,30 +132,21 @@ class TicketService {
       updateData['note'] = note;
     }
 
+    if (photoBefore != null) {
+      String? url = await _uploadToImgBB(photoBefore);
+      if (url != null) updateData['photo_before_url'] = url;
+    }
+
+    if (photoAfter != null) {
+      String? url = await _uploadToImgBB(photoAfter);
+      if (url != null) updateData['photo_after_url'] = url;
+    }
+
     if (resolvedImages != null && resolvedImages.isNotEmpty) {
       List<String> imageUrls = [];
       for (var imageFile in resolvedImages) {
-        try {
-          final bytes = await File(imageFile.path).readAsBytes();
-          final base64Image = base64Encode(bytes);
-
-          final response = await http.post(
-            Uri.parse('https://api.imgbb.com/1/upload'),
-            body: {
-              'key': '639f57d0cc80d6da8ddb0c1927ea1a8a',
-              'image': base64Image,
-            },
-          );
-
-          if (response.statusCode == 200) {
-            final responseData = json.decode(response.body);
-            imageUrls.add(responseData['data']['url']);
-          } else {
-            print('ImgBB Upload Failed: ${response.body}');
-          }
-        } catch (e) {
-          print('Error uploading resolved image to ImgBB: $e');
-        }
+        String? url = await _uploadToImgBB(imageFile);
+        if (url != null) imageUrls.add(url);
       }
       if (imageUrls.isNotEmpty) {
         updateData['resolved_image_urls'] = imageUrls;
@@ -135,6 +154,23 @@ class TicketService {
     }
 
     await _firestore.collection('tickets').doc(ticketId).update(updateData);
+
+    // Send system messages if status or note changed
+    if (oldStatus != newStatus) {
+      await _firestore.collection('tickets').doc(ticketId).collection('messages').add({
+        'sender_id': 'system',
+        'text': 'Pembaruan Sistem: Status tiket telah diubah menjadi $newStatus.',
+        'timestamp': DateTime.now(),
+      });
+    }
+
+    if (note != null && note.isNotEmpty && note != oldNote) {
+      await _firestore.collection('tickets').doc(ticketId).collection('messages').add({
+        'sender_id': 'system',
+        'text': 'Pembaruan Sistem: Teknisi menambahkan catatan baru: "$note".',
+        'timestamp': DateTime.now(),
+      });
+    }
   }
 
   // Menghapus tiket (Hanya Admin)

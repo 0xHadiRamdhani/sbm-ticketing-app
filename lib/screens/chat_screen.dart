@@ -6,8 +6,6 @@ import '../models/ticket_model.dart';
 import '../models/message_model.dart';
 import '../services/chat_service.dart';
 import '../providers/auth_provider.dart';
-import 'voice_call_screen.dart';
-import 'video_call_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   final TicketModel ticket;
@@ -63,36 +61,6 @@ class _ChatScreenState extends State<ChatScreen> {
     return 'Pengguna';
   }
 
-  void _makeVoiceCall() async {
-    final otherName = await _getOtherUserName();
-    if (!mounted) return;
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => VoiceCallScreen(
-          channelId: widget.ticket.ticketId,
-          currentUserId: currentUserId,
-          otherUserName: otherName,
-        ),
-      ),
-    );
-  }
-
-  void _makeVideoCall() async {
-    final otherName = await _getOtherUserName();
-    if (!mounted) return;
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => VideoCallScreen(
-          channelId: widget.ticket.ticketId,
-          currentUserId: currentUserId,
-          otherUserName: otherName,
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -104,16 +72,6 @@ class _ChatScreenState extends State<ChatScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.call_rounded),
-            onPressed: _makeVoiceCall,
-            tooltip: 'Panggilan Suara',
-          ),
-          IconButton(
-            icon: const Icon(Icons.video_call),
-            onPressed: _makeVideoCall,
-            tooltip: 'Video Call',
-          ),
           const SizedBox(width: 8),
         ],
         backgroundColor: Colors.white,

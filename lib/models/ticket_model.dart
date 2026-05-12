@@ -13,6 +13,8 @@ class TicketModel {
   final String? location;
   final List<String>? resolvedImageUrls;
   final String? note;
+  final String? photoBeforeUrl;
+  final String? photoAfterUrl;
 
   TicketModel({
     required this.ticketId,
@@ -27,6 +29,8 @@ class TicketModel {
     this.location,
     this.resolvedImageUrls,
     this.note,
+    this.photoBeforeUrl,
+    this.photoAfterUrl,
   });
 
   factory TicketModel.fromMap(Map<String, dynamic> data, String documentId) {
@@ -45,6 +49,8 @@ class TicketModel {
           ? List<String>.from(data['resolved_image_urls']) 
           : null,
       note: data['note'],
+      photoBeforeUrl: data['photo_before_url'],
+      photoAfterUrl: data['photo_after_url'],
     );
   }
 
@@ -61,6 +67,8 @@ class TicketModel {
       if (location != null) 'location': location,
       if (resolvedImageUrls != null) 'resolved_image_urls': resolvedImageUrls,
       if (note != null && note!.isNotEmpty) 'note': note,
+      if (photoBeforeUrl != null) 'photo_before_url': photoBeforeUrl,
+      if (photoAfterUrl != null) 'photo_after_url': photoAfterUrl,
     };
   }
 }

@@ -3,7 +3,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../../models/ticket_model.dart';
+import '../../providers/auth_provider.dart';
+import 'package:provider/provider.dart';
 import '../technician/ticket_detail_screen.dart';
+import '../requester/requester_ticket_detail_screen.dart';
 
 // ─── Category Icons ───────────────────────────────────────────────────────────
 IconData categoryIcon(String category) {
@@ -59,10 +62,20 @@ class TicketCard extends StatelessWidget {
         '#TKT-${ticket.ticketId.substring(0, 4).toUpperCase()}-${ticket.ticketId.substring(4, 8).toUpperCase()}';
 
     return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => TicketDetailScreen(ticket: ticket)),
-      ),
+      onTap: () {
+        final user = Provider.of<AuthProvider>(context, listen: false).user;
+        if (user?.role == 'student' || user?.role == 'staff') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => RequesterTicketDetailScreen(ticket: ticket)),
+          );
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => TicketDetailScreen(ticket: ticket)),
+          );
+        }
+      },
       child: Container(
         margin: const EdgeInsets.only(bottom: 14),
         decoration: BoxDecoration(
@@ -204,11 +217,14 @@ class TicketCard extends StatelessWidget {
                   ),
                   const Spacer(),
                   GestureDetector(
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => TicketDetailScreen(ticket: ticket)),
-                    ),
+                    onTap: () {
+                      final user = Provider.of<AuthProvider>(context, listen: false).user;
+                      if (user?.role == 'student' || user?.role == 'staff') {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => RequesterTicketDetailScreen(ticket: ticket)));
+                      } else {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => TicketDetailScreen(ticket: ticket)));
+                      }
+                    },
                     child: const Text(
                       'Detail',
                       style: TextStyle(
