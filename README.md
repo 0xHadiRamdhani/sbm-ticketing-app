@@ -147,7 +147,7 @@ lib/
 
 ## Catatan Rilis
 
-- **Versi 1.0.0**: 
+- **Versi 1.9.1**: 
   - Penyempurnaan tampilan UI/UX global.
   - Implementasi Fitur *Settings* dan *About App*.
   - Perbaikan bug sinkronisasi notifikasi `desugar_jdk_libs` di Android.

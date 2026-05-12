@@ -81,7 +81,7 @@ class AboutScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: const Text(
-                'Versi 1.0.0',
+                'Versi 1.9.1',
                 style: TextStyle(
                   fontSize: 13,
                   color: Color(0xFF1A73E8),
