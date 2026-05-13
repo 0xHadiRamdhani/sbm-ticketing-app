@@ -220,7 +220,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // ── App version ────────────────────────────────────────────────
           const Center(
             child: Text(
-              'SBM ITB Support  •  v1.0.0',
+              'SBM ITB Support  •  v2.0.1',
               style: TextStyle(fontSize: 12, color: Color(0xFFB0B8C1)),
             ),
           ),

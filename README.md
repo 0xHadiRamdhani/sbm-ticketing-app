@@ -2,7 +2,7 @@
 
 [![Flutter Version](https://img.shields.io/badge/Flutter-3.x-blue.svg)](https://flutter.dev)
 [![Firebase](https://img.shields.io/badge/Backend-Firebase-orange.svg)](https://firebase.google.com/)
-[![Version](https://img.shields.io/badge/Version-2.0.0-purple.svg)](https://github.com/)
+[![Version](https://img.shields.io/badge/Version-2.0.1-purple.svg)](https://github.com/)
 
 **SBM ITB Ticketing App** adalah platform *helpdesk* terintegrasi yang dirancang khusus untuk memenuhi kebutuhan operasional School of Business and Management (SBM) ITB. Aplikasi ini mendigitalisasi proses pelaporan keluhan fasilitas, infrastruktur IT, dan layanan operasional lainnya secara transparan, akuntabel, dan *real-time*.
 
@@ -106,7 +106,9 @@ lib/
 
 ## Riwayat Rilis
 
-- **Versi 2.0.0 (Latest)**: 
+- **Versi 2.0.1 (Latest)**: 
+  - Pembaruan rutin dan optimalisasi performa.
+- **Versi 2.0.0**: 
   - Audit Log, SLA Monitoring, Export Reporting, dan Resolved Locking.
 - **Versi 1.9.1**: 
   - Integrasi EmailJS OTP dan ImgBB Media Storage.
