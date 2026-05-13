@@ -7,6 +7,7 @@ import '../../providers/ticket_provider.dart';
 import '../../services/notification_service.dart';
 import '../settings_screen.dart';
 import '../shared/ticket_card.dart';
+import '../shared/impersonation_banner.dart';
 
 class TechnicianDashboard extends StatefulWidget {
   @override
@@ -78,6 +79,7 @@ class _TechnicianDashboardState extends State<TechnicianDashboard> {
       ),
       body: Column(
         children: [
+          const ImpersonationBanner(),
           // ── Search + Filter ─────────────────────────────────────────────
           Container(
             color: Colors.white,
@@ -203,11 +205,18 @@ class _TechnicianDashboardState extends State<TechnicianDashboard> {
                       message: 'Tidak ada tiket ditemukan.');
                 }
 
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 12),
-                  itemCount: tickets.length,
-                  itemBuilder: (_, i) => TicketCard(ticket: tickets[i]),
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    setState(() {});
+                    await Future.delayed(const Duration(milliseconds: 500));
+                  },
+                  color: const Color(0xFF1A3A5C),
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    itemCount: tickets.length,
+                    itemBuilder: (_, i) => TicketCard(ticket: tickets[i]),
+                  ),
                 );
               },
             ),

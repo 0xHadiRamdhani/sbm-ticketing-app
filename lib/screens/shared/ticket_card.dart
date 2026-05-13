@@ -7,6 +7,7 @@ import '../../providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 import '../technician/ticket_detail_screen.dart';
 import '../requester/requester_ticket_detail_screen.dart';
+import '../admin/admin_ticket_detail_screen.dart';
 
 // ─── Category Icons ───────────────────────────────────────────────────────────
 IconData categoryIcon(String category) {
@@ -54,7 +55,17 @@ String timeAgo(DateTime dt) {
 // ─── Ticket Card ──────────────────────────────────────────────────────────────
 class TicketCard extends StatelessWidget {
   final TicketModel ticket;
-  const TicketCard({super.key, required this.ticket});
+  final bool isSelectionMode;
+  final bool isSelected;
+  final ValueChanged<bool?>? onSelect;
+
+  const TicketCard({
+    super.key, 
+    required this.ticket,
+    this.isSelectionMode = false,
+    this.isSelected = false,
+    this.onSelect,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -62,12 +73,19 @@ class TicketCard extends StatelessWidget {
         '#TKT-${ticket.ticketId.substring(0, 4).toUpperCase()}-${ticket.ticketId.substring(4, 8).toUpperCase()}';
 
     return GestureDetector(
-      onTap: () {
+      onTap: isSelectionMode 
+          ? () => onSelect?.call(!isSelected)
+          : () {
         final user = Provider.of<AuthProvider>(context, listen: false).user;
         if (user?.role == 'student' || user?.role == 'staff') {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => RequesterTicketDetailScreen(ticket: ticket)),
+          );
+        } else if (user?.role == 'admin') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => AdminTicketDetailScreen(ticket: ticket)),
           );
         } else {
           Navigator.push(
@@ -109,6 +127,19 @@ class TicketCard extends StatelessWidget {
                       color: Color(0xFF1A3A5C),
                     ),
                   ),
+                  if (isSelectionMode) ...[
+                    const SizedBox(width: 12),
+                    SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: Checkbox(
+                        value: isSelected,
+                        onChanged: onSelect,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                        activeColor: const Color(0xFF1A3A5C),
+                      ),
+                    ),
+                  ],
                   const Spacer(),
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -221,6 +252,8 @@ class TicketCard extends StatelessWidget {
                       final user = Provider.of<AuthProvider>(context, listen: false).user;
                       if (user?.role == 'student' || user?.role == 'staff') {
                         Navigator.push(context, MaterialPageRoute(builder: (_) => RequesterTicketDetailScreen(ticket: ticket)));
+                      } else if (user?.role == 'admin') {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => AdminTicketDetailScreen(ticket: ticket)));
                       } else {
                         Navigator.push(context, MaterialPageRoute(builder: (_) => TicketDetailScreen(ticket: ticket)));
                       }
@@ -444,13 +477,15 @@ PreferredSizeWidget buildSbmAppBar({VoidCallback? onSettingsTap, List<Widget>? e
     ),
     actions: [
       if (extraActions != null) ...extraActions,
-      IconButton(
-        icon: const Icon(Icons.settings_outlined,
-            color: Color(0xFF1A3A5C), size: 24),
-        tooltip: 'Pengaturan',
-        onPressed: onSettingsTap,
-      ),
+      if (onSettingsTap != null)
+        IconButton(
+          icon: const Icon(Icons.settings_outlined,
+              color: Color(0xFF1A3A5C), size: 24),
+          tooltip: 'Pengaturan',
+          onPressed: onSettingsTap,
+        ),
       const SizedBox(width: 4),
     ],
   );
 }
+

@@ -20,12 +20,37 @@ class _ChatScreenState extends State<ChatScreen> {
   final ChatService _chatService = ChatService();
   final TextEditingController _messageController = TextEditingController();
   late String currentUserId;
+  final Map<String, String> _userNames = {};
+  final Map<String, String> _userRoles = {};
 
   @override
   void initState() {
     super.initState();
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     currentUserId = authProvider.user?.uid ?? '';
+    _fetchUsersInfo();
+  }
+
+  Future<void> _fetchUsersInfo() async {
+    final ids = [widget.ticket.requesterId];
+    if (widget.ticket.technicianId != null) {
+      ids.add(widget.ticket.technicianId!);
+    }
+
+    for (var id in ids) {
+      try {
+        final doc = await FirebaseFirestore.instance.collection('users').doc(id).get();
+        if (doc.exists) {
+          final data = doc.data()!;
+          setState(() {
+            _userNames[id] = data['name'] ?? 'Pengguna';
+            _userRoles[id] = data['role'] ?? '';
+          });
+        }
+      } catch (e) {
+        debugPrint('Error fetching user $id: $e');
+      }
+    }
   }
 
   void _sendMessage() async {
@@ -144,52 +169,93 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildMessageBubble(MessageModel message, bool isMe) {
-    return Align(
-      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: isMe ? Colors.blue[800] : Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(16),
-            topRight: const Radius.circular(16),
-            bottomLeft: isMe ? const Radius.circular(16) : Radius.zero,
-            bottomRight: isMe ? Radius.zero : const Radius.circular(16),
+    final senderName = _userNames[message.senderId] ?? '...';
+    final senderRole = _userRoles[message.senderId] ?? '';
+    final roleLabel = senderRole == 'technician' ? 'Teknisi' : (senderRole == 'admin' ? 'Admin' : '');
+    
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (!isMe) ...[
+            CircleAvatar(
+              radius: 16,
+              backgroundColor: const Color(0xFF1A3A5C),
+              child: Text(
+                senderName.isNotEmpty ? senderName[0].toUpperCase() : '?',
+                style: const TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
+          Flexible(
+            child: Column(
+              crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              children: [
+                if (!isMe)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4, bottom: 4),
+                    child: Text(
+                      roleLabel.isNotEmpty ? '$senderName ($roleLabel)' : senderName,
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF64748B)),
+                    ),
+                  ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: isMe ? const Color(0xFF1A3A5C) : Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: const Radius.circular(16),
+                      topRight: const Radius.circular(16),
+                      bottomLeft: isMe ? const Radius.circular(16) : Radius.zero,
+                      bottomRight: isMe ? Radius.zero : const Radius.circular(16),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 5,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        message.text,
+                        style: TextStyle(
+                          color: isMe ? Colors.white : Colors.black87,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        DateFormat('HH:mm').format(message.timestamp),
+                        style: TextStyle(
+                          color: isMe ? Colors.white70 : Colors.black54,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 5,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.75,
-        ),
-        child: Column(
-          crossAxisAlignment: isMe
-              ? CrossAxisAlignment.end
-              : CrossAxisAlignment.start,
-          children: [
-            Text(
-              message.text,
-              style: TextStyle(
-                color: isMe ? Colors.white : Colors.black87,
-                fontSize: 15,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              DateFormat('HH:mm').format(message.timestamp),
-              style: TextStyle(
-                color: isMe ? Colors.blue[100] : Colors.grey[500],
-                fontSize: 11,
+          if (isMe) ...[
+            const SizedBox(width: 8),
+            CircleAvatar(
+              radius: 16,
+              backgroundColor: Colors.blue[100],
+              child: Text(
+                senderName.isNotEmpty ? senderName[0].toUpperCase() : '?',
+                style: const TextStyle(fontSize: 12, color: Color(0xFF1A3A5C), fontWeight: FontWeight.bold),
               ),
             ),
           ],
-        ),
+        ],
       ),
     );
   }

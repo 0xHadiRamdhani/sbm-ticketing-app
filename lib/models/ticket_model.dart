@@ -15,6 +15,8 @@ class TicketModel {
   final String? note;
   final String? photoBeforeUrl;
   final String? photoAfterUrl;
+  final DateTime? resolvedAt;
+  final DateTime? inProgressAt;
 
   TicketModel({
     required this.ticketId,
@@ -31,6 +33,8 @@ class TicketModel {
     this.note,
     this.photoBeforeUrl,
     this.photoAfterUrl,
+    this.resolvedAt,
+    this.inProgressAt,
   });
 
   factory TicketModel.fromMap(Map<String, dynamic> data, String documentId) {
@@ -51,6 +55,12 @@ class TicketModel {
       note: data['note'],
       photoBeforeUrl: data['photo_before_url'],
       photoAfterUrl: data['photo_after_url'],
+      resolvedAt: data['resolved_at'] != null 
+          ? (data['resolved_at'] as Timestamp).toDate() 
+          : null,
+      inProgressAt: data['in_progress_at'] != null 
+          ? (data['in_progress_at'] as Timestamp).toDate() 
+          : null,
     );
   }
 
@@ -69,6 +79,8 @@ class TicketModel {
       if (note != null && note!.isNotEmpty) 'note': note,
       if (photoBeforeUrl != null) 'photo_before_url': photoBeforeUrl,
       if (photoAfterUrl != null) 'photo_after_url': photoAfterUrl,
+      if (resolvedAt != null) 'resolved_at': Timestamp.fromDate(resolvedAt!),
+      if (inProgressAt != null) 'in_progress_at': Timestamp.fromDate(inProgressAt!),
     };
   }
 }

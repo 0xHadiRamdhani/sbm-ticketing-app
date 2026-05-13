@@ -9,9 +9,13 @@ import 'package:image_picker/image_picker.dart';
 class TicketService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
-  
+
   // Mendapatkan stream tiket berdasarkan status/orang
-  Stream<List<TicketModel>> getTickets({String? role, String? uid, String? status}) {
+  Stream<List<TicketModel>> getTickets({
+    String? role,
+    String? uid,
+    String? status,
+  }) {
     Query query = _firestore.collection('tickets');
 
     if (role == 'student' || role == 'staff') {
@@ -31,7 +35,9 @@ class TicketService {
 
       // Technician base filter: Only see 'Open' tickets OR tickets assigned to them
       if (role == 'technician') {
-        tickets = tickets.where((t) => t.status == 'Open' || t.technicianId == uid).toList();
+        tickets = tickets
+            .where((t) => t.status == 'Open' || t.technicianId == uid)
+            .toList();
       }
 
       // Explicit status filter from parameter
@@ -53,7 +59,7 @@ class TicketService {
     XFile? imageFile,
   }) async {
     String? imageUrl;
-    
+
     // Jika ada gambar, upload ke ImgBB
     if (imageFile != null) {
       try {
@@ -80,7 +86,8 @@ class TicketService {
     }
 
     TicketModel newTicket = TicketModel(
-      ticketId: '', // ticketId dikosongkan karena dibuat oleh firestore doc ref nantinya
+      ticketId:
+          '', // ticketId dikosongkan karena dibuat oleh firestore doc ref nantinya
       createdAt: DateTime.now(),
       category: category,
       description: description,
@@ -91,7 +98,16 @@ class TicketService {
       location: location,
     );
 
-    await _firestore.collection('tickets').add(newTicket.toMap());
+    final docRef = await _firestore
+        .collection('tickets')
+        .add(newTicket.toMap());
+
+    // Record initial status history
+    await docRef.collection('status_history').add({
+      'status': 'Open',
+      'label': 'Diajukan',
+      'timestamp': FieldValue.serverTimestamp(),
+    });
   }
 
   Future<String?> _uploadToImgBB(XFile imageFile) async {
@@ -100,10 +116,7 @@ class TicketService {
       final base64Image = base64Encode(bytes);
       final response = await http.post(
         Uri.parse('https://api.imgbb.com/1/upload'),
-        body: {
-          'key': '639f57d0cc80d6da8ddb0c1927ea1a8a',
-          'image': base64Image,
-        },
+        body: {'key': '639f57d0cc80d6da8ddb0c1927ea1a8a', 'image': base64Image},
       );
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
@@ -116,8 +129,19 @@ class TicketService {
   }
 
   // Update status tiket (Misal Teknisi mengambil atau menyelesaikannya)
-  Future<void> updateTicketStatus(String ticketId, String newStatus, {String? technicianId, List<XFile>? resolvedImages, String? note, XFile? photoBefore, XFile? photoAfter}) async {
-    final docSnapshot = await _firestore.collection('tickets').doc(ticketId).get();
+  Future<void> updateTicketStatus(
+    String ticketId,
+    String newStatus, {
+    String? technicianId,
+    List<XFile>? resolvedImages,
+    String? note,
+    XFile? photoBefore,
+    XFile? photoAfter,
+  }) async {
+    final docSnapshot = await _firestore
+        .collection('tickets')
+        .doc(ticketId)
+        .get();
     if (!docSnapshot.exists) return;
 
     final oldData = docSnapshot.data() as Map<String, dynamic>;
@@ -153,23 +177,50 @@ class TicketService {
       }
     }
 
+    if (newStatus == 'Resolved') {
+      updateData['resolved_at'] = FieldValue.serverTimestamp();
+    } else if (newStatus == 'In Progress' && oldStatus == 'Open') {
+      updateData['in_progress_at'] = FieldValue.serverTimestamp();
+    }
+
     await _firestore.collection('tickets').doc(ticketId).update(updateData);
+
+    // Record status history
+    await _firestore
+        .collection('tickets')
+        .doc(ticketId)
+        .collection('status_history')
+        .add({
+          'status': newStatus,
+          'label': _getStatusLabel(newStatus),
+          'timestamp': FieldValue.serverTimestamp(),
+        });
 
     // Send system messages if status or note changed
     if (oldStatus != newStatus) {
-      await _firestore.collection('tickets').doc(ticketId).collection('messages').add({
-        'sender_id': 'system',
-        'text': 'Pembaruan Sistem: Status tiket telah diubah menjadi $newStatus.',
-        'timestamp': FieldValue.serverTimestamp(),
-      });
+      await _firestore
+          .collection('tickets')
+          .doc(ticketId)
+          .collection('messages')
+          .add({
+            'sender_id': 'system',
+            'text':
+                'Pembaruan Sistem: Status tiket telah diubah menjadi $newStatus.',
+            'timestamp': FieldValue.serverTimestamp(),
+          });
     }
 
     if (note != null && note.isNotEmpty && note != oldNote) {
-      await _firestore.collection('tickets').doc(ticketId).collection('messages').add({
-        'sender_id': 'system',
-        'text': 'Pembaruan Sistem: Teknisi menambahkan catatan baru: "$note".',
-        'timestamp': FieldValue.serverTimestamp(),
-      });
+      await _firestore
+          .collection('tickets')
+          .doc(ticketId)
+          .collection('messages')
+          .add({
+            'sender_id': 'system',
+            'text':
+                'Pembaruan Sistem: Teknisi menambahkan catatan baru: "$note".',
+            'timestamp': FieldValue.serverTimestamp(),
+          });
     }
   }
 
@@ -183,5 +234,29 @@ class TicketService {
     await _firestore.collection('tickets').doc(ticketId).update({
       'created_at': Timestamp.fromDate(newDate),
     });
+  }
+
+  Future<void> addInternalNote(String ticketId, String note, String adminId, String adminName) async {
+    await _firestore.collection('tickets').doc(ticketId).collection('internal_notes').add({
+      'note': note,
+      'author_id': adminId,
+      'author_name': adminName,
+      'timestamp': FieldValue.serverTimestamp(),
+    });
+  }
+
+  String _getStatusLabel(String status) {
+    switch (status) {
+      case 'Open':
+        return 'Diajukan';
+      case 'In Progress':
+        return 'Diproses';
+      case 'Resolved':
+        return 'Selesai';
+      case 'Pending':
+        return 'Ditunda';
+      default:
+        return status;
+    }
   }
 }

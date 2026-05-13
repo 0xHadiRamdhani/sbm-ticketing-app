@@ -97,8 +97,10 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
     final tp = Provider.of<TicketProvider>(context, listen: false);
     final user = Provider.of<AuthProvider>(context, listen: false).user;
 
-    if (_selectedStatus == 'Resolved' &&
-        (_photoBefore == null || _photoAfter == null)) {
+    bool hasBefore = _photoBefore != null || widget.ticket.photoBeforeUrl != null;
+    bool hasAfter = _photoAfter != null || widget.ticket.photoAfterUrl != null;
+
+    if (_selectedStatus == 'Resolved' && (!hasBefore || !hasAfter)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(

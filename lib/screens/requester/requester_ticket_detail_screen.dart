@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../models/ticket_model.dart';
@@ -129,28 +130,37 @@ class _RequesterTicketDetailScreenState
       appBar: AppBar(
         backgroundColor: const Color(0xFFF7F9FC),
         elevation: 0,
-        leadingWidth: 200,
-        leading: GestureDetector(
-          onTap: () => Navigator.pop(context),
-          child: const Row(
-            children: [
-              SizedBox(width: 16),
-              Icon(
-                Icons.arrow_back_ios_new,
-                color: Color(0xFF475569),
-                size: 20,
+        automaticallyImplyLeading: false,
+        title: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: const BoxDecoration(
+                color: Color(0xFF0F172A),
+                shape: BoxShape.circle,
               ),
-              SizedBox(width: 6),
-              Text(
-                'Kembali ke Inbox',
-                style: TextStyle(
-                  color: Color(0xFF475569),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
+              child: const Center(
+                child: Text(
+                  'T',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
                 ),
               ),
-            ],
-          ),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              'SBM ITB Support',
+              style: TextStyle(
+                color: Color(0xFF0F172A),
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -170,6 +180,29 @@ class _RequesterTicketDetailScreenState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Back Button
+            GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: const Row(
+                children: [
+                  Icon(
+                    Icons.arrow_back_ios_new,
+                    color: Color(0xFF475569),
+                    size: 18,
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    'Kembali ke Inbox',
+                    style: TextStyle(
+                      color: Color(0xFF475569),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
             // Header
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -323,6 +356,13 @@ class _RequesterTicketDetailScreenState
                         },
                       ),
                     ),
+                  ],
+                  if (widget.ticket.technicianId != null) ...[
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: Divider(color: Color(0xFFE2E8F0)),
+                    ),
+                    _buildTechnicianRow(widget.ticket.technicianId!),
                   ],
                 ],
               ),
@@ -659,6 +699,38 @@ class _RequesterTicketDetailScreenState
           ),
         ],
       ),
+    );
+  }
+  Widget _buildTechnicianRow(String technicianId) {
+    return FutureBuilder<DocumentSnapshot>(
+      future: FirebaseFirestore.instance.collection('users').doc(technicianId).get(),
+      builder: (_, snap) {
+        String name = 'Memuat...';
+        if (snap.hasData && snap.data!.exists) {
+          final d = snap.data!.data() as Map<String, dynamic>;
+          name = d['name'] ?? 'Teknisi';
+        }
+        return Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEEF2FF),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.engineering_outlined, size: 20, color: Color(0xFF1A73E8)),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Teknisi Penanggung Jawab', style: TextStyle(fontSize: 11, color: Color(0xFF64748B), fontWeight: FontWeight.bold)),
+                Text(name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+              ],
+            ),
+          ],
+        );
+      },
     );
   }
 }

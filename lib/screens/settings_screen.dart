@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import 'about_screen.dart';
 import 'help_center_screen.dart';
+import 'privacy_policy_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   @override
@@ -166,7 +167,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _NavTile(
               icon: Icons.privacy_tip_outlined,
               label: 'Kebijakan Privasi',
-              onTap: () => _showComingSoon(context),
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen())),
             ),
             const _TileDivider(),
             _NavTile(
@@ -238,12 +240,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  void _showComingSoon(BuildContext ctx) {
-    ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(
-      content: Text('Halaman Kebijakan Privasi sedang dalam pengembangan.'),
-      behavior: SnackBarBehavior.floating,
-    ));
-  }
 
   void _confirmLogout(BuildContext ctx, AuthProvider auth) {
     showDialog(

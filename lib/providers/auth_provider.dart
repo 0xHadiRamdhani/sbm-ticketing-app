@@ -6,10 +6,12 @@ class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
   
   UserModel? _user;
+  UserModel? _originalAdminUser;
   bool _isLoading = true;
 
   UserModel? get user => _user;
   bool get isLoading => _isLoading;
+  bool get isImpersonating => _originalAdminUser != null;
 
   AuthProvider() {
     _initAuth();
@@ -17,6 +19,7 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> _initAuth() async {
     _authService.userStream.listen((firebaseUser) async {
+      if (isImpersonating) return; // Don't overwrite if impersonating
       try {
         if (firebaseUser == null) {
           _user = null;
@@ -116,6 +119,22 @@ class AuthProvider with ChangeNotifier {
       );
     } finally {
       _setLoading(false);
+    }
+  }
+
+  void impersonateUser(UserModel targetUser) {
+    if (_originalAdminUser == null) {
+      _originalAdminUser = _user;
+    }
+    _user = targetUser;
+    notifyListeners();
+  }
+
+  void stopImpersonating() {
+    if (_originalAdminUser != null) {
+      _user = _originalAdminUser;
+      _originalAdminUser = null;
+      notifyListeners();
     }
   }
 

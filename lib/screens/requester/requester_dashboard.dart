@@ -7,6 +7,7 @@ import '../../providers/ticket_provider.dart';
 import '../../services/notification_service.dart';
 import '../settings_screen.dart';
 import '../shared/ticket_card.dart';
+import '../shared/impersonation_banner.dart';
 import 'create_ticket_screen.dart';
 
 class RequesterDashboard extends StatefulWidget {
@@ -44,15 +45,27 @@ class _RequesterDashboardState extends State<RequesterDashboard> {
         for (var t in tickets) {
           final oldT = _knownTickets[t.ticketId];
           if (oldT != null) {
+            // 1. Status Change Notification
             if (oldT.status != t.status) {
+              String statusIndo = _statusLabelIndo(t.status);
               NotificationService().showNotification(
                 id: t.ticketId.hashCode,
-                title: 'Status Tiket Diperbarui',
-                body: 'Tiket ${t.category} Anda sekarang berstatus ${t.status}.',
+                title: 'Pembaruan Status Tiket',
+                body: 'Tiket ${t.category} Anda sekarang berstatus "$statusIndo".',
               );
-            } else if (oldT.note != t.note && t.note != null && t.note!.isNotEmpty) {
+            } 
+            // 2. Technician Assigned Notification
+            else if (oldT.technicianId == null && t.technicianId != null) {
               NotificationService().showNotification(
-                id: t.ticketId.hashCode ^ 1,
+                id: t.ticketId.hashCode + 1,
+                title: 'Teknisi Ditugaskan',
+                body: 'Seorang teknisi telah ditugaskan untuk menangani tiket ${t.category} Anda.',
+              );
+            }
+            // 3. New Note Notification
+            else if (oldT.note != t.note && t.note != null && t.note!.isNotEmpty) {
+              NotificationService().showNotification(
+                id: t.ticketId.hashCode + 2,
                 title: 'Catatan Teknisi Baru',
                 body: 'Teknisi menambahkan catatan: "${t.note}"',
               );
@@ -62,6 +75,16 @@ class _RequesterDashboardState extends State<RequesterDashboard> {
         }
       },
     );
+  }
+
+  String _statusLabelIndo(String status) {
+    switch (status) {
+      case 'Open': return 'Diajukan';
+      case 'In Progress': return 'Diproses';
+      case 'Resolved': return 'Selesai';
+      case 'Pending': return 'Ditunda';
+      default: return status;
+    }
   }
 
   @override
@@ -98,6 +121,7 @@ class _RequesterDashboardState extends State<RequesterDashboard> {
       ),
       body: Column(
         children: [
+          const ImpersonationBanner(),
           // ── Search + Filter ─────────────────────────────────────────────
           Container(
             color: Colors.white,
@@ -218,11 +242,19 @@ class _RequesterDashboardState extends State<RequesterDashboard> {
                       message: 'Belum ada tiket yang diajukan.');
                 }
 
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 12),
-                  itemCount: tickets.length,
-                  itemBuilder: (_, i) => TicketCard(ticket: tickets[i]),
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    // Force a rebuild to refresh data
+                    setState(() {});
+                    await Future.delayed(const Duration(milliseconds: 500));
+                  },
+                  color: const Color(0xFF1A3A5C),
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    itemCount: tickets.length,
+                    itemBuilder: (_, i) => TicketCard(ticket: tickets[i]),
+                  ),
                 );
               },
             ),
