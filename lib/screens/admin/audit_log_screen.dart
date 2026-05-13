@@ -36,13 +36,44 @@ class AuditLogScreen extends StatelessWidget {
           ),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('audit_logs').orderBy('timestamp', descending: true).snapshots(),
+              stream: FirebaseFirestore.instance
+                  .collection('audit_logs')
+                  .orderBy('timestamp', descending: true)
+                  .snapshots(),
               builder: (context, snapshot) {
-                if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-                final logs = snapshot.data!.docs;
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Gagal memuat log: ${snapshot.error}',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(color: Color(0xFF64748B)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: Color(0xFF1A3A5C)),
+                  );
+                }
+
+                final logs = snapshot.data?.docs ?? [];
                 
                 if (logs.isEmpty) {
-                  return const DashboardEmptyState(icon: Icons.history_rounded, message: 'Belum ada aktivitas tercatat.');
+                  return const DashboardEmptyState(
+                    icon: Icons.history_rounded, 
+                    message: 'Belum ada aktivitas tercatat.',
+                  );
                 }
 
                 return ListView.builder(

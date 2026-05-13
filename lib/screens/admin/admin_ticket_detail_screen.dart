@@ -268,10 +268,28 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
           Padding(
             padding: const EdgeInsets.all(20),
             child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('tickets').doc(widget.ticket.ticketId).collection('status_history').orderBy('timestamp', descending: true).snapshots(),
+              stream: FirebaseFirestore.instance.collection('tickets').doc(widget.ticket.ticketId).collection('status_history').snapshots(),
               builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: Text(
+                      'Gagal memuat riwayat: ${snapshot.error}',
+                      style: const TextStyle(color: Colors.red, fontSize: 13),
+                    ),
+                  );
+                }
                 if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-                final history = snapshot.data!.docs;
+                
+                final history = snapshot.data!.docs.toList();
+                // Sort locally to avoid index requirement
+                history.sort((a, b) {
+                  final tsA = (a.data() as Map<String, dynamic>)['timestamp'] as Timestamp?;
+                  final tsB = (b.data() as Map<String, dynamic>)['timestamp'] as Timestamp?;
+                  if (tsA == null || tsB == null) return 0;
+                  return tsA.compareTo(tsB);
+                });
+
                 if (history.isEmpty) return const Text('Tidak ada riwayat status.', style: TextStyle(fontSize: 13, color: Color(0xFF94A3B8)));
 
                 return ListView.builder(
@@ -286,7 +304,7 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
                     return _buildTimelineItem(
                       label,
                       time != null ? DateFormat('dd MMM, HH:mm').format(time) : '-',
-                      index == 0, // isFirst (current)
+                      index == history.length - 1, // isCurrent (latest)
                       index == history.length - 1, // isLast
                     );
                   },

@@ -36,6 +36,43 @@ class NotificationTemplatesScreen extends StatelessWidget {
                 if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
                 final templates = snapshot.data!.docs;
                 
+                if (templates.isEmpty) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.edit_notifications_outlined, size: 64, color: Color(0xFF94A3B8)),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'Belum ada templat notifikasi.',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Klik tombol di bawah untuk membuat templat standar sistem.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+                          ),
+                          const SizedBox(height: 24),
+                          ElevatedButton.icon(
+                            onPressed: () => _initializeDefaultTemplates(),
+                            icon: const Icon(Icons.auto_awesome, size: 18),
+                            label: const Text('Inisialisasi Templat Standar'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF1A3A5C),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
                 return ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   itemCount: templates.length,
@@ -51,6 +88,39 @@ class NotificationTemplatesScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _initializeDefaultTemplates() async {
+    final batch = FirebaseFirestore.instance.batch();
+    final collection = FirebaseFirestore.instance.collection('notification_templates');
+
+    final defaults = {
+      'ticket_created': {
+        'title': 'Tiket Baru Berhasil Dibuat',
+        'body': 'Halo {name}, tiket #{id} Anda untuk kategori {category} telah masuk ke sistem kami.',
+      },
+      'ticket_assigned': {
+        'title': 'Teknisi Telah Ditugaskan',
+        'body': 'Tiket #{id} Anda sekarang ditangani oleh tim teknis kami. Harap tunggu pembaruan selanjutnya.',
+      },
+      'ticket_resolved': {
+        'title': 'Masalah Selesai Diperbaiki',
+        'body': 'Tiket #{id} telah dinyatakan SELESAI. Silakan cek detail perbaikan di aplikasi.',
+      },
+      'new_message': {
+        'title': 'Pesan Baru di Tiket #{id}',
+        'body': 'Anda menerima pesan baru terkait kendala {category}. Silakan buka chat untuk membalas.',
+      },
+    };
+
+    defaults.forEach((key, value) {
+      batch.set(collection.doc(key), {
+        ...value,
+        'updated_at': FieldValue.serverTimestamp(),
+      });
+    });
+
+    await batch.commit();
   }
 
   Widget _buildTemplateCard(BuildContext context, String id, Map<String, dynamic> data) {

@@ -185,6 +185,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   Widget build(BuildContext context) {
     final user = Provider.of<AuthProvider>(context, listen: false).user;
     final isAdmin = user?.role == 'admin';
+    final isResolved = widget.ticket.status == 'Resolved';
     final shortId =
         '#TKT-${widget.ticket.ticketId.substring(0, 4).toUpperCase()}-${widget.ticket.ticketId.substring(4, 8).toUpperCase()}';
 
@@ -445,6 +446,83 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               ),
             ),
             const SizedBox(height: 20),
+            
+            // Catatan Internal Section (Read-only for Technician)
+            StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance.collection('tickets').doc(widget.ticket.ticketId).collection('internal_notes').orderBy('timestamp', descending: true).snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) return const SizedBox.shrink();
+                final notes = snapshot.data!.docs;
+                
+                return Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF7ED),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFFED7AA)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.lock_outline, size: 18, color: Color(0xFFC2410C)),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Catatan Internal Admin',
+                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFFC2410C)),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Divider(height: 1, color: Color(0xFFFED7AA)),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: notes.length,
+                        itemBuilder: (context, index) {
+                          final data = notes[index].data() as Map<String, dynamic>;
+                          final time = data['timestamp'] != null ? (data['timestamp'] as Timestamp).toDate() : null;
+                          return Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: index != notes.length - 1 
+                              ? const BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xFFFED7AA), width: 0.5)))
+                              : null,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      data['author_name'] ?? 'Admin',
+                                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF9A3412)),
+                                    ),
+                                    if (time != null)
+                                      Text(
+                                        DateFormat('dd MMM, HH:mm').format(time),
+                                        style: const TextStyle(fontSize: 10, color: Color(0xFFC2410C)),
+                                      ),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  data['note'] ?? '-',
+                                  style: const TextStyle(fontSize: 13, color: Color(0xFF431407), height: 1.4),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
 
             // Pembaruan Status Card
             Container(
@@ -471,9 +549,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                     spacing: 12,
                     runSpacing: 12,
                     children: [
-                      _buildStatusChip('Pending', Icons.access_time),
-                      _buildStatusChip('In Progress', Icons.build_outlined),
-                      _buildStatusChip('Resolved', Icons.check_circle_outline),
+                      _buildStatusChip('Pending', Icons.access_time, isResolved),
+                      _buildStatusChip('In Progress', Icons.build_outlined, isResolved),
+                      _buildStatusChip('Resolved', Icons.check_circle_outline, isResolved),
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -490,7 +568,8 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                   TextField(
                     controller: _noteController,
                     maxLines: 4,
-                    style: const TextStyle(fontSize: 13),
+                    enabled: !isResolved,
+                    style: TextStyle(fontSize: 13, color: isResolved ? const Color(0xFF64748B) : const Color(0xFF0F172A)),
                     decoration: InputDecoration(
                       hintText:
                           'Masukkan detail tindakan yang telah dilakukan...',
@@ -507,6 +586,12 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                         borderRadius: BorderRadius.circular(8),
                         borderSide: const BorderSide(color: Color(0xFF0F172A)),
                       ),
+                      disabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      fillColor: isResolved ? const Color(0xFFF8FAFC) : Colors.transparent,
+                      filled: isResolved,
                       contentPadding: const EdgeInsets.all(16),
                     ),
                   ),
@@ -521,9 +606,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  _buildPhotoUploadBtn('Unggah Foto Sebelum', true),
+                  _buildPhotoUploadBtn('Unggah Foto Sebelum', true, isResolved),
                   const SizedBox(height: 12),
-                  _buildPhotoUploadBtn('Unggah Foto Sesudah', false),
+                  _buildPhotoUploadBtn('Unggah Foto Sesudah', false, isResolved),
                   const SizedBox(height: 12),
                   const Text(
                     'Format didukung: JPG, PNG (Maks 5MB per foto)',
@@ -533,6 +618,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                   const SizedBox(height: 32),
                   Consumer<TicketProvider>(
                     builder: (context, tp, child) {
+                      if (isResolved) return const SizedBox.shrink();
                       return SizedBox(
                         width: double.infinity,
                         height: 48,
@@ -559,14 +645,14 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      'Selesaikan Tiket',
+                                      'Simpan Pembaruan',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 14,
                                       ),
                                     ),
                                     SizedBox(width: 8),
-                                    Icon(Icons.send_rounded, size: 16),
+                                    Icon(Icons.check_circle_rounded, size: 16),
                                   ],
                                 ),
                         ),
@@ -635,19 +721,19 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
     );
   }
 
-  Widget _buildStatusChip(String title, IconData icon) {
+  Widget _buildStatusChip(String title, IconData icon, bool isDisabled) {
     bool isSelected = _selectedStatus == title;
     return GestureDetector(
-      onTap: () => setState(() => _selectedStatus = title),
+      onTap: isDisabled ? null : () => setState(() => _selectedStatus = title),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF06B6D4) : Colors.white,
+          color: isSelected ? const Color(0xFF06B6D4) : (isDisabled ? const Color(0xFFF1F5F9) : Colors.white),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isSelected
                 ? const Color(0xFF06B6D4)
-                : const Color(0xFFCBD5E1),
+                : (isDisabled ? const Color(0xFFE2E8F0) : const Color(0xFFCBD5E1)),
           ),
         ),
         child: Row(
@@ -656,7 +742,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             Icon(
               icon,
               size: 16,
-              color: isSelected ? Colors.white : const Color(0xFF475569),
+              color: isSelected ? Colors.white : (isDisabled ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
             ),
             const SizedBox(width: 8),
             Text(
@@ -664,7 +750,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: isSelected ? Colors.white : const Color(0xFF475569),
+                color: isSelected ? Colors.white : (isDisabled ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
               ),
             ),
           ],
@@ -673,11 +759,12 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
     );
   }
 
-  Widget _buildPhotoUploadBtn(String label, bool isBefore) {
+  Widget _buildPhotoUploadBtn(String label, bool isBefore, bool isDisabled) {
     XFile? file = isBefore ? _photoBefore : _photoAfter;
     String? existingUrl = isBefore
         ? widget.ticket.photoBeforeUrl
         : widget.ticket.photoAfterUrl;
+
 
     if (file != null || existingUrl != null) {
       return Container(
@@ -700,7 +787,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               right: 8,
               top: 8,
               child: GestureDetector(
-                onTap: () => setState(() {
+                onTap: isDisabled ? null : () => setState(() {
                   if (isBefore)
                     _photoBefore = null;
                   else
@@ -708,14 +795,34 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                 }),
                 child: Container(
                   padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(
-                    color: Colors.black54,
+                  decoration: BoxDecoration(
+                    color: isDisabled ? Colors.grey.withOpacity(0.3) : Colors.black54,
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.close, color: Colors.white, size: 16),
                 ),
               ),
             ),
+          ],
+        ),
+      );
+    }
+    
+    if (isDisabled) {
+       return Container(
+        width: double.infinity,
+        height: 100,
+        decoration: BoxDecoration(
+          color: const Color(0xFFF1F5F9),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+        ),
+        child: const Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.image_not_supported_outlined, color: Color(0xFF94A3B8), size: 28),
+            SizedBox(height: 8),
+            Text('Foto tidak tersedia', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13)),
           ],
         ),
       );

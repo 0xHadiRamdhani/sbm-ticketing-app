@@ -99,13 +99,15 @@ class _RequesterTicketDetailScreenState
   Color _statusColor(String status) {
     if (status.toLowerCase() == 'in progress') return const Color(0xFF1A73E8);
     if (status.toLowerCase() == 'resolved') return const Color(0xFF1E8C45);
-    return const Color(0xFFF29900); // pending
+    if (status.toLowerCase() == 'open') return const Color(0xFFF59E0B);
+    return const Color(0xFF94A3B8); // pending/unknown
   }
 
   String _statusLabel(String status) {
     if (status.toLowerCase() == 'in progress') return 'Diproses';
     if (status.toLowerCase() == 'resolved') return 'Selesai';
-    return 'Pending';
+    if (status.toLowerCase() == 'open') return 'Diajukan';
+    return status;
   }
 
   @override
@@ -385,35 +387,69 @@ class _RequesterTicketDetailScreenState
                     ),
                   ),
                   const SizedBox(height: 20),
-                  _buildTimelineItem(
-                    'Diajukan',
-                    _formatDate(widget.ticket.createdAt),
-                    true,
-                    false,
-                    false,
+                  StreamBuilder<QuerySnapshot>(
+                    stream: FirebaseFirestore.instance
+                        .collection('tickets')
+                        .doc(widget.ticket.ticketId)
+                        .collection('status_history')
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasError) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          child: Text(
+                            'Gagal memuat riwayat: ${snapshot.error}',
+                            style: const TextStyle(color: Colors.red, fontSize: 13),
+                          ),
+                        );
+                      }
+                      if (!snapshot.hasData) {
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(20),
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      }
+                      
+                      final history = snapshot.data!.docs.toList();
+                      // Sort locally to avoid index requirement
+                      history.sort((a, b) {
+                        final tsA = (a.data() as Map<String, dynamic>)['timestamp'] as Timestamp?;
+                        final tsB = (b.data() as Map<String, dynamic>)['timestamp'] as Timestamp?;
+                        if (tsA == null || tsB == null) return 0;
+                        return tsA.compareTo(tsB);
+                      });
+
+                      if (history.isEmpty) {
+                        return const Text(
+                          'Belum ada riwayat status.',
+                          style: TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
+                        );
+                      }
+
+                      return ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: history.length,
+                        itemBuilder: (context, index) {
+                          final data = history[index].data() as Map<String, dynamic>;
+                          final label = data['label'] ?? data['status'];
+                          final time = data['timestamp'] != null 
+                              ? (data['timestamp'] as Timestamp).toDate() 
+                              : null;
+                          
+                          return _buildTimelineItem(
+                            label,
+                            time != null ? DateFormat('dd MMM, HH:mm').format(time) : 'Proses...',
+                            true, // Mark as completed since it's in history
+                            index == history.length - 1, // isCurrent if it's the last one
+                            index == history.length - 1, // isLast
+                          );
+                        },
+                      );
+                    },
                   ),
-                  _buildTimelineItem(
-                    'Diverifikasi',
-                    'Menunggu Teknisi',
-                    widget.ticket.status != 'Pending',
-                    widget.ticket.status == 'Pending',
-                    false,
-                  ),
-                  _buildTimelineItem(
-                    'Sedang Dikerjakan',
-                    'Oleh Teknisi',
-                    widget.ticket.status == 'Resolved',
-                    widget.ticket.status == 'In Progress',
-                    widget.ticket.status != 'Resolved',
-                  ),
-                  if (widget.ticket.status == 'Resolved')
-                    _buildTimelineItem(
-                      'Selesai',
-                      'Tiket Ditutup',
-                      true,
-                      true,
-                      true,
-                    ),
                 ],
               ),
             ),

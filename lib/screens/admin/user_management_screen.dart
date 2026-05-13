@@ -20,31 +20,46 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   Future<void> _deleteUser(String uid, String name) async {
     try {
       await _firestore.collection('users').doc(uid).delete();
+
+      await AuditService().logAction(
+        actionType: 'DELETE_USER',
+        targetId: uid,
+        description: 'Menghapus pengguna $name',
+      );
+
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Row(children: [
-            const Icon(Icons.check_circle_outline, color: Colors.white),
-            const SizedBox(width: 8),
-            Expanded(child: Text('Pengguna "$name" berhasil dihapus')),
-          ]),
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle_outline, color: Colors.white),
+              const SizedBox(width: 8),
+              Expanded(child: Text('Pengguna "$name" berhasil dihapus')),
+            ],
+          ),
           backgroundColor: const Color(0xFF16A34A),
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Row(children: [
-            const Icon(Icons.error_outline, color: Colors.white),
-            const SizedBox(width: 8),
-            Expanded(child: Text('Gagal menghapus pengguna: $e')),
-          ]),
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.white),
+              const SizedBox(width: 8),
+              Expanded(child: Text('Gagal menghapus pengguna: $e')),
+            ],
+          ),
           backgroundColor: Colors.red.shade700,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
     }
@@ -56,16 +71,27 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       builder: (ctx) => AlertDialog(
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        icon: Icon(Icons.delete_forever_rounded, color: Colors.red.shade600, size: 40),
+        icon: Icon(
+          Icons.delete_forever_rounded,
+          color: Colors.red.shade600,
+          size: 40,
+        ),
         title: const Text(
           'Hapus Pengguna?',
           textAlign: TextAlign.center,
-          style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF0F172A),
+          ),
         ),
         content: Text(
           'Akun "${user.name}" akan dihapus secara permanen dari sistem.\n\nTindakan ini tidak dapat dibatalkan.',
           textAlign: TextAlign.center,
-          style: const TextStyle(height: 1.5, color: Color(0xFF475569), fontSize: 14),
+          style: const TextStyle(
+            height: 1.5,
+            color: Color(0xFF475569),
+            fontSize: 14,
+          ),
         ),
         actionsAlignment: MainAxisAlignment.center,
         actions: [
@@ -73,9 +99,14 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             onPressed: () => Navigator.pop(ctx),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
-            child: const Text('Batal', style: TextStyle(fontWeight: FontWeight.bold)),
+            child: const Text(
+              'Batal',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
           const SizedBox(width: 8),
           ElevatedButton(
@@ -88,9 +119,14 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
-            child: const Text('Hapus', style: TextStyle(fontWeight: FontWeight.bold)),
+            child: const Text(
+              'Hapus',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),
@@ -103,28 +139,36 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Row(children: [
-            Icon(Icons.check_circle_outline, color: Colors.white),
-            SizedBox(width: 8),
-            Expanded(child: Text('Peran pengguna berhasil diperbarui')),
-          ]),
+          content: const Row(
+            children: [
+              Icon(Icons.check_circle_outline, color: Colors.white),
+              SizedBox(width: 8),
+              Expanded(child: Text('Peran pengguna berhasil diperbarui')),
+            ],
+          ),
           backgroundColor: const Color(0xFF16A34A),
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Row(children: [
-            const Icon(Icons.error_outline, color: Colors.white),
-            const SizedBox(width: 8),
-            Expanded(child: Text('Gagal memperbarui: $e')),
-          ]),
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.white),
+              const SizedBox(width: 8),
+              Expanded(child: Text('Gagal memperbarui: $e')),
+            ],
+          ),
           backgroundColor: Colors.red.shade700,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
     }
@@ -142,8 +186,16 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text('Ubah Peran', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1A3A5C))),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text(
+            'Ubah Peran',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1A3A5C),
+            ),
+          ),
           content: Text(
             'Anda yakin ingin mengubah peran\n${user.name}\nmenjadi ${newRole.toUpperCase()}?',
             style: const TextStyle(height: 1.5, color: Color(0xFF334155)),
@@ -151,7 +203,13 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Batal', style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold)),
+              child: const Text(
+                'Batal',
+                style: TextStyle(
+                  color: Color(0xFF64748B),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
             ElevatedButton(
               onPressed: () {
@@ -161,10 +219,15 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF1A3A5C),
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 elevation: 0,
               ),
-              child: const Text('Ya, Ubah', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: const Text(
+                'Ya, Ubah',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
           ],
         );
@@ -181,7 +244,11 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         elevation: 0.5,
         shadowColor: Colors.black12,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: Color(0xFF1A3A5C)),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20,
+            color: Color(0xFF1A3A5C),
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
@@ -205,25 +272,33 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               controller: _searchController,
               decoration: InputDecoration(
                 hintText: 'Cari nama pengguna...',
-                prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF94A3B8), size: 20),
+                prefixIcon: const Icon(
+                  Icons.search_rounded,
+                  color: Color(0xFF94A3B8),
+                  size: 20,
+                ),
                 filled: true,
                 fillColor: const Color(0xFFF1F5F9),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
                 ),
-                suffixIcon: _searchQuery.isNotEmpty 
-                  ? IconButton(
-                      icon: const Icon(Icons.close_rounded, size: 18),
-                      onPressed: () {
-                        _searchController.clear();
-                        setState(() => _searchQuery = '');
-                      },
-                    )
-                  : null,
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.close_rounded, size: 18),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() => _searchQuery = '');
+                        },
+                      )
+                    : null,
               ),
-              onChanged: (val) => setState(() => _searchQuery = val.toLowerCase()),
+              onChanged: (val) =>
+                  setState(() => _searchQuery = val.toLowerCase()),
             ),
           ),
 
@@ -256,235 +331,260 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             child: StreamBuilder<QuerySnapshot>(
               stream: _firestore.collection('users').snapshots(),
               builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: Color(0xFF1A3A5C)));
-          }
-          if (snapshot.hasError) {
-            return _emptyState(Icons.error_outline, 'Terjadi kesalahan memuat data.');
-          }
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return _emptyState(Icons.people_alt_outlined, 'Tidak ada pengguna terdaftar.');
-          }
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: Color(0xFF1A3A5C)),
+                  );
+                }
+                if (snapshot.hasError) {
+                  return _emptyState(
+                    Icons.error_outline,
+                    'Terjadi kesalahan memuat data.',
+                  );
+                }
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return _emptyState(
+                    Icons.people_alt_outlined,
+                    'Tidak ada pengguna terdaftar.',
+                  );
+                }
 
-          final allUsers = snapshot.data!.docs.map((doc) {
-            return UserModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
-          }).toList();
+                final allUsers = snapshot.data!.docs.map((doc) {
+                  return UserModel.fromMap(
+                    doc.data() as Map<String, dynamic>,
+                    doc.id,
+                  );
+                }).toList();
 
-          final filteredUsers = allUsers.where((u) {
-            final matchesRole = _selectedFilterRole == null || u.role == _selectedFilterRole;
-            final matchesName = u.name.toLowerCase().contains(_searchQuery);
-            return matchesRole && matchesName;
-          }).toList();
+                final filteredUsers = allUsers.where((u) {
+                  final matchesRole =
+                      _selectedFilterRole == null ||
+                      u.role == _selectedFilterRole;
+                  final matchesName = u.name.toLowerCase().contains(
+                    _searchQuery,
+                  );
+                  return matchesRole && matchesName;
+                }).toList();
 
-          if (filteredUsers.isEmpty) {
-            return _emptyState(
-              Icons.person_search_rounded, 
-              _searchQuery.isEmpty 
-                ? 'Tidak ada pengguna dengan peran ini.' 
-                : 'Tidak ada hasil untuk "$_searchQuery"'
-            );
-          }
+                if (filteredUsers.isEmpty) {
+                  return _emptyState(
+                    Icons.person_search_rounded,
+                    _searchQuery.isEmpty
+                        ? 'Tidak ada pengguna dengan peran ini.'
+                        : 'Tidak ada hasil untuk "$_searchQuery"',
+                  );
+                }
 
-          return ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            itemCount: filteredUsers.length,
-            itemBuilder: (context, index) {
-              final user = filteredUsers[index];
-              return Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.02),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 46,
-                          height: 46,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFEEF2FF),
-                            shape: BoxShape.circle,
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  itemCount: filteredUsers.length,
+                  itemBuilder: (context, index) {
+                    final user = filteredUsers[index];
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.02),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
                           ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1A73E8),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
                             children: [
-                              Text(
-                                user.name.isNotEmpty ? user.name : 'Tanpa Nama',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: Color(0xFF0F172A),
+                              Container(
+                                width: 46,
+                                height: 46,
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFFEEF2FF),
+                                  shape: BoxShape.circle,
                                 ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                user.email.isNotEmpty ? user.email : user.phoneNumber,
-                                style: const TextStyle(
-                                  color: Color(0xFF64748B),
-                                  fontSize: 13,
-                                ),
-                              ),
-                              if (user.department.isNotEmpty) ...[
-                                const SizedBox(height: 2),
-                                Text(
-                                  user.department,
+                                alignment: Alignment.center,
+                                child: Text(
+                                  user.name.isNotEmpty
+                                      ? user.name[0].toUpperCase()
+                                      : '?',
                                   style: const TextStyle(
-                                    color: Color(0xFF94A3B8),
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 12),
-                      child: Divider(color: Color(0xFFF1F5F9), height: 1),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Peran Akses',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF334155),
-                          ),
-                        ),
-                        Row(
-                          children: [
-                            Container(
-                              height: 36,
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF8FAFC),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: const Color(0xFFE2E8F0)),
-                              ),
-                              child: DropdownButtonHideUnderline(
-                                child: DropdownButton<String>(
-                                  value: _roles.contains(user.role) ? user.role : 'student',
-                                  icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: Color(0xFF64748B)),
-                                  style: const TextStyle(
-                                    fontSize: 13,
+                                    fontSize: 18,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1A3A5C),
+                                    color: Color(0xFF1A73E8),
                                   ),
-                                  items: _roles.map((r) => DropdownMenuItem(
-                                    value: r,
-                                    child: Text(r.toUpperCase()),
-                                  )).toList(),
-                                  onChanged: (newRole) {
-                                    if (newRole != null && newRole != user.role) {
-                                      _showConfirmationDialog(user, newRole);
-                                    }
-                                  },
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            // Tombol Login Sebagai (Impersonation)
-                            GestureDetector(
-                              onTap: () async {
-                                final auth = context.read<AuthProvider>();
-                                if (user.uid == auth.user?.uid) return;
-                                
-                                final confirm = await showDialog<bool>(
-                                  context: context,
-                                  builder: (c) => AlertDialog(
-                                    title: const Text('Login Sebagai'),
-                                    content: Text('Anda akan masuk sebagai ${user.name}. Sesi Anda sebagai Admin akan tetap terjaga.'),
-                                    actions: [
-                                      TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Batal')),
-                                      TextButton(onPressed: () => Navigator.pop(c, true), child: const Text('Lanjutkan', style: TextStyle(fontWeight: FontWeight.bold))),
-                                    ],
-                                  ),
-                                );
-
-                                if (confirm == true) {
-                                  await AuditService().logAction(
-                                    actionType: 'USER_IMPERSONATION',
-                                    targetId: user.uid,
-                                    description: 'Memulai sesi impersonasi sebagai ${user.name} (${user.role})',
-                                  );
-                                  auth.impersonateUser(user);
-                                  Navigator.pop(context); // Kembali ke dashboard
-                                }
-                              },
-                              child: Container(
-                                height: 36,
-                                padding: const EdgeInsets.symmetric(horizontal: 10),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF1A3A5C).withOpacity(0.05),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: const Color(0xFF1A3A5C).withOpacity(0.2)),
-                                ),
-                                child: Row(
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Icon(Icons.login_rounded, size: 16, color: Color(0xFF1A3A5C)),
-                                    const SizedBox(width: 4),
-                                    const Text('Login', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF1A3A5C))),
+                                    Text(
+                                      user.name.isNotEmpty
+                                          ? user.name
+                                          : 'Tanpa Nama',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                        color: Color(0xFF0F172A),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      user.email.isNotEmpty
+                                          ? user.email
+                                          : user.phoneNumber,
+                                      style: const TextStyle(
+                                        color: Color(0xFF64748B),
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                    if (user.department.isNotEmpty) ...[
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        user.department,
+                                        style: const TextStyle(
+                                          color: Color(0xFF94A3B8),
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
                                   ],
                                 ),
                               ),
+                            ],
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 12),
+                            child: Divider(color: Color(0xFFF1F5F9), height: 1),
+                          ),
+                          const Text(
+                            'Peran Akses',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF64748B),
+                              letterSpacing: 0.5,
                             ),
-                            const SizedBox(width: 8),
-                            // Tombol Hapus Pengguna
-                            GestureDetector(
-                              onTap: () => _showDeleteConfirmationDialog(user),
-                              child: Container(
-                                width: 36,
-                                height: 36,
-                                decoration: BoxDecoration(
-                                  color: Colors.red.shade50,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: Colors.red.shade200),
-                                ),
-                                child: Icon(
-                                  Icons.delete_outline_rounded,
-                                  size: 18,
-                                  color: Colors.red.shade600,
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  height: 42,
+                                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF8FAFC),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                                  ),
+                                  child: DropdownButtonHideUnderline(
+                                    child: DropdownButton<String>(
+                                      value: _roles.contains(user.role) ? user.role : 'student',
+                                      icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: Color(0xFF64748B)),
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1A3A5C),
+                                      ),
+                                      isExpanded: true,
+                                      items: _roles.map((r) => DropdownMenuItem(
+                                        value: r,
+                                        child: Text(r.toUpperCase()),
+                                      )).toList(),
+                                      onChanged: (newRole) {
+                                        if (newRole != null && newRole != user.role) {
+                                          _showConfirmationDialog(user, newRole);
+                                        }
+                                      },
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            },
-          );
-        },
-      ),
+                              const SizedBox(width: 12),
+                              // Tombol Login Sebagai (Impersonation)
+                              GestureDetector(
+                                onTap: () async {
+                                  final auth = context.read<AuthProvider>();
+                                  if (user.uid == auth.user?.uid) return;
+                                  
+                                  final confirm = await showDialog<bool>(
+                                    context: context,
+                                    builder: (c) => AlertDialog(
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                      title: const Text('Login Sebagai'),
+                                      content: Text('Anda akan masuk sebagai ${user.name}. Sesi Anda sebagai Admin akan tetap terjaga.'),
+                                      actions: [
+                                        TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Batal')),
+                                        TextButton(onPressed: () => Navigator.pop(c, true), child: const Text('Lanjutkan', style: TextStyle(fontWeight: FontWeight.bold))),
+                                      ],
+                                    ),
+                                  );
+
+                                  if (confirm == true) {
+                                    await AuditService().logAction(
+                                      actionType: 'USER_IMPERSONATION',
+                                      targetId: user.uid,
+                                      description: 'Memulai sesi impersonasi sebagai ${user.name} (${user.role})',
+                                    );
+                                    auth.impersonateUser(user);
+                                    Navigator.pop(context); // Kembali ke dashboard
+                                  }
+                                },
+                                child: Container(
+                                  height: 42,
+                                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF1A3A5C).withOpacity(0.05),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: const Color(0xFF1A3A5C).withOpacity(0.2)),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.login_rounded, size: 16, color: Color(0xFF1A3A5C)),
+                                      const SizedBox(width: 6),
+                                      const Text('Login', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1A3A5C))),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              // Tombol Hapus Pengguna
+                              GestureDetector(
+                                onTap: () => _showDeleteConfirmationDialog(user),
+                                child: Container(
+                                  width: 42,
+                                  height: 42,
+                                  decoration: BoxDecoration(
+                                    color: Colors.red.shade50,
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: Colors.red.shade200),
+                                  ),
+                                  child: Icon(
+                                    Icons.delete_outline_rounded,
+                                    size: 20,
+                                    color: Colors.red.shade600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -502,7 +602,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           color: isSelected ? const Color(0xFF1A3A5C) : const Color(0xFFF1F5F9),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? const Color(0xFF1A3A5C) : const Color(0xFFE2E8F0),
+            color: isSelected
+                ? const Color(0xFF1A3A5C)
+                : const Color(0xFFE2E8F0),
           ),
         ),
         child: Text(

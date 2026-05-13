@@ -6,6 +6,7 @@ import 'audit_log_screen.dart';
 import 'notification_templates_screen.dart';
 import 'export_reports_screen.dart';
 import 'user_management_screen.dart';
+import '../../services/audit_service.dart';
 import '../../providers/ticket_provider.dart';
 import '../../models/ticket_model.dart';
 import '../shared/ticket_card.dart';
@@ -139,35 +140,54 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
                   context,
                   icon: Icons.history_rounded,
                   label: 'Audit Log',
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AuditLogScreen())),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AuditLogScreen()),
+                  ),
                 ),
                 const SizedBox(width: 12),
                 _buildQuickAction(
                   context,
                   icon: Icons.people_outline_rounded,
                   label: 'User Management',
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => UserManagementScreen())),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => UserManagementScreen()),
+                  ),
                 ),
                 const SizedBox(width: 12),
                 _buildQuickAction(
                   context,
                   icon: Icons.edit_notifications_outlined,
                   label: 'Templat',
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationTemplatesScreen())),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const NotificationTemplatesScreen(),
+                    ),
+                  ),
                 ),
-                const SizedBox(width: 12),
-                _buildQuickAction(
-                  context,
-                  icon: Icons.file_download_outlined,
-                  label: 'Ekspor',
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ExportReportsScreen())),
-                ),
+                // const SizedBox(width: 12),
+                // _buildQuickAction(
+                //   context,
+                //   icon: Icons.file_download_outlined,
+                //   label: 'Ekspor',
+                //   onTap: () => Navigator.push(
+                //     context,
+                //     MaterialPageRoute(
+                //       builder: (_) => const ExportReportsScreen(),
+                //     ),
+                //   ),
+                // ),
                 const SizedBox(width: 12),
                 _buildQuickAction(
                   context,
                   icon: Icons.bar_chart_rounded,
                   label: 'Statistik',
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminStatsScreen())),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AdminStatsScreen()),
+                  ),
                 ),
               ],
             ),
@@ -313,8 +333,9 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
                                 itemCount: filteredTickets.length,
                                 itemBuilder: (context, index) {
                                   final ticket = filteredTickets[index];
-                                  final isSelected = _selectedTicketIds.contains(ticket.ticketId);
-                                  
+                                  final isSelected = _selectedTicketIds
+                                      .contains(ticket.ticketId);
+
                                   return GestureDetector(
                                     onLongPress: () {
                                       setState(() {
@@ -329,10 +350,15 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
                                       onSelect: (val) {
                                         setState(() {
                                           if (val == true) {
-                                            _selectedTicketIds.add(ticket.ticketId);
+                                            _selectedTicketIds.add(
+                                              ticket.ticketId,
+                                            );
                                           } else {
-                                            _selectedTicketIds.remove(ticket.ticketId);
-                                            if (_selectedTicketIds.isEmpty) _isSelectionMode = false;
+                                            _selectedTicketIds.remove(
+                                              ticket.ticketId,
+                                            );
+                                            if (_selectedTicketIds.isEmpty)
+                                              _isSelectionMode = false;
                                           }
                                         });
                                       },
@@ -352,7 +378,12 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
     );
   }
 
-  Widget _buildQuickAction(BuildContext context, {required IconData icon, required String label, required VoidCallback onTap}) {
+  Widget _buildQuickAction(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -363,7 +394,11 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: const Color(0xFFE2E8F0)),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4, offset: const Offset(0, 2)),
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
           ],
         ),
         child: Row(
@@ -373,7 +408,11 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
             const SizedBox(width: 8),
             Text(
               label,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1A3A5C)),
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1A3A5C),
+              ),
             ),
           ],
         ),
@@ -392,7 +431,11 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
         color: const Color(0xFF1A3A5C),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
       child: Row(
@@ -406,17 +449,32 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
           ),
           Text(
             '${_selectedTicketIds.length} Tiket Terpilih',
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const Spacer(),
-          _buildBulkActionIcon(Icons.check_circle_outline, 'Selesaikan', () => _handleBulkStatus('Resolved')),
-          _buildBulkActionIcon(Icons.delete_outline, 'Hapus', _handleBulkDelete),
+          _buildBulkActionIcon(
+            Icons.check_circle_outline,
+            'Selesaikan',
+            () => _handleBulkStatus('Resolved'),
+          ),
+          _buildBulkActionIcon(
+            Icons.delete_outline,
+            'Hapus',
+            _handleBulkDelete,
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildBulkActionIcon(IconData icon, String tooltip, VoidCallback onTap) {
+  Widget _buildBulkActionIcon(
+    IconData icon,
+    String tooltip,
+    VoidCallback onTap,
+  ) {
     return IconButton(
       onPressed: onTap,
       icon: Icon(icon, color: Colors.white, size: 22),
@@ -428,12 +486,21 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
     final provider = context.read<TicketProvider>();
     for (String id in _selectedTicketIds) {
       await provider.updateTicketStatus(id, status);
+      await AuditService().logAction(
+        actionType: 'BULK_UPDATE_STATUS',
+        targetId: id,
+        description: 'Mengubah status tiket secara massal menjadi $status',
+      );
     }
     setState(() {
       _isSelectionMode = false;
       _selectedTicketIds.clear();
     });
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${_selectedTicketIds.length} tiket berhasil diupdate.')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${_selectedTicketIds.length} tiket berhasil diupdate.'),
+      ),
+    );
   }
 
   Future<void> _handleBulkDelete() async {
@@ -441,10 +508,18 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
       context: context,
       builder: (c) => AlertDialog(
         title: const Text('Hapus Massal'),
-        content: Text('Hapus ${_selectedTicketIds.length} tiket yang dipilih secara permanen?'),
+        content: Text(
+          'Hapus ${_selectedTicketIds.length} tiket yang dipilih secara permanen?',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Batal')),
-          TextButton(onPressed: () => Navigator.pop(c, true), child: const Text('Hapus', style: TextStyle(color: Colors.red))),
+          TextButton(
+            onPressed: () => Navigator.pop(c, false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(c, true),
+            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+          ),
         ],
       ),
     );
@@ -454,12 +529,19 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
       int count = _selectedTicketIds.length;
       for (String id in _selectedTicketIds) {
         await provider.deleteTicket(id);
+        await AuditService().logAction(
+          actionType: 'BULK_DELETE_TICKET',
+          targetId: id,
+          description: 'Menghapus tiket secara massal',
+        );
       }
       setState(() {
         _isSelectionMode = false;
         _selectedTicketIds.clear();
       });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$count tiket berhasil dihapus.')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('$count tiket berhasil dihapus.')));
     }
   }
 
