@@ -2,7 +2,7 @@
 
 [![Flutter Version](https://img.shields.io/badge/Flutter-3.x-blue.svg)](https://flutter.dev)
 [![Firebase](https://img.shields.io/badge/Backend-Firebase-orange.svg)](https://firebase.google.com/)
-[![Version](https://img.shields.io/badge/Version-1.9.1-green.svg)](https://github.com/)
+[![Version](https://img.shields.io/badge/Version-2.0.0-purple.svg)](https://github.com/)
 
 **SBM ITB Ticketing App** adalah platform *helpdesk* terintegrasi yang dirancang khusus untuk memenuhi kebutuhan operasional School of Business and Management (SBM) ITB. Aplikasi ini mendigitalisasi proses pelaporan keluhan fasilitas, infrastruktur IT, dan layanan operasional lainnya secara transparan, akuntabel, dan *real-time*.
 
@@ -26,115 +26,90 @@ Aplikasi ini menggunakan model peran (*Role-Based*) yang terstruktur untuk menja
   <img src="screenshots/screen_2.png" width="200" style="border-radius: 10px; margin: 5px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);"/>
   <img src="screenshots/screen_3.png" width="200" style="border-radius: 10px; margin: 5px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);"/>
   <img src="screenshots/screen_4.png" width="200" style="border-radius: 10px; margin: 5px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);"/>
-  <br/>
-  <img src="screenshots/screen_5.png" width="200" style="border-radius: 10px; margin: 5px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);"/>
-  <img src="screenshots/screen_6.png" width="200" style="border-radius: 10px; margin: 5px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);"/>
-  <img src="screenshots/screen_7.png" width="200" style="border-radius: 10px; margin: 5px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);"/>
-  <img src="screenshots/screen_8.png" width="200" style="border-radius: 10px; margin: 5px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);"/>
 </p>
 
 ---
 
-## Fitur Utama dan Keunggulan
+## Fitur Unggulan (Versi 2.0)
 
-### Sistem Autentikasi dan Verifikasi Tingkat Tinggi
-- **Email Verification via EmailJS**: Menjamin keamanan pendaftaran civitas ITB dengan verifikasi kode OTP (One-Time Password) yang dikirim langsung melalui gateway **EmailJS**.
-- **Phone Login Support**: Fleksibilitas login menggunakan nomor telepon yang terverifikasi.
-- **RBAC (Role-Based Access Control)**: Pemisahan hak akses yang ketat antara *Requester* (Pelapor), *Technician* (Teknisi), dan *Admin*.
+### 🛡️ Sistem Keamanan & Audit
+- **Audit Log System**: Pencatatan otomatis seluruh aksi administratif (update massal, penghapusan, perubahan role) untuk transparansi operasional.
+- **Resolved State Locking**: Proteksi integritas data di mana teknisi tidak dapat mengubah foto atau catatan setelah tiket dinyatakan *Resolved*.
+- **Admin Impersonation**: Fitur pengujian bagi admin untuk melihat perspektif pengguna lain secara aman.
 
-### Manajemen Laporan dan Dokumentasi Visual
-- **Penyimpanan Gambar via ImgBB API**: Seluruh lampiran bukti kerusakan dan bukti perbaikan disimpan menggunakan API **ImgBB** untuk menjamin ketersediaan data tanpa membebani database utama.
-- **Transparansi Perbaikan (Before & After)**: Teknisi diwajibkan mendokumentasikan kondisi fasilitas sebelum dan sesudah diperbaiki.
-- **Real-Time Status Tracking**: Pantau status tiket (Open, In Progress, Resolved) secara langsung dengan *timeline* yang detail.
+### 📊 Manajemen Data & Laporan (Reporting)
+- **Export to Excel/CSV**: Fitur ekspor laporan tiket secara instan dengan filter tanggal dan kategori.
+- **SLA Monitoring**: Pelacakan batas waktu penyelesaian (Service Level Agreement) berdasarkan tingkat prioritas (Critical, High, Medium, Low).
+- **Scheduled Reports Simulation**: Antarmuka untuk pengaturan pengiriman laporan otomatis (Mingguan/Bulanan).
 
-### Fitur Komunikasi dan Notifikasi Proaktif
-- **Real-Time Chat**: Ruang diskusi langsung antara pelapor dan teknisi untuk klarifikasi masalah.
-- **Automatic System Notifications**: Notifikasi instan melalui `flutter_local_notifications` saat ada perubahan status atau catatan teknisi baru.
-- **System Messaging**: Riwayat pembaruan otomatis yang tercatat dalam ruang obrolan sebagai referensi audit.
+### ⚙️ Administrasi Tingkat Lanjut
+- **Notification Template Manager**: Kelola konten notifikasi sistem (email/app) secara dinamis tanpa mengubah kode sumber.
+- **Bulk Operations**: Kemampuan untuk menyelesaikan atau menghapus banyak tiket sekaligus dalam satu aksi massal.
+- **Advanced Dashboard Stats**: Visualisasi data statistik performa helpdesk secara komprehensif.
 
----
-
-## Stack Teknologi dan Logika Utama
-
-### 1. Teknologi (Tech Stack)
-- **Framework**: Flutter (Dart) - *UI responsif dan performa native.*
-- **Backend**: Firebase Cloud Firestore - *Sinkronisasi data real-time.*
-- **Authentication**: Firebase Auth & EmailJS - *Verifikasi berlapis.*
-- **Media Storage**: ImgBB API - *Penyimpanan foto terpusat.*
-- **State Management**: Provider - *Arsitektur yang bersih dan scalable.*
-
-### 2. Algoritma dan Logika Bisnis
-- **Role-Based Routing**: Logika pengalihan dashboard otomatis berdasarkan metadata pengguna.
-- **Real-time Data Streaming**: Sinkronisasi tiket dan chat tanpa jeda menggunakan Firestore Snapshots.
-- **State Comparison Notification**: Algoritma pemantauan perubahan field spesifik untuk memicu notifikasi lokal.
-- **Optimistic UI Update**: Pengalaman pengguna yang instan dengan teknik sinkronisasi latar belakang.
+### 💬 Komunikasi & Kolaborasi
+- **Internal Notes (Staff Only)**: Catatan rahasia antar Admin dan Teknisi yang tidak terlihat oleh Pelapor.
+- **Unified Timeline**: Riwayat perjalanan tiket yang sinkron di semua role secara kronologis (Ascending).
 
 ---
 
-## Struktur Direktori (Detail)
+## Stack Teknologi
+
+- **Framework**: Flutter (Dart)
+- **Backend**: Firebase Cloud Firestore & Authentication
+- **External APIs**: 
+  - **ImgBB**: Media Storage (Bukti Foto)
+  - **EmailJS**: OTP & Email System
+- **Key Libraries**:
+  - `excel` & `share_plus`: Reporting & Sharing
+  - `intl`: Localization & Date Formatting
+  - `provider`: State Management
+
+---
+
+## Struktur Direktori
 
 ```text
 lib/
-├── main.dart                          # Titik masuk aplikasi & konfigurasi Tema Global
-├── firebase_options.dart              # Konfigurasi otomatis dari FlutterFire
 ├── models/
-│   ├── message_model.dart             # Model struktur data Pesan Chat
-│   ├── ticket_model.dart              # Model struktur data Tiket Keluhan
-│   └── user_model.dart                # Model struktur data Pengguna
+│   ├── ticket_model.dart              # Skema data tiket & SLA logic
+│   └── audit_log_model.dart           # Skema data aktivitas admin
 ├── providers/
-│   ├── auth_provider.dart             # Mengatur state login/register/logout & autentikasi
-│   └── ticket_provider.dart           # Mengatur state list dan filter data tiket
+│   ├── auth_provider.dart             # State management user & session
+│   └── ticket_provider.dart           # State management list & filters
 ├── services/
-│   ├── auth_service.dart              # Logika API Firebase Authentication
-│   ├── chat_service.dart              # Logika Database Real-time Chat
-│   ├── email_otp_service.dart         # Layanan verifikasi OTP via EmailJS
-│   ├── notification_service.dart      # Konfigurasi `flutter_local_notifications`
-│   └── ticket_service.dart            # Logika CRUD Firestore & ImgBB Upload
+│   ├── audit_service.dart             # Layanan pencatatan aktivitas
+│   ├── export_service.dart            # Generator file laporan Excel/CSV
+│   ├── notification_service.dart      # Notifikasi lokal & FCM setup
+│   └── ticket_service.dart            # CRUD Firestore & Image upload
 └── screens/
-    ├── admin/                         # Modul Pengawas (Dashboard & User Management)
-    │   ├── admin_dashboard.dart       # Statistik tiket masuk per status
-    │   ├── admin_tickets_screen.dart  # Daftar kelola seluruh tiket (view & filter)
-    │   └── user_management_screen.dart# Manajemen data akun & hak akses pengguna
-    ├── auth/                          # Modul Login, Register, & OTP (Email/Phone)
-    │   ├── email_otp_screen.dart      # Verifikasi OTP via email terdaftar
-    │   ├── login_screen.dart          # Form login email & password utama
-    │   └── phone_login_screen.dart    # Login menggunakan nomor telepon & SMS
-    ├── requester/                     # Modul Pelapor (Form & Monitoring)
-    │   ├── create_ticket_screen.dart  # Form pelaporan dengan fitur lampiran gambar
-    │   ├── requester_dashboard.dart   # List monitoring tiket milik pemohon
-    │   └── requester_ticket_detail_screen.dart # Detail laporan, timeline, & akses chat
-    ├── technician/                    # Modul Teknisi (Update Status & Evidence)
-    │   ├── technician_dashboard.dart  # Antrean tiket masuk (Open) untuk ditangani
-    │   └── ticket_detail_screen.dart  # Update pengerjaan & upload bukti (Before/After)
-    ├── shared/                        # Komponen UI Global (Card, Badge, dsb)
-    │   └── ticket_card.dart           # Komponen kartu tiket yang digunakan lintas dashboard
-    ├── about_screen.dart              # Halaman informasi versi & pengembang
-    ├── chat_screen.dart               # Layar komunikasi real-time
-    ├── dashboard_wrapper.dart         # Router otomatis berdasarkan Role
-    ├── help_center_screen.dart        # Pusat bantuan & FAQ
-    └── settings_screen.dart           # Pengaturan Profil & Notifikasi
+    ├── admin/                         # Modul Pengawas & Manajerial
+    │   ├── audit_log_screen.dart      # Monitoring log sistem
+    │   ├── export_reports_screen.dart # Fitur unduh & jadwal laporan
+    │   └── notification_templates_screen.dart # Editor templat sistem
+    ├── requester/                     # Modul Pelapor (User End)
+    ├── technician/                    # Modul Perbaikan (Worker End)
+    └── shared/                        # Komponen Reusable UI
 ```
 
 ---
 
-## Panduan Penggunaan
+## Panduan Instalasi
 
-1. **Clone Repository**: `git clone https://github.com/0xHadiRamdhani/sbm-ticketing-app`
-2. **Install Dependencies**: `flutter pub get`
-3. **Configure Firebase**: Hubungkan aplikasi dengan proyek Firebase menggunakan `flutterfire configure`.
-4. **Environment Setup**: Pastikan API Key ImgBB dan EmailJS telah terkonfigurasi di dalam folder `services/`.
-5. **Run Project**: `flutter run`
-
----
-
-## Catatan Rilis
-
-- **Versi 1.9.1**:
-  - Implementasi verifikasi OTP melalui **EmailJS API**.
-  - Integrasi **ImgBB API** untuk manajemen penyimpanan foto laporan.
-  - Penambahan fitur Catatan Teknisi dan Bukti Perbaikan (Before/After).
-  - Peningkatan performa notifikasi lokal pada perangkat Android.
-  - Skema Role-Based Access yang telah stabil.
+1. `git clone https://github.com/0xHadiRamdhani/sbm-ticketing-app`
+2. `flutter pub get`
+3. Konfigurasi `firebase_options.dart` sesuai proyek Firebase Anda.
+4. Setup `services/email_otp_service.dart` dengan API Key EmailJS Anda.
+5. Jalankan: `flutter run`
 
 ---
-**© 2026 SBM ITB** - *Digitalizing Campus Infrastructure Support.*
+
+## Riwayat Rilis
+
+- **Versi 2.0.0 (Latest)**: 
+  - Audit Log, SLA Monitoring, Export Reporting, dan Resolved Locking.
+- **Versi 1.9.1**: 
+  - Integrasi EmailJS OTP dan ImgBB Media Storage.
+
+---
+**© 2026 SBM ITB** - *Modernizing Campus Infrastructure Support.*
