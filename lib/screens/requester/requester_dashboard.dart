@@ -139,6 +139,8 @@ class _RequesterDashboardState extends State<RequesterDashboard> {
                         color: Color(0xFFADB5BD), fontSize: 13),
                     prefixIcon: const Icon(Icons.search_rounded,
                         color: Color(0xFF9CA3AF), size: 20),
+                    suffixIcon: const Icon(Icons.tune_rounded,
+                        color: Color(0xFF9CA3AF), size: 20),
                     filled: true,
                     fillColor: const Color(0xFFF3F4F6),
                     border: OutlineInputBorder(

@@ -142,6 +142,14 @@ class AuthService {
     }
   }
 
+  // Update Profile
+  Future<void> updateProfile({required String uid, required String name, required String photoUrl}) async {
+    await _firestore.collection('users').doc(uid).update({
+      'name': name,
+      'photoUrl': photoUrl,
+    });
+  }
+
   // Logout
   Future<void> logout() async {
     await _auth.signOut();

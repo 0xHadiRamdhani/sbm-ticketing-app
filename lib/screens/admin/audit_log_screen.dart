@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import '../shared/ticket_card.dart';
+import 'audit_log_detail_screen.dart';
 
 class AuditLogScreen extends StatelessWidget {
   const AuditLogScreen({Key? key}) : super(key: key);
@@ -9,31 +10,15 @@ class AuditLogScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: buildSbmAppBar(),
+      backgroundColor: const Color(0xFFF7F9FC),
+      appBar: buildSbmAppBar(
+        showBackButton: true,
+        onBackPressed: () => Navigator.pop(context),
+        titleText: 'Audit Log Aktivitas',
+      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: Color(0xFF1A3A5C)),
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  'Audit Log Aktivitas',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1A3A5C),
-                  ),
-                ),
-              ],
-            ),
-          ),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
@@ -80,8 +65,9 @@ class AuditLogScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   itemCount: logs.length,
                   itemBuilder: (context, index) {
-                    final data = logs[index].data() as Map<String, dynamic>;
-                    return _buildLogItem(data);
+                    final doc = logs[index];
+                    final data = doc.data() as Map<String, dynamic>;
+                    return _buildLogItem(context, data, doc.id);
                   },
                 );
               },
@@ -92,19 +78,35 @@ class AuditLogScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLogItem(Map<String, dynamic> data) {
+  Widget _buildLogItem(BuildContext context, Map<String, dynamic> data, String logId) {
     final timestamp = data['timestamp'] != null ? (data['timestamp'] as Timestamp).toDate() : DateTime.now();
     final type = data['action_type'] ?? 'UNKNOWN';
     
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Material(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => AuditLogDetailScreen(
+                  logData: data,
+                  logId: logId,
+                ),
+              ),
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -150,6 +152,9 @@ class AuditLogScreen extends StatelessWidget {
             ],
           ),
         ],
+      ),
+          ),
+        ),
       ),
     );
   }

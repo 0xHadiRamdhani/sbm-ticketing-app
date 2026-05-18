@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../models/user_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/audit_service.dart';
+import '../shared/ticket_card.dart';
 
 class UserManagementScreen extends StatefulWidget {
   @override
@@ -238,79 +239,49 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0.5,
-        shadowColor: Colors.black12,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            size: 20,
-            color: Color(0xFF1A3A5C),
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Manajemen Pengguna',
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF1A3A5C),
-          ),
-        ),
-        centerTitle: false,
-        titleSpacing: 0,
+      backgroundColor: const Color(0xFFF7F9FC),
+      appBar: buildSbmAppBar(
+        showBackButton: true,
+        onBackPressed: () => Navigator.pop(context),
+        titleText: 'Manajemen Pengguna',
       ),
       body: Column(
         children: [
           // ── Search Bar Section ─────────────────────────────────────────
           Container(
             color: Colors.white,
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
             child: TextField(
               controller: _searchController,
+              onChanged: (val) =>
+                  setState(() => _searchQuery = val.toLowerCase()),
               decoration: InputDecoration(
                 hintText: 'Cari nama pengguna...',
-                prefixIcon: const Icon(
-                  Icons.search_rounded,
-                  color: Color(0xFF94A3B8),
-                  size: 20,
-                ),
+                hintStyle: const TextStyle(
+                    color: Color(0xFFADB5BD), fontSize: 13),
+                prefixIcon: const Icon(Icons.search_rounded,
+                    color: Color(0xFF9CA3AF), size: 20),
+                suffixIcon: const Icon(Icons.tune_rounded,
+                    color: Color(0xFF9CA3AF), size: 20),
                 filled: true,
-                fillColor: const Color(0xFFF1F5F9),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
+                fillColor: const Color(0xFFF3F4F6),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
                 ),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.close_rounded, size: 18),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() => _searchQuery = '');
-                        },
-                      )
-                    : null,
+                contentPadding: const EdgeInsets.symmetric(vertical: 10),
               ),
-              onChanged: (val) =>
-                  setState(() => _searchQuery = val.toLowerCase()),
             ),
           ),
 
           // ── Filter Section ─────────────────────────────────────────────
           Container(
-            width: double.infinity,
             color: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+            child: SizedBox(
+              height: 38,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
                 children: [
                   _buildFilterChip(null, 'Semua'),
                   const SizedBox(width: 8),
@@ -483,7 +454,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                   height: 42,
                                   padding: const EdgeInsets.symmetric(horizontal: 12),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFF8FAFC),
+                                    color: const Color(0xFFF7F9FC),
                                     borderRadius: BorderRadius.circular(10),
                                     border: Border.all(color: const Color(0xFFE2E8F0)),
                                   ),
@@ -597,22 +568,24 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       onTap: () => setState(() => _selectedFilterRole = role),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF1A3A5C) : const Color(0xFFF1F5F9),
+          color: isSelected ? const Color(0xFF1A3A5C) : Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected
                 ? const Color(0xFF1A3A5C)
-                : const Color(0xFFE2E8F0),
+                : const Color(0xFFE5E7EB),
           ),
         ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-            color: isSelected ? Colors.white : const Color(0xFF64748B),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: isSelected ? Colors.white : const Color(0xFF6B7280),
+            ),
           ),
         ),
       ),

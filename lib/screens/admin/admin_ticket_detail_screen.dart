@@ -118,7 +118,7 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: const Color(0xFFF7F9FC),
       appBar: buildSbmAppBar(
         extraActions: [
           PopupMenuButton<String>(

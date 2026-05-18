@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/ticket_provider.dart';
 import '../../models/ticket_model.dart';
+import '../shared/ticket_card.dart';
 
 class AdminStatsScreen extends StatelessWidget {
   const AdminStatsScreen({Key? key}) : super(key: key);
@@ -10,22 +11,11 @@ class AdminStatsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF1A3A5C), size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Statistik & Analitik',
-          style: TextStyle(
-            color: Color(0xFF1A3A5C),
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
+      backgroundColor: const Color(0xFFF7F9FC),
+      appBar: buildSbmAppBar(
+        showBackButton: true,
+        onBackPressed: () => Navigator.pop(context),
+        titleText: 'Statistik & Analitik',
       ),
       body: StreamBuilder<List<TicketModel>>(
         stream: Provider.of<TicketProvider>(context, listen: false).fetchTickets(role: 'admin'),
@@ -50,7 +40,6 @@ class AdminStatsScreen extends StatelessWidget {
                 _buildSectionHeader('Volume Keluhan Bulanan', 'Tren jumlah tiket dalam 6 bulan terakhir'),
                 const SizedBox(height: 16),
                 _buildChartCard(
-                  color: const Color(0xFF0F172A),
                   child: _buildVolumeChart(allTickets),
                 ),
                 
@@ -59,7 +48,6 @@ class AdminStatsScreen extends StatelessWidget {
                 _buildSectionHeader('Kecepatan Penyelesaian', 'Rata-rata waktu (jam) untuk penyelesaian tiket'),
                 const SizedBox(height: 16),
                 _buildChartCard(
-                  color: const Color(0xFF1A3A5C),
                   child: _buildResolutionTimeChart(allTickets),
                 ),
                 
@@ -96,18 +84,19 @@ class AdminStatsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildChartCard({required Color color, required Widget child}) {
+  Widget _buildChartCard({required Widget child}) {
     return Container(
       height: 260,
       padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
       decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(24),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -139,8 +128,8 @@ class AdminStatsScreen extends StatelessWidget {
           show: true,
           drawVerticalLine: true,
           horizontalInterval: (maxVal / 3).clamp(1, 100),
-          getDrawingHorizontalLine: (value) => FlLine(color: Colors.white10, strokeWidth: 1),
-          getDrawingVerticalLine: (value) => FlLine(color: Colors.white10, strokeWidth: 1),
+          getDrawingHorizontalLine: (value) => FlLine(color: const Color(0xFFF1F5F9), strokeWidth: 1.5),
+          getDrawingVerticalLine: (value) => FlLine(color: const Color(0xFFF1F5F9), strokeWidth: 1.5),
         ),
         titlesData: FlTitlesData(
           show: true,
@@ -158,7 +147,7 @@ class AdminStatsScreen extends StatelessWidget {
                   space: 8,
                   child: Text(
                     monthLabels[value.toInt()],
-                    style: const TextStyle(color: Colors.white38, fontWeight: FontWeight.bold, fontSize: 9),
+                    style: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold, fontSize: 10),
                   ),
                 );
               },
@@ -171,7 +160,7 @@ class AdminStatsScreen extends StatelessWidget {
               getTitlesWidget: (value, meta) {
                 return SideTitleWidget(
                   meta: meta,
-                  child: Text(value.toInt().toString(), style: const TextStyle(color: Colors.white24, fontSize: 10)),
+                  child: Text(value.toInt().toString(), style: const TextStyle(color: Color(0xFF64748B), fontSize: 11)),
                 );
               },
               reservedSize: 28,
@@ -184,15 +173,15 @@ class AdminStatsScreen extends StatelessWidget {
           LineChartBarData(
             spots: spots,
             isCurved: true,
-            gradient: const LinearGradient(colors: [Color(0xFF22D3EE), Color(0xFF06B6D4)]),
-            barWidth: 3,
+            gradient: const LinearGradient(colors: [Color(0xFF1A73E8), Color(0xFF1A3A5C)]),
+            barWidth: 3.5,
             dotData: FlDotData(
               show: true,
-              getDotPainter: (_, __, ___, ____) => FlDotCirclePainter(radius: 3, color: const Color(0xFF22D3EE), strokeColor: const Color(0xFF0F172A), strokeWidth: 1),
+              getDotPainter: (_, __, ___, ____) => FlDotCirclePainter(radius: 4, color: const Color(0xFF1A73E8), strokeColor: Colors.white, strokeWidth: 2),
             ),
             belowBarData: BarAreaData(
               show: true,
-              gradient: LinearGradient(colors: [const Color(0xFF22D3EE).withOpacity(0.2), const Color(0xFF06B6D4).withOpacity(0)], begin: Alignment.topCenter, end: Alignment.bottomCenter),
+              gradient: LinearGradient(colors: [const Color(0xFF1A73E8).withOpacity(0.15), const Color(0xFF1A3A5C).withOpacity(0)], begin: Alignment.topCenter, end: Alignment.bottomCenter),
             ),
           ),
         ],
@@ -233,8 +222,8 @@ class AdminStatsScreen extends StatelessWidget {
           show: true,
           drawVerticalLine: true,
           horizontalInterval: (maxVal / 3).clamp(1, 100),
-          getDrawingHorizontalLine: (value) => FlLine(color: Colors.white10, strokeWidth: 1),
-          getDrawingVerticalLine: (value) => FlLine(color: Colors.white10, strokeWidth: 1),
+          getDrawingHorizontalLine: (value) => FlLine(color: const Color(0xFFF1F5F9), strokeWidth: 1.5),
+          getDrawingVerticalLine: (value) => FlLine(color: const Color(0xFFF1F5F9), strokeWidth: 1.5),
         ),
         titlesData: FlTitlesData(
           show: true,
@@ -250,7 +239,7 @@ class AdminStatsScreen extends StatelessWidget {
                 return SideTitleWidget(
                   meta: meta,
                   space: 8,
-                  child: Text(monthLabels[value.toInt()], style: const TextStyle(color: Colors.white38, fontWeight: FontWeight.bold, fontSize: 9)),
+                  child: Text(monthLabels[value.toInt()], style: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold, fontSize: 10)),
                 );
               },
             ),
@@ -262,7 +251,7 @@ class AdminStatsScreen extends StatelessWidget {
               getTitlesWidget: (value, meta) {
                 return SideTitleWidget(
                   meta: meta,
-                  child: Text('${value.toInt()}h', style: const TextStyle(color: Colors.white24, fontSize: 10)),
+                  child: Text('${value.toInt()}h', style: const TextStyle(color: Color(0xFF64748B), fontSize: 11)),
                 );
               },
               reservedSize: 32,
@@ -275,15 +264,15 @@ class AdminStatsScreen extends StatelessWidget {
           LineChartBarData(
             spots: spots,
             isCurved: true,
-            gradient: const LinearGradient(colors: [Color(0xFF818CF8), Color(0xFF6366F1)]),
-            barWidth: 3,
+            gradient: const LinearGradient(colors: [Color(0xFFF59E0B), Color(0xFFD97706)]),
+            barWidth: 3.5,
             dotData: FlDotData(
               show: true,
-              getDotPainter: (_, __, ___, ____) => FlDotCirclePainter(radius: 3, color: const Color(0xFF818CF8), strokeColor: const Color(0xFF1A3A5C), strokeWidth: 1),
+              getDotPainter: (_, __, ___, ____) => FlDotCirclePainter(radius: 4, color: const Color(0xFFF59E0B), strokeColor: Colors.white, strokeWidth: 2),
             ),
             belowBarData: BarAreaData(
               show: true,
-              gradient: LinearGradient(colors: [const Color(0xFF818CF8).withOpacity(0.2), const Color(0xFF6366F1).withOpacity(0)], begin: Alignment.topCenter, end: Alignment.bottomCenter),
+              gradient: LinearGradient(colors: [const Color(0xFFF59E0B).withOpacity(0.15), const Color(0xFFD97706).withOpacity(0)], begin: Alignment.topCenter, end: Alignment.bottomCenter),
             ),
           ),
         ],

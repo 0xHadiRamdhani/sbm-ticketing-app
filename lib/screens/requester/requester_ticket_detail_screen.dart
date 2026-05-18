@@ -8,6 +8,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/ticket_provider.dart';
 import '../chat_screen.dart';
 import '../../services/chat_service.dart';
+import '../shared/ticket_card.dart';
 
 class RequesterTicketDetailScreen extends StatefulWidget {
   final TicketModel ticket;
@@ -129,42 +130,7 @@ class _RequesterTicketDetailScreenState
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F9FC),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFF7F9FC),
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        title: Row(
-          children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: const BoxDecoration(
-                color: Color(0xFF0F172A),
-                shape: BoxShape.circle,
-              ),
-              child: const Center(
-                child: Text(
-                  'T',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            const Text(
-              'SBM ITB Support',
-              style: TextStyle(
-                color: Color(0xFF0F172A),
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
+      appBar: buildSbmAppBar(),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
@@ -742,20 +708,30 @@ class _RequesterTicketDetailScreenState
       future: FirebaseFirestore.instance.collection('users').doc(technicianId).get(),
       builder: (_, snap) {
         String name = 'Memuat...';
+        String? photoUrl;
         if (snap.hasData && snap.data!.exists) {
           final d = snap.data!.data() as Map<String, dynamic>;
           name = d['name'] ?? 'Teknisi';
+          photoUrl = d['photoUrl'] as String?;
         }
         return Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: const Color(0xFFEEF2FF),
-                borderRadius: BorderRadius.circular(8),
+            if (photoUrl != null && photoUrl.isNotEmpty)
+              CircleAvatar(
+                radius: 20,
+                backgroundImage: NetworkImage(photoUrl),
+                backgroundColor: const Color(0xFFEEF2FF),
+              )
+            else
+              Container(
+                width: 40,
+                height: 40,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFEEF2FF),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.engineering_outlined, size: 20, color: Color(0xFF1A73E8)),
               ),
-              child: const Icon(Icons.engineering_outlined, size: 20, color: Color(0xFF1A73E8)),
-            ),
             const SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,

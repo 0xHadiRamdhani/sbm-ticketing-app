@@ -6,6 +6,7 @@ import '../models/ticket_model.dart';
 import '../models/message_model.dart';
 import '../services/chat_service.dart';
 import '../providers/auth_provider.dart';
+import 'shared/ticket_card.dart';
 
 class ChatScreen extends StatefulWidget {
   final TicketModel ticket;
@@ -90,18 +91,10 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F9FC),
-      appBar: AppBar(
-        title: Text('Chat Tiket #${widget.ticket.ticketId.substring(0, 5)}'),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          const SizedBox(width: 8),
-        ],
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
-        elevation: 1,
+      appBar: buildSbmAppBar(
+        showBackButton: true,
+        onBackPressed: () => Navigator.pop(context),
+        titleText: 'Chat Tiket #${widget.ticket.ticketId.substring(0, 5)}',
       ),
       body: Column(
         children: [

@@ -8,6 +8,7 @@ import '../../models/ticket_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/ticket_provider.dart';
 import '../chat_screen.dart';
+import '../shared/ticket_card.dart';
 
 class TicketDetailScreen extends StatefulWidget {
   final TicketModel ticket;
@@ -201,50 +202,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFF8FAFC),
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        title: Row(
-          children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: const BoxDecoration(
-                color: Color(0xFF0F172A),
-                shape: BoxShape.circle,
-              ),
-              child: const Center(
-                child: Text(
-                  'T',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            const Text(
-              'SBM ITB Support',
-              style: TextStyle(
-                color: Color(0xFF0F172A),
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          // IconButton(
-          //   icon: const Icon(
-          //     Icons.notifications_outlined,
-          //     color: Color(0xFF475569),
-          //   ),
-          //   onPressed: () {},
-          // ),
+      backgroundColor: const Color(0xFFF7F9FC),
+      appBar: buildSbmAppBar(
+        extraActions: [
           if (isAdmin)
             PopupMenuButton<String>(
               icon: const Icon(Icons.more_vert, color: Color(0xFF475569)),
@@ -590,7 +550,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                         borderRadius: BorderRadius.circular(8),
                         borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                       ),
-                      fillColor: isResolved ? const Color(0xFFF8FAFC) : Colors.transparent,
+                      fillColor: isResolved ? const Color(0xFFF7F9FC) : Colors.transparent,
                       filled: isResolved,
                       contentPadding: const EdgeInsets.all(16),
                     ),

@@ -9,7 +9,8 @@ class LoginScreen extends StatefulWidget {
   _LoginScreenState createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends State<LoginScreen>
+    with SingleTickerProviderStateMixin {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
@@ -24,6 +25,33 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLogin = true; // Mode saklar: Login atau Register
 
   bool _isSendingOtp = false;
+
+  AnimationController? _animController;
+  Animation<double>? _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _animController!,
+      curve: Curves.easeOut,
+    );
+    _animController!.forward();
+  }
+
+  @override
+  void dispose() {
+    _animController?.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _nameController.dispose();
+    _departmentController.dispose();
+    super.dispose();
+  }
 
   void _submit() async {
     if (!_formKey.currentState!.validate()) return;
@@ -96,7 +124,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         backgroundColor: isError
             ? Colors.red.shade700
-            : const Color(0xFF1A73E8),
+            : const Color(0xFF10B981),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -113,277 +141,313 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 24.0,
-              vertical: 24.0,
+      backgroundColor: const Color(0xFFF7F9FC),
+      body: Stack(
+        children: [
+          // Background Gradient Header
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 340,
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF1E3A8A), Color(0xFF0F172A)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(40),
+                  bottomRight: Radius.circular(40),
+                ),
+              ),
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Logo & Header
-                Container(
-                  width: 130,
-                  height: 130,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
-                        blurRadius: 16,
-                        offset: const Offset(0, 6),
+          ),
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.only(
+                  left: 24.0,
+                  right: 24.0,
+                  top: 30.0,
+                  bottom: 24.0,
+                ),
+                child: _fadeAnimation == null
+                    ? _buildContent() // Fallback if hot reloaded without restart
+                    : FadeTransition(
+                        opacity: _fadeAnimation!,
+                        child: _buildContent(),
                       ),
-                    ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContent() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Animated Logo
+        TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0.5, end: 1.0),
+          duration: const Duration(milliseconds: 800),
+          curve: Curves.easeOutBack,
+          builder: (context, scale, child) {
+            return Transform.scale(scale: scale, child: child);
+          },
+          child: Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 24,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.all(20),
+            child: Image.asset(
+              'assets/sbm.png',
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) {
+                return const Icon(
+                  Icons.confirmation_num_rounded,
+                  size: 60,
+                  color: Color(0xFF1A3A5C),
+                );
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        const Text(
+          'SBM ITB Support',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            letterSpacing: -0.5,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          _isLogin
+              ? 'Silakan masuk ke akun Anda'
+              : 'Buat akun baru untuk memulai',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 15, color: Colors.white.withOpacity(0.8)),
+        ),
+        const SizedBox(height: 32),
+
+        // Form Container
+        Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.06),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Form(
+            key: _formKey,
+            child: AnimatedSize(
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeInOutBack,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (!_isLogin) ...[
+                    _buildLabel('Nama Lengkap'),
+                    _buildTextField(
+                      controller: _nameController,
+                      hint: 'Masukkan nama Anda',
+                      icon: Icons.person_outline_rounded,
+                      validator: (val) => val == null || val.isEmpty
+                          ? 'Nama wajib diisi'
+                          : null,
+                    ),
+                    const SizedBox(height: 16),
+
+                    _buildLabel('Peran / Role'),
+                    DropdownButtonFormField<String>(
+                      value: _selectedRole,
+                      isExpanded: true,
+                      icon: const Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: Color(0xFF64748B),
+                      ),
+                      // Removed prefixIcon to prevent text overlapping in Dropdown
+                      decoration: _inputDecoration(hint: '', icon: null),
+                      items: const [
+                        DropdownMenuItem(
+                          value: 'student',
+                          child: Text('Mahasiswa'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'staff',
+                          child: Text('Staf / Dosen'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'technician',
+                          child: Text('Teknisi IT'),
+                        ),
+                        DropdownMenuItem(value: 'admin', child: Text('Admin')),
+                      ],
+                      onChanged: (val) => setState(() => _selectedRole = val!),
+                    ),
+                    const SizedBox(height: 16),
+
+                    _buildLabel('Departemen/Angkatan (Opsional)'),
+                    _buildTextField(
+                      controller: _departmentController,
+                      hint: 'Contoh: Manajemen 2024',
+                      icon: Icons.apartment_outlined,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  _buildLabel('Alamat Email'),
+                  _buildTextField(
+                    controller: _emailController,
+                    hint: 'nama@example.com',
+                    icon: Icons.email_outlined,
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (val) {
+                      if (val == null || val.isEmpty)
+                        return 'Email wajib diisi';
+                      final emailRegex = RegExp(
+                        r'^[\w\-\.]+@([\w\-]+\.)+[\w\-]{2,}$',
+                      );
+                      if (!emailRegex.hasMatch(val.trim()))
+                        return 'Format email tidak valid';
+                      return null;
+                    },
                   ),
-                  padding: const EdgeInsets.all(20),
-                  child: Image.asset(
-                    'assets/sbm.png',
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Icon(
-                        Icons.confirmation_num_rounded,
-                        size: 60,
-                        color: Color(0xFF1A3A5C),
+                  const SizedBox(height: 16),
+
+                  _buildLabel('Kata Sandi'),
+                  TextFormField(
+                    controller: _passwordController,
+                    obscureText: _isObscure,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF334155),
+                    ),
+                    decoration:
+                        _inputDecoration(
+                          hint: 'Masukkan kata sandi',
+                          icon: Icons.lock_outline_rounded,
+                        ).copyWith(
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _isObscure
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
+                              color: const Color(0xFF94A3B8),
+                              size: 20,
+                            ),
+                            onPressed: () =>
+                                setState(() => _isObscure = !_isObscure),
+                          ),
+                        ),
+                    validator: (val) {
+                      if (val == null || val.isEmpty)
+                        return 'Kata sandi wajib diisi';
+                      if (!_isLogin && val.length < 6)
+                        return 'Minimal 6 karakter';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 28),
+
+                  Consumer<AuthProvider>(
+                    builder: (context, auth, child) {
+                      final busy = auth.isLoading || _isSendingOtp;
+                      return SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: busy ? null : _submit,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF1A3A5C),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: busy
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2.5,
+                                  ),
+                                )
+                              : Text(
+                                  _isLogin
+                                      ? 'Masuk Sekarang'
+                                      : 'Daftar & Kirim OTP',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                        ),
                       );
                     },
                   ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        TextButton(
+          onPressed: _toggleMode,
+          style: TextButton.styleFrom(splashFactory: NoSplash.splashFactory),
+          child: RichText(
+            text: TextSpan(
+              style: const TextStyle(
+                fontSize: 14.5,
+                color: Color(0xFF64748B),
+                fontFamily: 'Inter',
+              ),
+              children: [
+                TextSpan(
+                  text: _isLogin ? 'Belum punya akun? ' : 'Sudah punya akun? ',
                 ),
-                const SizedBox(height: 24),
-                Text(
-                  'SBM ITB Support',
-                  textAlign: TextAlign.center,
+                TextSpan(
+                  text: _isLogin ? 'Daftar sekarang' : 'Masuk di sini',
                   style: const TextStyle(
-                    fontSize: 28,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF1A3A5C),
-                    letterSpacing: -0.5,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  _isLogin
-                      ? 'Silakan masuk ke akun Anda'
-                      : 'Buat akun baru untuk memulai',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    color: Color(0xFF64748B),
-                  ),
-                ),
-                const SizedBox(height: 32),
-
-                // Form Container
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.02),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (!_isLogin) ...[
-                          _buildLabel('Nama Lengkap'),
-                          _buildTextField(
-                            controller: _nameController,
-                            hint: 'Masukkan nama Anda',
-                            icon: Icons.person_outline_rounded,
-                            validator: (val) => val == null || val.isEmpty
-                                ? 'Nama wajib diisi'
-                                : null,
-                          ),
-                          const SizedBox(height: 16),
-
-                          _buildLabel('Peran / Role'),
-                          DropdownButtonFormField<String>(
-                            value: _selectedRole,
-                            icon: const Icon(
-                              Icons.keyboard_arrow_down_rounded,
-                              color: Color(0xFF64748B),
-                            ),
-                            decoration: _inputDecoration(
-                              hint: '',
-                              icon: Icons.badge_outlined,
-                            ),
-                            items: const [
-                              DropdownMenuItem(
-                                value: 'student',
-                                child: Text('Mahasiswa'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'staff',
-                                child: Text('Staf / Dosen'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'technician',
-                                child: Text('Teknisi IT'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'admin',
-                                child: Text('Admin'),
-                              ),
-                            ],
-                            onChanged: (val) =>
-                                setState(() => _selectedRole = val!),
-                          ),
-                          const SizedBox(height: 16),
-
-                          _buildLabel('Departemen/Angkatan (Opsional)'),
-                          _buildTextField(
-                            controller: _departmentController,
-                            hint: 'Contoh: Manajemen 2024',
-                            icon: Icons.apartment_outlined,
-                          ),
-                          const SizedBox(height: 16),
-                        ],
-
-                        _buildLabel('Alamat Email'),
-                        _buildTextField(
-                          controller: _emailController,
-                          hint: 'nama@example.com',
-                          icon: Icons.email_outlined,
-                          keyboardType: TextInputType.emailAddress,
-                          validator: (val) {
-                            if (val == null || val.isEmpty)
-                              return 'Email wajib diisi';
-                            final emailRegex = RegExp(
-                              r'^[\w\-\.]+@([\w\-]+\.)+[\w\-]{2,}$',
-                            );
-                            if (!emailRegex.hasMatch(val.trim()))
-                              return 'Format email tidak valid';
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 16),
-
-                        _buildLabel('Kata Sandi'),
-                        TextFormField(
-                          controller: _passwordController,
-                          obscureText: _isObscure,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Color(0xFF334155),
-                          ),
-                          decoration:
-                              _inputDecoration(
-                                hint: 'Masukkan kata sandi',
-                                icon: Icons.lock_outline_rounded,
-                              ).copyWith(
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _isObscure
-                                        ? Icons.visibility_off_outlined
-                                        : Icons.visibility_outlined,
-                                    color: const Color(0xFF94A3B8),
-                                    size: 20,
-                                  ),
-                                  onPressed: () =>
-                                      setState(() => _isObscure = !_isObscure),
-                                ),
-                              ),
-                          validator: (val) {
-                            if (val == null || val.isEmpty)
-                              return 'Kata sandi wajib diisi';
-                            if (!_isLogin && val.length < 6)
-                              return 'Minimal 6 karakter';
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 28),
-
-                        Consumer<AuthProvider>(
-                          builder: (context, auth, child) {
-                            final busy = auth.isLoading || _isSendingOtp;
-                            return SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: busy ? null : _submit,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF1A3A5C),
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 16,
-                                  ),
-                                  elevation: 0,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                                child: busy
-                                    ? const SizedBox(
-                                        width: 24,
-                                        height: 24,
-                                        child: CircularProgressIndicator(
-                                          color: Colors.white,
-                                          strokeWidth: 2.5,
-                                        ),
-                                      )
-                                    : Text(
-                                        _isLogin
-                                            ? 'Masuk'
-                                            : 'Daftar & Kirim OTP',
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                TextButton(
-                  onPressed: _toggleMode,
-                  child: RichText(
-                    text: TextSpan(
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Color(0xFF64748B),
-                        fontFamily: 'Inter',
-                      ),
-                      children: [
-                        TextSpan(
-                          text: _isLogin
-                              ? 'Belum punya akun? '
-                              : 'Sudah punya akun? ',
-                        ),
-                        TextSpan(
-                          text: _isLogin ? 'Daftar sekarang' : 'Masuk di sini',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1A3A5C),
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
                 ),
               ],
             ),
           ),
         ),
-      ),
+        const SizedBox(height: 12),
+      ],
     );
   }
 
@@ -393,7 +457,7 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Text(
         text,
         style: const TextStyle(
-          fontSize: 13,
+          fontSize: 13.5,
           fontWeight: FontWeight.w600,
           color: Color(0xFF334155),
         ),
@@ -419,30 +483,32 @@ class _LoginScreenState extends State<LoginScreen> {
 
   InputDecoration _inputDecoration({
     required String hint,
-    required IconData icon,
+    required IconData? icon,
   }) {
     return InputDecoration(
       hintText: hint,
       hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
-      prefixIcon: Icon(icon, color: const Color(0xFF94A3B8), size: 20),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      prefixIcon: icon != null
+          ? Icon(icon, color: const Color(0xFF94A3B8), size: 20)
+          : null,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       filled: true,
-      fillColor: Colors.white,
+      fillColor: const Color(0xFFF8FAFC),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         borderSide: const BorderSide(color: Color(0xFF1A3A5C), width: 1.5),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Colors.red),
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: Colors.redAccent),
       ),
       focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Colors.red, width: 1.5),
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
       ),
     );
   }

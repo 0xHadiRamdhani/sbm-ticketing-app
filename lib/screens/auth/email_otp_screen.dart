@@ -250,7 +250,7 @@ class _EmailOtpScreenState extends State<EmailOtpScreen>
     final maskedEmail = _maskEmail(widget.email);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: const Color(0xFFF7F9FC),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,

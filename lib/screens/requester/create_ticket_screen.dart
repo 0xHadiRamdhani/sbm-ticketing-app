@@ -84,7 +84,7 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
     final isLoading = Provider.of<TicketProvider>(context).isLoading;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: const Color(0xFFF7F9FC),
       appBar: buildSbmAppBar(
         onSettingsTap: () {
           Navigator.push(
@@ -202,7 +202,7 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFC),
+                          color: const Color(0xFFF7F9FC),
                           borderRadius: BorderRadius.circular(8),
                           // Simulated dashed border using a light solid border
                           border: Border.all(

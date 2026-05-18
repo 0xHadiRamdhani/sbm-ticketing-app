@@ -24,27 +24,15 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: buildSbmAppBar(),
+      backgroundColor: const Color(0xFFF7F9FC),
+      appBar: buildSbmAppBar(
+        showBackButton: true,
+        onBackPressed: () => Navigator.pop(context),
+        titleText: 'Ekspor & Laporan',
+      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: Color(0xFF1A3A5C)),
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  'Ekspor & Laporan',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF1A3A5C)),
-                ),
-              ],
-            ),
-          ),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -138,7 +126,7 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
   Widget _buildDropdown(List<String> items, String current, ValueChanged<String?> onChanged) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFE2E8F0))),
+      decoration: BoxDecoration(color: const Color(0xFFF7F9FC), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFE2E8F0))),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: current,
@@ -158,7 +146,7 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
       },
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFE2E8F0))),
+        decoration: BoxDecoration(color: const Color(0xFFF7F9FC), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFE2E8F0))),
         child: Row(
           children: [
             const Icon(Icons.calendar_today_outlined, size: 18, color: Color(0xFF1A3A5C)),
@@ -198,7 +186,7 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC), 
+        color: const Color(0xFFF7F9FC), 
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: isActive ? const Color(0xFF1A3A5C).withOpacity(0.1) : Colors.transparent),
       ),

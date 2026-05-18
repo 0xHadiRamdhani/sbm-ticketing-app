@@ -2,9 +2,10 @@ class UserModel {
   final String uid;
   final String name;
   final String email;
-  final String role; // 'student', 'staff', 'technician', 'admin'
+  final String role;
   final String department;
   final String phoneNumber; // nomor telepon (opsional, diisi saat login via OTP)
+  final String? photoUrl; // url foto profil
 
   UserModel({
     required this.uid,
@@ -13,6 +14,7 @@ class UserModel {
     required this.role,
     required this.department,
     this.phoneNumber = '',
+    this.photoUrl,
   });
 
   factory UserModel.fromMap(Map<String, dynamic> data, String documentId) {
@@ -23,6 +25,7 @@ class UserModel {
       role: data['role'] ?? 'student',
       department: data['department'] ?? '',
       phoneNumber: data['phoneNumber'] ?? '',
+      photoUrl: data['photoUrl'],
     );
   }
 
@@ -33,6 +36,7 @@ class UserModel {
       'role': role,
       'department': department,
       'phoneNumber': phoneNumber,
+      'photoUrl': photoUrl,
     };
   }
 }

@@ -20,8 +20,13 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
   String? _selectedCategory;
   String? _selectedPriority;
   String? _selectedStatus; // null means 'All'
+  String _searchQuery = '';
+  final _searchCtrl = TextEditingController();
   final Set<String> _selectedTicketIds = {};
   bool _isSelectionMode = false;
+
+  final _filters = ['Semua', 'Open', 'In Progress', 'Resolved', 'Pending'];
+
 
   final List<String> _categories = [
     'Semua Kategori',
@@ -40,92 +45,167 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
   ];
 
   @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // ── Filter Section ───────────────────────────────────────────────
+        // ── Search + Filter ─────────────────────────────────────────────
         Container(
           color: Colors.white,
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-          child: Row(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          child: Column(
             children: [
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
+              TextField(
+                controller: _searchCtrl,
+                onChanged: (v) =>
+                    setState(() => _searchQuery = v.toLowerCase()),
+                decoration: InputDecoration(
+                  hintText: 'Cari ID Tiket, Kategori, atau Pelapor...',
+                  hintStyle: const TextStyle(
+                      color: Color(0xFFADB5BD), fontSize: 13),
+                  prefixIcon: const Icon(Icons.search_rounded,
+                      color: Color(0xFF9CA3AF), size: 20),
+                  suffixIcon: const Icon(Icons.tune_rounded,
+                      color: Color(0xFF9CA3AF), size: 20),
+                  filled: true,
+                  fillColor: const Color(0xFFF3F4F6),
+                  border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    borderSide: BorderSide.none,
                   ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      isExpanded: true,
-                      icon: const Icon(
-                        Icons.keyboard_arrow_down_rounded,
-                        color: Color(0xFF94A3B8),
-                        size: 20,
-                      ),
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF334155),
-                        fontWeight: FontWeight.w600,
-                      ),
-                      value: _selectedCategory ?? 'Semua Kategori',
-                      items: _categories
-                          .map(
-                            (c) => DropdownMenuItem(value: c, child: Text(c)),
-                          )
-                          .toList(),
-                      onChanged: (val) {
-                        setState(() {
-                          _selectedCategory = val == 'Semua Kategori'
-                              ? null
-                              : val;
-                        });
-                      },
-                    ),
-                  ),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 10),
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      isExpanded: true,
-                      icon: const Icon(
-                        Icons.keyboard_arrow_down_rounded,
-                        color: Color(0xFF94A3B8),
-                        size: 20,
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 38,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _filters.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  itemBuilder: (_, i) {
+                    final opt = _filters[i];
+                    final sel = (_selectedStatus ?? 'Semua') == opt;
+                    return GestureDetector(
+                      onTap: () => setState(() => _selectedStatus = opt == 'Semua' ? null : opt),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 18, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: sel
+                              ? const Color(0xFF1A3A5C)
+                              : Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: sel
+                                ? const Color(0xFF1A3A5C)
+                                : const Color(0xFFE5E7EB),
+                          ),
+                        ),
+                        child: Text(
+                          opt,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: sel
+                                ? Colors.white
+                                : const Color(0xFF6B7280),
+                          ),
+                        ),
                       ),
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF334155),
-                        fontWeight: FontWeight.w600,
-                      ),
-                      value: _selectedPriority ?? 'Semua Prioritas',
-                      items: _priorities
-                          .map(
-                            (p) => DropdownMenuItem(value: p, child: Text(p)),
-                          )
-                          .toList(),
-                      onChanged: (val) {
-                        setState(() {
-                          _selectedPriority = val == 'Semua Prioritas'
-                              ? null
-                              : val;
-                        });
-                      },
-                    ),
-                  ),
+                    );
+                  },
                 ),
               ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF7F9FC),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          isExpanded: true,
+                          icon: const Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            color: Color(0xFF94A3B8),
+                            size: 20,
+                          ),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Color(0xFF334155),
+                            fontWeight: FontWeight.w600,
+                          ),
+                          value: _selectedCategory ?? 'Semua Kategori',
+                          items: _categories
+                              .map(
+                                (c) => DropdownMenuItem(value: c, child: Text(c)),
+                              )
+                              .toList(),
+                          onChanged: (val) {
+                            setState(() {
+                              _selectedCategory = val == 'Semua Kategori'
+                                  ? null
+                                  : val;
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF7F9FC),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          isExpanded: true,
+                          icon: const Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            color: Color(0xFF94A3B8),
+                            size: 20,
+                          ),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Color(0xFF334155),
+                            fontWeight: FontWeight.w600,
+                          ),
+                          value: _selectedPriority ?? 'Semua Prioritas',
+                          items: _priorities
+                              .map(
+                                (p) => DropdownMenuItem(value: p, child: Text(p)),
+                              )
+                              .toList(),
+                          onChanged: (val) {
+                            setState(() {
+                              _selectedPriority = val == 'Semua Prioritas'
+                                  ? null
+                                  : val;
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
             ],
           ),
         ),
@@ -232,7 +312,12 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
                     t.priority == _selectedPriority;
                 bool matchStatus =
                     _selectedStatus == null || t.status == _selectedStatus;
-                return matchCategory && matchPriority && matchStatus;
+                bool matchSearch = _searchQuery.isEmpty ||
+                    t.ticketId.toLowerCase().contains(_searchQuery) ||
+                    (t.location ?? '').toLowerCase().contains(_searchQuery) ||
+                    t.category.toLowerCase().contains(_searchQuery) ||
+                    (t.description).toLowerCase().contains(_searchQuery);
+                return matchCategory && matchPriority && matchStatus && matchSearch;
               }).toList();
 
               // Stats
@@ -289,32 +374,11 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
                       ),
                     ),
                   ),
-                  // ── Status Filter Chips ──────────────────────────────────────
-                  Container(
-                    color: Colors.white,
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          _buildFilterChip('Semua', null),
-                          const SizedBox(width: 8),
-                          _buildFilterChip('Open', 'Open'),
-                          const SizedBox(width: 8),
-                          _buildFilterChip('In Progress', 'In Progress'),
-                          const SizedBox(width: 8),
-                          _buildFilterChip('Resolved', 'Resolved'),
-                          const SizedBox(width: 8),
-                          _buildFilterChip('Pending', 'Pending'),
-                        ],
-                      ),
-                    ),
-                  ),
                   _buildBulkActionBar(),
                   // ── Ticket List ─────────────────────────────────────────────
                   Expanded(
                     child: Container(
-                      color: const Color(0xFFF8FAFC),
+                      color: const Color(0xFFF7F9FC),
                       child: filteredTickets.isEmpty
                           ? const DashboardEmptyState(
                               icon: Icons.search_off_rounded,
@@ -545,32 +609,6 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
     }
   }
 
-  Widget _buildFilterChip(String label, String? status) {
-    final isSelected = _selectedStatus == status;
-    return ChoiceChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (selected) {
-        setState(() {
-          _selectedStatus = status;
-        });
-      },
-      checkmarkColor: Colors.white,
-      selectedColor: const Color(0xFF1A3A5C),
-      labelStyle: TextStyle(
-        color: isSelected ? Colors.white : const Color(0xFF475569),
-        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-        fontSize: 12,
-      ),
-      backgroundColor: const Color(0xFFF1F5F9),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(
-          color: isSelected ? const Color(0xFF1A3A5C) : Colors.transparent,
-        ),
-      ),
-    );
-  }
 
   Widget _buildStatCard(String title, int count, Color fgColor, Color bgColor) {
     return Container(

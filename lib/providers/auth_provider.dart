@@ -122,6 +122,26 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  Future<void> updateProfile({required String name, required String photoUrl}) async {
+    if (_user == null) return;
+    _setLoading(true);
+    try {
+      await _authService.updateProfile(uid: _user!.uid, name: name, photoUrl: photoUrl);
+      // Update local user object
+      _user = UserModel(
+        uid: _user!.uid,
+        name: name,
+        email: _user!.email,
+        role: _user!.role,
+        department: _user!.department,
+        phoneNumber: _user!.phoneNumber,
+        photoUrl: photoUrl,
+      );
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   void impersonateUser(UserModel targetUser) {
     if (_originalAdminUser == null) {
       _originalAdminUser = _user;

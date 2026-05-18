@@ -441,13 +441,19 @@ class DashboardEmptyState extends StatelessWidget {
 }
 
 // ─── Shared AppBar ────────────────────────────────────────────────────────────
-PreferredSizeWidget buildSbmAppBar({VoidCallback? onSettingsTap, List<Widget>? extraActions}) {
+PreferredSizeWidget buildSbmAppBar({VoidCallback? onSettingsTap, List<Widget>? extraActions, bool showBackButton = false, VoidCallback? onBackPressed, String? titleText}) {
   return AppBar(
     backgroundColor: Colors.white,
     elevation: 0.5,
     shadowColor: Colors.black12,
-    automaticallyImplyLeading: false,
-    titleSpacing: 16,
+    automaticallyImplyLeading: showBackButton,
+    leading: showBackButton 
+        ? IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: Color(0xFF1A3A5C)),
+            onPressed: onBackPressed,
+          )
+        : null,
+    titleSpacing: showBackButton ? 0 : 16,
     title: Row(
       children: [
         Container(
@@ -465,9 +471,9 @@ PreferredSizeWidget buildSbmAppBar({VoidCallback? onSettingsTap, List<Widget>? e
                   fontWeight: FontWeight.bold)),
         ),
         const SizedBox(width: 10),
-        const Text(
-          'SBM ITB Support',
-          style: TextStyle(
+        Text(
+          titleText ?? 'SBM ITB Support',
+          style: const TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.bold,
             color: Color(0xFF1A3A5C),
