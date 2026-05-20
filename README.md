@@ -1,73 +1,88 @@
 # SBM ITB Ticketing Helpdesk App
 
-[![Flutter Version](https://img.shields.io/badge/Flutter-3.x-blue.svg)](https://flutter.dev)
-[![Firebase](https://img.shields.io/badge/Backend-Firebase-orange.svg)](https://firebase.google.com/)
-[![Version](https://img.shields.io/badge/Version-2.0.1-purple.svg)](https://github.com/)
+<p align="center">
+  <img src="assets/images/logo.png" alt="SBM ITB Logo" width="120" style="margin-bottom: 20px;"/>
+</p>
+
+<p align="center">
+  <a href="https://flutter.dev"><img src="https://img.shields.io/badge/Flutter-3.x-blue.svg?style=for-the-badge&logo=flutter" alt="Flutter Version"/></a>
+  <a href="https://firebase.google.com/"><img src="https://img.shields.io/badge/Backend-Firebase-orange.svg?style=for-the-badge&logo=firebase" alt="Firebase Backend"/></a>
+  <a href="https://pub.dev"><img src="https://img.shields.io/badge/Status-Production-green.svg?style=for-the-badge" alt="Build Status"/></a>
+  <a href="#"><img src="https://img.shields.io/badge/Version-2.1.0-purple.svg?style=for-the-badge" alt="Version"/></a>
+</p>
+
+---
 
 **SBM ITB Ticketing App** adalah platform *helpdesk* terintegrasi yang dirancang khusus untuk memenuhi kebutuhan operasional School of Business and Management (SBM) ITB. Aplikasi ini mendigitalisasi proses pelaporan keluhan fasilitas, infrastruktur IT, dan layanan operasional lainnya secara transparan, akuntabel, dan *real-time*.
 
 ---
 
-## Arsitektur dan Alur Sistem
+## 🗺️ Arsitektur dan Alur Sistem
 
 Aplikasi ini menggunakan model peran (*Role-Based*) yang terstruktur untuk menjamin efisiensi alur kerja antara pelapor, tim teknis, dan manajemen.
 
-![Alur Sistem Ticketing SBM ITB](diagram/image.png)
+```mermaid
+graph TD
+    Requester[Pelapor / Requester] -->|Buat Tiket & Unggah Foto| Firebase[Firestore Database]
+    Firebase -->|Notifikasi Otomatis| Admin[Panel Admin]
+    Admin -->|Tugaskan Teknisi & Prioritas SLA| Firebase
+    Firebase -->|Tugas Baru| Technician[Teknisi / Worker]
+    Technician -->|Update Status & Catatan Kerja| Firebase
+    Firebase -->|Pembaruan Realtime| Requester
+```
 
 > [!TIP]
 > Dokumentasi alur kerja aktor (*Actor Workflow*) yang lebih detail dapat ditemukan pada file: [`diagram/actor_workflow.drawio`](diagram/actor_workflow.drawio)
 
 ---
 
-## Pratinjau Antarmuka (Screenshots)
+## 🎨 Pratinjau Antarmuka (Screenshots)
 
 <p align="center">
-  <img src="screenshots/screen_1.png" width="200" style="border-radius: 10px; margin: 5px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);"/>
-  <img src="screenshots/screen_2.png" width="200" style="border-radius: 10px; margin: 5px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);"/>
-  <img src="screenshots/screen_3.png" width="200" style="border-radius: 10px; margin: 5px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);"/>
-  <img src="screenshots/screen_4.png" width="200" style="border-radius: 10px; margin: 5px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);"/>
+  <img src="screenshots/screen_1.png" width="200" style="border-radius: 12px; margin: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);"/>
+  <img src="screenshots/screen_2.png" width="200" style="border-radius: 12px; margin: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);"/>
+  <img src="screenshots/screen_3.png" width="200" style="border-radius: 12px; margin: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);"/>
+  <img src="screenshots/screen_4.png" width="200" style="border-radius: 12px; margin: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);"/>
 </p>
 
 ---
 
-## Fitur Unggulan (Versi 2.0)
+## ✨ Fitur Unggulan (Versi 2.1.0)
+
+### 🎨 Premium UI/UX & High-Fidelity Animations (New)
+*   **iOS Liquid Glass Dropdown**: Komponen dropdown khusus dengan efek *backdrop blur* dinamis (Glassmorphic) dan transisi rotasi ikon *chevron* 180 derajat yang mulus.
+*   **Staggered Entrance Transitions**: Animasi pemuatan data (*fade-in* & *slide-up*) bertahap pada daftar tiket di Dashboard Pengaju dan Teknisi.
+*   **Tactile Stats Counter**: Animasi penghitung dinamis menggunakan `AnimatedSwitcher` yang meluncur dan memudar saat angka statistik berubah.
 
 ### 🛡️ Sistem Keamanan & Audit
-- **Audit Log System**: Pencatatan otomatis seluruh aksi administratif (update massal, penghapusan, perubahan role) untuk transparansi operasional.
-- **Resolved State Locking**: Proteksi integritas data di mana teknisi tidak dapat mengubah foto atau catatan setelah tiket dinyatakan *Resolved*.
-- **Admin Impersonation**: Fitur pengujian bagi admin untuk melihat perspektif pengguna lain secara aman.
+*   **Audit Log System**: Pencatatan otomatis seluruh aksi administratif (update massal, penghapusan, perubahan role) untuk transparansi operasional.
+*   **Resolved State Locking**: Proteksi integritas data di mana teknisi tidak dapat mengubah foto atau catatan setelah tiket dinyatakan *Resolved*.
+*   **Admin Impersonation**: Fitur pengujian bagi admin untuk melihat perspektif pengguna lain secara aman.
 
 ### 📊 Manajemen Data & Laporan (Reporting)
-- **Export to Excel/CSV**: Fitur ekspor laporan tiket secara instan dengan filter tanggal dan kategori.
-- **SLA Monitoring**: Pelacakan batas waktu penyelesaian (Service Level Agreement) berdasarkan tingkat prioritas (Critical, High, Medium, Low).
-- **Scheduled Reports Simulation**: Antarmuka untuk pengaturan pengiriman laporan otomatis (Mingguan/Bulanan).
-
-### ⚙️ Administrasi Tingkat Lanjut
-- **Notification Template Manager**: Kelola konten notifikasi sistem (email/app) secara dinamis tanpa mengubah kode sumber.
-- **Bulk Operations**: Kemampuan untuk menyelesaikan atau menghapus banyak tiket sekaligus dalam satu aksi massal.
-- **Advanced Dashboard Stats**: Visualisasi data statistik performa helpdesk secara komprehensif.
+*   **Export to Excel/CSV**: Fitur ekspor laporan tiket secara instan dengan filter tanggal dan kategori.
+*   **SLA Monitoring**: Pelacakan batas waktu penyelesaian (Service Level Agreement) berdasarkan tingkat prioritas (Critical, High, Medium, Low).
+*   **Scheduled Reports Simulation**: Antarmuka untuk pengaturan pengiriman laporan otomatis (Mingguan/Bulanan).
 
 ### 💬 Komunikasi & Kolaborasi
-- **Internal Notes (Staff Only)**: Catatan rahasia antar Admin dan Teknisi yang tidak terlihat oleh Pelapor.
-- **Unified Timeline**: Riwayat perjalanan tiket yang sinkron di semua role secara kronologis (Ascending).
+*   **Internal Notes (Staff Only)**: Catatan rahasia antar Admin dan Teknisi yang tidak terlihat oleh Pelapor.
+*   **Unified Timeline**: Riwayat perjalanan tiket yang sinkron di semua role secara kronologis (Ascending).
 
 ---
 
-## Stack Teknologi
+## 🛠️ Stack Teknologi
 
-- **Framework**: Flutter (Dart)
-- **Backend**: Firebase Cloud Firestore & Authentication
-- **External APIs**: 
-  - **ImgBB**: Media Storage (Bukti Foto)
-  - **EmailJS**: OTP & Email System
-- **Key Libraries**:
-  - `excel` & `share_plus`: Reporting & Sharing
-  - `intl`: Localization & Date Formatting
-  - `provider`: State Management
+| Komponen | Teknologi | Deskripsi |
+| :--- | :--- | :--- |
+| **Framework** | Flutter (Dart) | Aplikasi multiplatform dengan performa tinggi. |
+| **Database & Auth** | Firebase | Penyimpanan realtime Firestore dan Autentikasi Pengguna. |
+| **Penyimpanan Media** | ImgBB | API eksternal untuk menyimpan foto bukti keluhan. |
+| **Sistem OTP & Email** | EmailJS | Autentikasi OTP email yang aman dan cepat. |
+| **Manajemen Status** | Provider | Arsitektur state management yang bersih dan terstruktur. |
 
 ---
 
-## Struktur Direktori
+## 📂 Struktur Direktori Utama
 
 ```text
 lib/
@@ -89,29 +104,44 @@ lib/
     │   └── notification_templates_screen.dart # Editor templat sistem
     ├── requester/                     # Modul Pelapor (User End)
     ├── technician/                    # Modul Perbaikan (Worker End)
-    └── shared/                        # Komponen Reusable UI
+    └── shared/                        # Komponen Reusable UI (e.g. IosGlassDropdown)
 ```
 
 ---
 
-## Panduan Instalasi
+## 🚀 Panduan Instalasi
 
-1. `git clone https://github.com/0xHadiRamdhani/sbm-ticketing-app`
-2. `flutter pub get`
-3. Konfigurasi `firebase_options.dart` sesuai proyek Firebase Anda.
-4. Setup `services/email_otp_service.dart` dengan API Key EmailJS Anda.
-5. Jalankan: `flutter run`
+1.  **Clone repositori:**
+    ```bash
+    git clone https://github.com/0xHadiRamdhani/sbm-ticketing-app
+    ```
+2.  **Dapatkan dependensi proyek:**
+    ```bash
+    flutter pub get
+    ```
+3.  **Konfigurasi backend:**
+    *   Siapkan konfigurasi Firebase Anda dan jalankan perintah inisialisasi untuk membuat berkas `lib/firebase_options.dart`.
+4.  **Konfigurasi OTP:**
+    *   Konfigurasikan API Key EmailJS Anda pada berkas `lib/services/email_otp_service.dart`.
+5.  **Jalankan aplikasi:**
+    ```bash
+    flutter run
+    ```
 
 ---
 
-## Riwayat Rilis
+## 📋 Riwayat Rilis
 
-- **Versi 2.0.1 (Latest)**: 
-  - Pembaruan rutin dan optimalisasi performa.
-- **Versi 2.0.0**: 
-  - Audit Log, SLA Monitoring, Export Reporting, dan Resolved Locking.
-- **Versi 1.9.1**: 
-  - Integrasi EmailJS OTP dan ImgBB Media Storage.
+*   **Versi 2.1.0 (Terbaru)**:
+    *   Penerapan desain Glassmorphic iOS Liquid Glass Dropdown di seluruh aplikasi.
+    *   Penerapan animasi transisi masuk staggered untuk daftar tiket dan kartu statistik.
+*   **Versi 2.0.1**:
+    *   Pembaruan rutin, kompatibilitas tema gelap (Dark Mode) adaptif, dan optimalisasi performa.
+*   **Versi 2.0.0**:
+    *   Audit Log, SLA Monitoring, Export Reporting, dan Resolved Locking.
+*   **Versi 1.9.1**:
+    *   Integrasi EmailJS OTP dan ImgBB Media Storage.
 
 ---
+
 **© 2026 SBM ITB** - *Modernizing Campus Infrastructure Support.*
