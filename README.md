@@ -157,4 +157,4 @@ lib/
 
 ---
 
-**© 2026 SBM ITB** - *Modernizing Campus Infrastructure Support.*
+**Copyright (c) 2026 SBM ITB** - *Modernizing Campus Infrastructure Support.*
