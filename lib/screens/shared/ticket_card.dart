@@ -79,7 +79,7 @@ class TicketCard extends StatelessWidget {
           ? () => onSelect?.call(!isSelected)
           : () {
         final user = Provider.of<AuthProvider>(context, listen: false).user;
-        if (user?.role == 'student' || user?.role == 'staff') {
+        if (user?.role == 'student' || user?.role == 'staff' || (user?.role == 'technician' && user?.uid == ticket.requesterId)) {
           Navigator.push(context, MaterialPageRoute(builder: (_) => RequesterTicketDetailScreen(ticket: ticket)));
         } else if (user?.role == 'admin') {
           Navigator.push(context, MaterialPageRoute(builder: (_) => AdminTicketDetailScreen(ticket: ticket)));
@@ -238,7 +238,7 @@ class TicketCard extends StatelessWidget {
                   GestureDetector(
                     onTap: () {
                       final user = Provider.of<AuthProvider>(context, listen: false).user;
-                      if (user?.role == 'student' || user?.role == 'staff') {
+                      if (user?.role == 'student' || user?.role == 'staff' || (user?.role == 'technician' && user?.uid == ticket.requesterId)) {
                         Navigator.push(context, MaterialPageRoute(builder: (_) => RequesterTicketDetailScreen(ticket: ticket)));
                       } else if (user?.role == 'admin') {
                         Navigator.push(context, MaterialPageRoute(builder: (_) => AdminTicketDetailScreen(ticket: ticket)));
