@@ -5,6 +5,8 @@ import '../../providers/theme_provider.dart';
 import '../../services/biometric_service.dart';
 import '../../services/email_otp_service.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/app_notifications.dart';
+import '../shared/ios_glass_dropdown.dart';
 import 'email_otp_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -27,7 +29,8 @@ class _LoginScreenState extends State<LoginScreen>
   bool _isObscure = true;
   bool _isLogin = true; // Mode saklar: Login atau Register
   bool _isSendingOtp = false;
-  bool _biometricAvailable = false;
+  bool _deviceSupportsBiometric = false;
+  bool _biometricEnabled = false;
 
   final BiometricService _biometricService = BiometricService();
 
@@ -50,11 +53,32 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Future<void> _checkBiometricAvailability() async {
-    final isEnabled = await _biometricService.isBiometricEnabled();
-    if (mounted) setState(() => _biometricAvailable = isEnabled);
+    final available = await _biometricService.isBiometricAvailable();
+    final enabled = await _biometricService.isBiometricEnabled();
+    if (mounted) {
+      setState(() {
+        _deviceSupportsBiometric = available;
+        _biometricEnabled = enabled;
+      });
+      if (enabled) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _tryBiometricLogin();
+        });
+      }
+    }
   }
 
   Future<void> _tryBiometricLogin() async {
+    if (!_biometricEnabled) {
+      AppNotifications.showAlertDialog(
+        context,
+        title: 'Biometrik Belum Aktif',
+        message: 'Untuk keamanan Anda, silakan masuk menggunakan email & kata sandi terlebih dahulu, lalu aktifkan login biometrik di menu Pengaturan.',
+        buttonLabel: 'Mengerti',
+      );
+      return;
+    }
+
     final credentials = await _biometricService.authenticateAndGetCredentials();
     if (credentials == null) return;
     if (!mounted) return;
@@ -136,24 +160,11 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   void _showSnackBar(String msg, {bool isError = true}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(
-              isError ? Icons.error_outline : Icons.info_outline,
-              color: Colors.white,
-            ),
-            const SizedBox(width: 8),
-            Expanded(child: Text(msg)),
-          ],
-        ),
-        backgroundColor: isError
-            ? Colors.red.shade700
-            : const Color(0xFF10B981),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
+    AppNotifications.showNotification(
+      context,
+      title: isError ? 'Gagal' : 'Sukses',
+      message: msg,
+      isError: isError,
     );
   }
 
@@ -227,7 +238,9 @@ class _LoginScreenState extends State<LoginScreen>
                   ),
                   child: IconButton(
                     icon: Icon(
-                      isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                      isDark
+                          ? Icons.light_mode_rounded
+                          : Icons.dark_mode_rounded,
                       color: Colors.white,
                       size: 22,
                     ),
@@ -261,39 +274,28 @@ class _LoginScreenState extends State<LoginScreen>
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: c.isDark ? Colors.transparent : Colors.white,
+              color: Colors.white,
               shape: BoxShape.circle,
-              border: c.isDark
-                  ? Border.all(
-                      color: c.primary.withValues(alpha: 0.8),
-                      width: 2.0,
-                    )
-                  : Border.all(
-                      color: Colors.transparent,
-                      width: 0,
-                    ),
+              border: Border.all(
+                color: c.isDark
+                    ? c.primary.withValues(alpha: 0.8)
+                    : const Color(0xFFE2E8F0),
+                width: 2.0,
+              ),
               boxShadow: [
-                if (c.isDark)
-                  BoxShadow(
-                    color: c.primary.withValues(alpha: 0.5),
-                    blurRadius: 24,
-                    spreadRadius: 4,
-                  )
-                else
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 24,
-                    offset: const Offset(0, 10),
-                  ),
+                BoxShadow(
+                  color: c.isDark
+                      ? c.primary.withValues(alpha: 0.5)
+                      : Colors.black.withOpacity(0.15),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
+                ),
               ],
             ),
             padding: const EdgeInsets.all(20),
             child: Image.asset(
-              key: ValueKey(c.isDark),
               'assets/sbm.png',
               fit: BoxFit.contain,
-              color: c.isDark ? c.primary : null,
-              colorBlendMode: c.isDark ? BlendMode.srcIn : null,
               errorBuilder: (context, error, stackTrace) {
                 return Icon(
                   Icons.confirmation_num_rounded,
@@ -333,7 +335,9 @@ class _LoginScreenState extends State<LoginScreen>
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(AppColors.of(context).isDark ? 0.2 : 0.06),
+                color: Colors.black.withOpacity(
+                  AppColors.of(context).isDark ? 0.2 : 0.06,
+                ),
                 blurRadius: 24,
                 offset: const Offset(0, 8),
               ),
@@ -360,31 +364,28 @@ class _LoginScreenState extends State<LoginScreen>
                     const SizedBox(height: 16),
 
                     _buildLabel('Peran / Role'),
-                    DropdownButtonFormField<String>(
+                    IosGlassDropdownFormField<String>(
                       value: _selectedRole,
-                      isExpanded: true,
-                      icon: const Icon(
-                        Icons.keyboard_arrow_down_rounded,
-                        color: Color(0xFF64748B),
-                      ),
-                      // Removed prefixIcon to prevent text overlapping in Dropdown
-                      decoration: _inputDecoration(hint: '', icon: null),
-                      items: const [
-                        DropdownMenuItem(
-                          value: 'student',
-                          child: Text('Mahasiswa'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'staff',
-                          child: Text('Staf / Dosen'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'technician',
-                          child: Text('Teknisi IT'),
-                        ),
-                        DropdownMenuItem(value: 'admin', child: Text('Admin')),
-                      ],
-                      onChanged: (val) => setState(() => _selectedRole = val!),
+                      items: const ['student', 'staff', 'technician', 'admin'],
+                      itemLabelBuilder: (r) {
+                        switch (r) {
+                          case 'student':
+                            return 'Mahasiswa';
+                          case 'staff':
+                            return 'Staf / Dosen';
+                          case 'technician':
+                            return 'Teknisi IT';
+                          case 'admin':
+                            return 'Admin';
+                          default:
+                            return '';
+                        }
+                      },
+                      onChanged: (val) {
+                        if (val != null) {
+                          setState(() => _selectedRole = val);
+                        }
+                      },
                     ),
                     const SizedBox(height: 16),
 
@@ -420,10 +421,7 @@ class _LoginScreenState extends State<LoginScreen>
                   TextFormField(
                     controller: _passwordController,
                     obscureText: _isObscure,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: c.textPrimary,
-                    ),
+                    style: TextStyle(fontSize: 14, color: c.textPrimary),
                     decoration:
                         _inputDecoration(
                           hint: 'Masukkan kata sandi',
@@ -489,15 +487,18 @@ class _LoginScreenState extends State<LoginScreen>
                       );
                     },
                   ),
-                  // Tombol Biometrik (hanya muncul saat mode Login & biometrik diaktifkan)
-                  if (_isLogin && _biometricAvailable) ...[
+                  // Tombol Biometrik (hanya muncul saat mode Login & biometrik didukung perangkat)
+                  if (_isLogin && _deviceSupportsBiometric) ...[
                     const SizedBox(height: 16),
                     Row(
                       children: [
                         Expanded(child: Divider(color: c.divider)),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 12),
-                          child: Text('atau', style: TextStyle(color: c.textMuted, fontSize: 13)),
+                          child: Text(
+                            'atau',
+                            style: TextStyle(color: c.textMuted, fontSize: 13),
+                          ),
                         ),
                         Expanded(child: Divider(color: c.divider)),
                       ],
@@ -509,16 +510,33 @@ class _LoginScreenState extends State<LoginScreen>
                         onPressed: _tryBiometricLogin,
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
-                          side: BorderSide(color: c.isDark ? c.border : const Color(0xFFE2E8F0), width: 1.5),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                          backgroundColor: c.isDark ? c.searchBar : const Color(0xFFF8FAFC),
-                          foregroundColor: c.isDark ? Colors.white : const Color(0xFF1A3A5C),
+                          side: BorderSide(
+                            color: c.isDark
+                                ? c.border
+                                : const Color(0xFFE2E8F0),
+                            width: 1.5,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          backgroundColor: c.isDark
+                              ? c.searchBar
+                              : const Color(0xFFF8FAFC),
+                          foregroundColor: c.isDark
+                              ? Colors.white
+                              : const Color(0xFF1A3A5C),
                         ),
-                        icon: Icon(Icons.fingerprint_rounded, color: c.isDark ? c.primary : const Color(0xFF1A3A5C), size: 26),
+                        icon: Icon(
+                          Icons.fingerprint_rounded,
+                          color: c.isDark ? c.primary : const Color(0xFF1A3A5C),
+                          size: 26,
+                        ),
                         label: Text(
                           'Masuk dengan Sidik Jari / Face ID',
                           style: TextStyle(
-                            color: c.isDark ? Colors.white : const Color(0xFF1A3A5C),
+                            color: c.isDark
+                                ? Colors.white
+                                : const Color(0xFF1A3A5C),
                             fontWeight: FontWeight.w600,
                             fontSize: 14,
                           ),
@@ -611,7 +629,9 @@ class _LoginScreenState extends State<LoginScreen>
       fillColor: c.isDark ? c.searchBar : const Color(0xFFF8FAFC),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: c.isDark ? c.divider : const Color(0xFFE2E8F0)),
+        borderSide: BorderSide(
+          color: c.isDark ? c.divider : const Color(0xFFE2E8F0),
+        ),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),

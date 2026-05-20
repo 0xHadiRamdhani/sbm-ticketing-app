@@ -14,7 +14,10 @@ class AuthService {
     User? currentUser = _auth.currentUser;
     if (currentUser == null) return null;
 
-    DocumentSnapshot doc = await _firestore.collection('users').doc(currentUser.uid).get();
+    DocumentSnapshot doc = await _firestore
+        .collection('users')
+        .doc(currentUser.uid)
+        .get();
     if (doc.exists) {
       return UserModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
     } else {
@@ -26,16 +29,28 @@ class AuthService {
         role: 'student', // default
         department: '',
       );
-      await _firestore.collection('users').doc(newUser.uid).set(newUser.toMap());
+      await _firestore
+          .collection('users')
+          .doc(newUser.uid)
+          .set(newUser.toMap());
       return newUser;
     }
   }
 
   // Registrasi (menerima semua email termasuk Gmail)
-  Future<UserModel?> registerWithEmail(String email, String password, String name, String role, String department) async {
+  Future<UserModel?> registerWithEmail(
+    String email,
+    String password,
+    String name,
+    String role,
+    String department,
+  ) async {
     try {
-      UserCredential credential = await _auth.createUserWithEmailAndPassword(email: email, password: password);
-      
+      UserCredential credential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
       UserModel newUser = UserModel(
         uid: credential.user!.uid,
         name: name,
@@ -44,7 +59,10 @@ class AuthService {
         department: department,
       );
 
-      await _firestore.collection('users').doc(newUser.uid).set(newUser.toMap());
+      await _firestore
+          .collection('users')
+          .doc(newUser.uid)
+          .set(newUser.toMap());
 
       return newUser;
     } catch (e) {
@@ -71,9 +89,15 @@ class AuthService {
   // Login
   Future<UserModel?> loginWithEmail(String email, String password) async {
     try {
-      UserCredential credential = await _auth.signInWithEmailAndPassword(email: email, password: password);
-      
-      DocumentSnapshot doc = await _firestore.collection('users').doc(credential.user!.uid).get();
+      UserCredential credential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      DocumentSnapshot doc = await _firestore
+          .collection('users')
+          .doc(credential.user!.uid)
+          .get();
       if (doc.exists) {
         return UserModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
       }
@@ -143,26 +167,40 @@ class AuthService {
   }
 
   // Update Profile
-  Future<void> updateProfile({required String uid, required String name, required String photoUrl}) async {
-    await _firestore.collection('users').doc(uid).update({
-      'name': name,
-      'photoUrl': photoUrl,
-    }).timeout(const Duration(seconds: 10), onTimeout: () {
-      throw Exception('Koneksi database habis (Timeout). Periksa koneksi internet Anda.');
-    });
+  Future<void> updateProfile({
+    required String uid,
+    required String name,
+    required String photoUrl,
+  }) async {
+    await _firestore
+        .collection('users')
+        .doc(uid)
+        .update({'name': name, 'photoUrl': photoUrl})
+        .timeout(
+          const Duration(seconds: 10),
+          onTimeout: () {
+            throw Exception(
+              'Koneksi database habis (Timeout). Periksa koneksi internet Anda.',
+            );
+          },
+        );
   }
 
   // Ubah Kata Sandi
-  Future<void> changePassword(String currentPassword, String newPassword) async {
+  Future<void> changePassword(
+    String currentPassword,
+    String newPassword,
+  ) async {
     User? currentUser = _auth.currentUser;
     if (currentUser == null) throw Exception("Pengguna tidak ditemukan");
-    if (currentUser.email == null) throw Exception("Hanya pengguna email yang dapat mengubah kata sandi");
+    if (currentUser.email == null)
+      throw Exception("Hanya pengguna email yang dapat mengubah kata sandi");
 
     AuthCredential credential = EmailAuthProvider.credential(
       email: currentUser.email!,
       password: currentPassword,
     );
-    
+
     // Autentikasi ulang pengguna sebelum mengubah kata sandi
     await currentUser.reauthenticateWithCredential(credential);
     await currentUser.updatePassword(newPassword);

@@ -9,6 +9,8 @@ import '../chat_screen.dart';
 import '../shared/ticket_card.dart';
 import '../../services/audit_service.dart';
 import '../../services/ticket_service.dart';
+import '../../utils/app_notifications.dart';
+import '../../utils/app_colors.dart';
 
 class AdminTicketDetailScreen extends StatefulWidget {
   final TicketModel ticket;
@@ -57,13 +59,21 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
           );
 
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Tanggal tiket berhasil diperbarui.')),
+            AppNotifications.showNotification(
+              context,
+              title: 'Sukses',
+              message: 'Tanggal tiket berhasil diperbarui.',
+              isError: false,
             );
           }
         } catch (e) {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal: $e')));
+            AppNotifications.showNotification(
+              context,
+              title: 'Gagal',
+              message: 'Gagal memperbarui tanggal tiket: $e',
+              isError: true,
+            );
           }
         }
       }
@@ -71,22 +81,13 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
   }
 
   Future<void> _deleteTicket() async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (c) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Hapus Tiket', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1A3A5C))),
-        content: const Text('Apakah Anda yakin ingin menghapus tiket ini secara permanen?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Batal', style: TextStyle(color: Color(0xFF64748B)))),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(c, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade700, elevation: 0),
-            child: const Text('Hapus', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
+    final confirm = await AppNotifications.showConfirmDialog(
+      context,
+      title: 'Hapus Tiket',
+      message: 'Apakah Anda yakin ingin menghapus tiket ini secara permanen?',
+      confirmLabel: 'Hapus',
+      cancelLabel: 'Batal',
+      isDestructive: true,
     );
     if (confirm == true && mounted) {
       await context.read<TicketProvider>().deleteTicket(widget.ticket.ticketId);
@@ -104,6 +105,7 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     final shortId = '#TKT-${widget.ticket.ticketId.substring(0, 4).toUpperCase()}-${widget.ticket.ticketId.substring(4, 8).toUpperCase()}';
     
     // Parse title and description
@@ -118,17 +120,17 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FC),
+      backgroundColor: c.background,
       appBar: buildSbmAppBar(
         extraActions: [
           PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, color: Color(0xFF475569)),
+            icon: Icon(Icons.more_vert, color: c.textSecondary),
             onSelected: (val) {
               if (val == 'date') _updateTicketDate();
               if (val == 'delete') _deleteTicket();
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(value: 'date', child: Text('Ubah Tanggal Tiket')),
+              PopupMenuItem(value: 'date', child: Text('Ubah Tanggal Tiket', style: TextStyle(color: c.textPrimary))),
               const PopupMenuItem(value: 'delete', child: Text('Hapus Tiket', style: TextStyle(color: Colors.red))),
             ],
           ),
@@ -136,7 +138,7 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ChatScreen(ticket: widget.ticket))),
-        backgroundColor: const Color(0xFF1A3A5C),
+        backgroundColor: c.primary,
         child: const Icon(Icons.chat_bubble_outline_rounded, color: Colors.white),
       ),
       body: SingleChildScrollView(
@@ -146,11 +148,11 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
           children: [
             GestureDetector(
               onTap: () => Navigator.pop(context),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.arrow_back_ios_new, color: Color(0xFF475569), size: 18),
-                  SizedBox(width: 8),
-                  Text('Kembali ke Kotak Masuk', style: TextStyle(color: Color(0xFF475569), fontSize: 13, fontWeight: FontWeight.w500)),
+                  Icon(Icons.arrow_back_ios_new, color: c.textSecondary, size: 18),
+                  const SizedBox(width: 8),
+                  Text('Kembali ke Kotak Masuk', style: TextStyle(color: c.textSecondary, fontSize: 13, fontWeight: FontWeight.w500)),
                 ],
               ),
             ),
@@ -159,11 +161,11 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
               children: [
                 _buildStatusChip(widget.ticket.status),
                 const SizedBox(width: 12),
-                Text(shortId, style: const TextStyle(color: Color(0xFF64748B), fontSize: 14)),
+                Text(shortId, style: TextStyle(color: c.textSecondary, fontSize: 14)),
               ],
             ),
             const SizedBox(height: 12),
-            Text(displayTitle, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+            Text(displayTitle, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: c.textPrimary)),
             
             const SizedBox(height: 16),
             _buildSLATimer(),
@@ -172,60 +174,60 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
 
             // Detail Laporan Card
             _buildSection('Detail Laporan', [
-              _buildInfoRow(Icons.location_on_outlined, 'Lokasi', widget.ticket.location ?? 'Tidak ada lokasi'),
+              _buildInfoRow(Icons.location_on_outlined, 'Lokasi', widget.ticket.location ?? 'Tidak ada lokasi', c),
               const SizedBox(height: 16),
-              _buildInfoRow(Icons.category_outlined, 'Kategori', widget.ticket.category),
+              _buildInfoRow(Icons.category_outlined, 'Kategori', widget.ticket.category, c),
               const SizedBox(height: 16),
-              _buildRequesterRow(widget.ticket.requesterId),
+              _buildRequesterRow(widget.ticket.requesterId, c),
               const SizedBox(height: 16),
-              _buildInfoRow(Icons.access_time, 'Waktu Laporan', DateFormat('dd MMM yyyy, HH:mm').format(widget.ticket.createdAt) + ' WIB'),
+              _buildInfoRow(Icons.access_time, 'Waktu Laporan', DateFormat('dd MMM yyyy, HH:mm').format(widget.ticket.createdAt) + ' WIB', c),
               const SizedBox(height: 16),
               if (widget.ticket.technicianId != null)
-                _buildTechnicianRow(widget.ticket.technicianId!),
+                _buildTechnicianRow(widget.ticket.technicianId!, c),
               const SizedBox(height: 20),
-              _buildDescriptionBox(displayDesc),
-            ]),
+              _buildDescriptionBox(displayDesc, c),
+            ], c),
 
             const SizedBox(height: 20),
 
             // Catatan Internal
-            _buildInternalNotesSection(),
+            _buildInternalNotesSection(c),
 
             const SizedBox(height: 20),
 
             // Timeline Riwayat Status
-            _buildTimelineSection(),
+            _buildTimelineSection(c),
 
             const SizedBox(height: 20),
 
             // Informasi Perbaikan
             if (widget.ticket.note != null || widget.ticket.photoAfterUrl != null)
               _buildSection('Informasi Perbaikan', [
-                const Text('Catatan Teknisi', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+                Text('Catatan Teknisi', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textPrimary)),
                 const SizedBox(height: 12),
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(8)),
-                  child: Text(widget.ticket.note ?? 'Tidak ada catatan.', style: const TextStyle(fontSize: 13, color: Color(0xFF334155))),
+                  decoration: BoxDecoration(color: c.surfaceElevated, borderRadius: BorderRadius.circular(8)),
+                  child: Text(widget.ticket.note ?? 'Tidak ada catatan.', style: TextStyle(fontSize: 13, color: c.textSecondary)),
                 ),
                 if (widget.ticket.photoBeforeUrl != null || widget.ticket.photoAfterUrl != null) ...[
                   const SizedBox(height: 24),
-                  const Text('Bukti Foto Perbaikan', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+                  Text('Bukti Foto Perbaikan', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textPrimary)),
                   const SizedBox(height: 12),
                   if (widget.ticket.photoBeforeUrl != null) ...[
-                    const Text('Foto Sebelum:', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                    Text('Foto Sebelum:', style: TextStyle(fontSize: 11, color: c.textSecondary)),
                     const SizedBox(height: 4),
                     _buildImage(widget.ticket.photoBeforeUrl!),
                     const SizedBox(height: 12),
                   ],
                   if (widget.ticket.photoAfterUrl != null) ...[
-                    const Text('Foto Sesudah:', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                    Text('Foto Sesudah:', style: TextStyle(fontSize: 11, color: c.textSecondary)),
                     const SizedBox(height: 4),
                     _buildImage(widget.ticket.photoAfterUrl!),
                   ],
                 ],
-              ]),
+              ], c),
             const SizedBox(height: 20),
           ],
         ),
@@ -233,38 +235,38 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
     );
   }
 
-  Widget _buildSection(String title, List<Widget> children) {
+  Widget _buildSection(String title, List<Widget> children, AppColors c) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: c.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: c.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(padding: const EdgeInsets.all(20), child: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)))),
-          const Divider(height: 1, color: Color(0xFFE2E8F0)),
+          Padding(padding: const EdgeInsets.all(20), child: Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary))),
+          Divider(height: 1, color: c.border),
           Padding(padding: const EdgeInsets.all(20), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: children)),
         ],
       ),
     );
   }
 
-  Widget _buildTimelineSection() {
+  Widget _buildTimelineSection(AppColors c) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: c.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: c.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(padding: EdgeInsets.all(20), child: Text('Riwayat Status', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)))),
-          const Divider(height: 1, color: Color(0xFFE2E8F0)),
+          Padding(padding: const EdgeInsets.all(20), child: Text('Riwayat Status', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary))),
+          Divider(height: 1, color: c.border),
           Padding(
             padding: const EdgeInsets.all(20),
             child: StreamBuilder<QuerySnapshot>(
@@ -289,9 +291,9 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
                   if (tsA == null || tsB == null) return 0;
                   return tsA.compareTo(tsB);
                 });
-
-                if (history.isEmpty) return const Text('Tidak ada riwayat status.', style: TextStyle(fontSize: 13, color: Color(0xFF94A3B8)));
-
+ 
+                if (history.isEmpty) return Text('Tidak ada riwayat status.', style: TextStyle(fontSize: 13, color: c.textMuted));
+ 
                 return ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -306,6 +308,7 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
                       time != null ? DateFormat('dd MMM, HH:mm').format(time) : '-',
                       index == history.length - 1, // isCurrent (latest)
                       index == history.length - 1, // isLast
+                      c,
                     );
                   },
                 );
@@ -317,7 +320,8 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
     );
   }
 
-  Widget _buildTimelineItem(String label, String time, bool isCurrent, bool isLast) {
+  Widget _buildTimelineItem(String label, String time, bool isCurrent, bool isLast, AppColors c) {
+    final circleColor = c.textPrimary;
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -328,21 +332,21 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
                 width: 24,
                 height: 24,
                 decoration: BoxDecoration(
-                  color: isCurrent ? const Color(0xFF0F172A) : Colors.white,
+                  color: isCurrent ? circleColor : c.surface,
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: const Color(0xFF0F172A),
+                    color: circleColor,
                     width: 2,
                   ),
                 ),
                 child: isCurrent
-                    ? const Icon(Icons.check, size: 14, color: Colors.white)
+                    ? Icon(Icons.check, size: 14, color: c.isDark ? Colors.black : Colors.white)
                     : Center(
                         child: Container(
                           width: 8,
                           height: 8,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF0F172A),
+                          decoration: BoxDecoration(
+                            color: circleColor,
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -352,7 +356,7 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
                 Expanded(
                   child: Container(
                     width: 2,
-                    color: const Color(0xFF0F172A),
+                    color: circleColor,
                   ),
                 ),
             ],
@@ -369,15 +373,15 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: isCurrent ? FontWeight.bold : FontWeight.w600,
-                      color: const Color(0xFF0F172A),
+                      color: c.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     time,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: Color(0xFF64748B),
+                      color: c.textSecondary,
                     ),
                   ),
                 ],
@@ -389,14 +393,21 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
     );
   }
 
-  Widget _buildInternalNotesSection() {
+  Widget _buildInternalNotesSection(AppColors c) {
     final TextEditingController _noteController = TextEditingController();
+    
+    final bgNotes = c.isDark ? const Color(0xFF2E2315) : const Color(0xFFFFF7ED);
+    final borderNotes = c.isDark ? const Color(0xFF4D3715) : const Color(0xFFFED7AA);
+    final textOrange = c.isDark ? const Color(0xFFFBBF24) : const Color(0xFFC2410C);
+    final textAuthor = c.isDark ? const Color(0xFFFDE68A) : const Color(0xFF9A3412);
+    final textContent = c.isDark ? const Color(0xFFFFFBEB) : const Color(0xFF431407);
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF7ED),
+        color: bgNotes,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFFED7AA)),
+        border: Border.all(color: borderNotes),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -405,15 +416,15 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
             padding: const EdgeInsets.all(20),
             child: Row(
               children: [
-                const Icon(Icons.lock_outline, size: 18, color: Color(0xFFC2410C)),
+                Icon(Icons.lock_outline, size: 18, color: textOrange),
                 const SizedBox(width: 8),
-                const Text('Catatan Internal', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFFC2410C))),
+                Text('Catatan Internal', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textOrange)),
                 const Spacer(),
-                const Text('Hanya Staff', style: TextStyle(fontSize: 10, color: Color(0xFFC2410C), fontWeight: FontWeight.bold)),
+                Text('Hanya Staff', style: TextStyle(fontSize: 10, color: textOrange, fontWeight: FontWeight.bold)),
               ],
             ),
           ),
-          const Divider(height: 1, color: Color(0xFFFED7AA)),
+          Divider(height: 1, color: borderNotes),
           StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance.collection('tickets').doc(widget.ticket.ticketId).collection('internal_notes').orderBy('timestamp', descending: true).snapshots(),
             builder: (context, snapshot) {
@@ -428,22 +439,22 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
                   final data = notes[index].data() as Map<String, dynamic>;
                   return Container(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xFFFED7AA), width: 0.5))),
+                    decoration: BoxDecoration(border: Border(bottom: BorderSide(color: borderNotes, width: 0.5))),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(data['author_name'] ?? 'Admin', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF9A3412))),
+                            Text(data['author_name'] ?? 'Admin', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: textAuthor)),
                             Text(
                               data['timestamp'] != null ? DateFormat('dd MMM, HH:mm').format((data['timestamp'] as Timestamp).toDate()) : '-',
-                              style: const TextStyle(fontSize: 10, color: Color(0xFFC2410C)),
+                              style: TextStyle(fontSize: 10, color: textOrange),
                             ),
                           ],
                         ),
                         const SizedBox(height: 4),
-                        Text(data['note'] ?? '', style: const TextStyle(fontSize: 13, color: Color(0xFF431407))),
+                        Text(data['note'] ?? '', style: TextStyle(fontSize: 13, color: textContent)),
                       ],
                     ),
                   );
@@ -460,13 +471,13 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
                     controller: _noteController,
                     decoration: InputDecoration(
                       hintText: 'Tambah catatan internal...',
-                      hintStyle: const TextStyle(fontSize: 13, color: Color(0xFFC2410C)),
+                      hintStyle: TextStyle(fontSize: 13, color: textOrange.withOpacity(0.6)),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: c.isDark ? const Color(0xFF251A0F) : Colors.white,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     ),
-                    style: const TextStyle(fontSize: 13),
+                    style: TextStyle(fontSize: 13, color: c.textPrimary),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -482,7 +493,7 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
                     );
                     _noteController.clear();
                   },
-                  icon: const Icon(Icons.send_rounded, color: Color(0xFFC2410C)),
+                  icon: Icon(Icons.send_rounded, color: textOrange),
                 ),
               ],
             ),
@@ -561,19 +572,19 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value) {
+  Widget _buildInfoRow(IconData icon, String label, String value, AppColors c) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20, color: const Color(0xFF64748B)),
+        Icon(icon, size: 20, color: c.textSecondary),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B), fontWeight: FontWeight.w600)),
+              Text(label, style: TextStyle(fontSize: 12, color: c.textSecondary, fontWeight: FontWeight.w600)),
               const SizedBox(height: 2),
-              Text(value, style: const TextStyle(fontSize: 14, color: Color(0xFF0F172A))),
+              Text(value, style: TextStyle(fontSize: 14, color: c.textPrimary)),
             ],
           ),
         ),
@@ -581,17 +592,17 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
     );
   }
 
-  Widget _buildDescriptionBox(String desc) {
+  Widget _buildDescriptionBox(String desc, AppColors c) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(8)),
+      decoration: BoxDecoration(color: c.surfaceElevated, borderRadius: BorderRadius.circular(8)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Deskripsi Kendala', style: TextStyle(fontSize: 12, color: Color(0xFF475569), fontWeight: FontWeight.w600)),
+          Text('Deskripsi Kendala', style: TextStyle(fontSize: 12, color: c.textSecondary, fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
-          Text('"$desc"', style: const TextStyle(fontSize: 13, color: Color(0xFF334155), height: 1.5)),
+          Text('"$desc"', style: TextStyle(fontSize: 13, color: c.textPrimary, height: 1.5)),
           if (widget.ticket.imageUrl != null) ...[
             const SizedBox(height: 12),
             _buildImage(widget.ticket.imageUrl!),
@@ -601,7 +612,7 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
     );
   }
 
-  Widget _buildRequesterRow(String requesterId) {
+  Widget _buildRequesterRow(String requesterId, AppColors c) {
     return FutureBuilder<DocumentSnapshot>(
       future: FirebaseFirestore.instance.collection('users').doc(requesterId).get(),
       builder: (_, snap) {
@@ -613,12 +624,12 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
           String roleLabel = role == 'student' ? 'Mahasiswa' : (role == 'staff' ? 'Dosen/Staff' : role);
           display = '$name ($roleLabel)';
         }
-        return _buildInfoRow(Icons.person_outline, 'Pelapor', display);
+        return _buildInfoRow(Icons.person_outline, 'Pelapor', display, c);
       },
     );
   }
 
-  Widget _buildTechnicianRow(String technicianId) {
+  Widget _buildTechnicianRow(String technicianId, AppColors c) {
     return FutureBuilder<DocumentSnapshot>(
       future: FirebaseFirestore.instance.collection('users').doc(technicianId).get(),
       builder: (_, snap) {
@@ -627,7 +638,7 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
           final d = snap.data!.data() as Map<String, dynamic>;
           name = d['name'] ?? 'Teknisi';
         }
-        return _buildInfoRow(Icons.engineering_outlined, 'Teknisi Penanggung Jawab', name);
+        return _buildInfoRow(Icons.engineering_outlined, 'Teknisi Penanggung Jawab', name, c);
       },
     );
   }

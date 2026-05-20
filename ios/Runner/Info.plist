@@ -50,9 +50,9 @@
 		<string>https</string>
 	</array>
 
-	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>Aplikasi memerlukan akses pengenalan suara untuk fitur Voice-to-Ticket.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Aplikasi memerlukan akses mikrofon untuk merekam suara Anda untuk fitur Voice-to-Ticket.</string>
+	<string>Aplikasi memerlukan izin mikrofon untuk fitur dikte suara (voice note) dalam obrolan.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Aplikasi memerlukan izin pengenalan suara untuk mengubah ucapan Anda menjadi teks pesan.</string>
 </dict>
 </plist>

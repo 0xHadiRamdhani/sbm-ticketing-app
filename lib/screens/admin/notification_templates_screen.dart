@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../shared/ticket_card.dart';
+import '../../utils/app_colors.dart';
 
 class NotificationTemplatesScreen extends StatelessWidget {
   const NotificationTemplatesScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FC),
+      backgroundColor: c.background,
       appBar: buildSbmAppBar(
         showBackButton: true,
         onBackPressed: () => Navigator.pop(context),
@@ -21,7 +23,11 @@ class NotificationTemplatesScreen extends StatelessWidget {
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance.collection('notification_templates').snapshots(),
               builder: (context, snapshot) {
-                if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+                if (!snapshot.hasData) {
+                  return Center(
+                    child: CircularProgressIndicator(color: c.primary),
+                  );
+                }
                 final templates = snapshot.data!.docs;
                 
                 if (templates.isEmpty) {
@@ -31,17 +37,17 @@ class NotificationTemplatesScreen extends StatelessWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.edit_notifications_outlined, size: 64, color: Color(0xFF94A3B8)),
+                          Icon(Icons.edit_notifications_outlined, size: 64, color: c.textMuted),
                           const SizedBox(height: 16),
-                          const Text(
+                          Text(
                             'Belum ada templat notifikasi.',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
                           ),
                           const SizedBox(height: 8),
-                          const Text(
+                          Text(
                             'Klik tombol di bawah untuk membuat templat standar sistem.',
                             textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+                            style: TextStyle(fontSize: 13, color: c.textSecondary),
                           ),
                           const SizedBox(height: 24),
                           ElevatedButton.icon(
@@ -49,7 +55,7 @@ class NotificationTemplatesScreen extends StatelessWidget {
                             icon: const Icon(Icons.auto_awesome, size: 18),
                             label: const Text('Inisialisasi Templat Standar'),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF1A3A5C),
+                              backgroundColor: c.primary,
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -67,7 +73,7 @@ class NotificationTemplatesScreen extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final data = templates[index].data() as Map<String, dynamic>;
                     final id = templates[index].id;
-                    return _buildTemplateCard(context, id, data);
+                    return _buildTemplateCard(context, id, data, c);
                   },
                 );
               },
@@ -111,14 +117,14 @@ class NotificationTemplatesScreen extends StatelessWidget {
     await batch.commit();
   }
 
-  Widget _buildTemplateCard(BuildContext context, String id, Map<String, dynamic> data) {
+  Widget _buildTemplateCard(BuildContext context, String id, Map<String, dynamic> data, AppColors c) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: c.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: c.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -127,22 +133,31 @@ class NotificationTemplatesScreen extends StatelessWidget {
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(8)),
-                child: const Icon(Icons.description_outlined, size: 18, color: Color(0xFF1A3A5C)),
+                decoration: BoxDecoration(
+                  color: c.isDark ? c.primaryLight : const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(Icons.description_outlined, size: 18, color: c.primary),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(id.replaceAll('_', ' ').toUpperCase(), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8))),
-                    Text(data['title'] ?? 'No Title', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+                    Text(
+                      id.replaceAll('_', ' ').toUpperCase(),
+                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: c.textMuted),
+                    ),
+                    Text(
+                      data['title'] ?? 'No Title',
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
+                    ),
                   ],
                 ),
               ),
               IconButton(
                 onPressed: () => _editTemplate(context, id, data),
-                icon: const Icon(Icons.edit_outlined, color: Color(0xFF1A3A5C)),
+                icon: Icon(Icons.edit_outlined, color: c.primary),
               ),
             ],
           ),
@@ -151,7 +166,7 @@ class NotificationTemplatesScreen extends StatelessWidget {
             data['body'] ?? 'No Body',
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+            style: TextStyle(fontSize: 13, color: c.textSecondary),
           ),
         ],
       ),
@@ -161,32 +176,59 @@ class NotificationTemplatesScreen extends StatelessWidget {
   void _editTemplate(BuildContext context, String id, Map<String, dynamic> data) {
     final titleController = TextEditingController(text: data['title']);
     final bodyController = TextEditingController(text: data['body']);
+    final c = AppColors.of(context);
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: c.surface,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (c) => Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(c).viewInsets.bottom, left: 24, right: 24, top: 24),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom, left: 24, right: 24, top: 24),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Edit Templat: ${id.replaceAll('_', ' ').toUpperCase()}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              Text(
+                'Edit Templat: ${id.replaceAll('_', ' ').toUpperCase()}',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.textPrimary),
+              ),
               const SizedBox(height: 20),
               TextField(
                 controller: titleController,
-                decoration: InputDecoration(labelText: 'Judul Notifikasi', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+                style: TextStyle(color: c.textPrimary),
+                decoration: InputDecoration(
+                  labelText: 'Judul Notifikasi',
+                  labelStyle: TextStyle(color: c.textSecondary),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: c.border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: c.primary, width: 2),
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: bodyController,
                 maxLines: 5,
+                style: TextStyle(color: c.textPrimary),
                 decoration: InputDecoration(
                   labelText: 'Isi Pesan',
+                  labelStyle: TextStyle(color: c.textSecondary),
                   hintText: 'Gunakan {name}, {id}, {category}, {status} sebagai variabel',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  hintStyle: TextStyle(color: c.textMuted),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: c.border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: c.primary, width: 2),
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
@@ -197,10 +239,10 @@ class NotificationTemplatesScreen extends StatelessWidget {
                     'body': bodyController.text,
                     'updated_at': FieldValue.serverTimestamp(),
                   });
-                  Navigator.pop(c);
+                  Navigator.pop(ctx);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1A3A5C),
+                  backgroundColor: c.primary,
                   minimumSize: const Size(double.infinity, 50),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),

@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import '../providers/auth_provider.dart';
 import '../utils/app_colors.dart';
 import 'shared/ticket_card.dart';
+import '../utils/app_notifications.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -103,8 +104,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _saveProfile() async {
     if (_nameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nama tidak boleh kosong.')),
+      AppNotifications.showNotification(
+        context,
+        title: 'Nama Wajib',
+        message: 'Nama tidak boleh kosong.',
+        isError: true,
       );
       return;
     }
@@ -131,15 +135,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profil berhasil diperbarui.')),
+        AppNotifications.showNotification(
+          context,
+          title: 'Sukses',
+          message: 'Profil berhasil diperbarui.',
+          isError: false,
         );
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal memperbarui profil: $e')),
+        AppNotifications.showNotification(
+          context,
+          title: 'Gagal',
+          message: 'Gagal memperbarui profil: $e',
+          isError: true,
         );
       }
     } finally {

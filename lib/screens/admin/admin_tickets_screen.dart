@@ -13,6 +13,8 @@ import '../../services/audit_service.dart';
 import '../../providers/ticket_provider.dart';
 import '../../models/ticket_model.dart';
 import '../shared/ticket_card.dart';
+import '../shared/ios_glass_dropdown.dart';
+import '../../utils/app_notifications.dart';
 
 class AdminTicketsScreen extends StatefulWidget {
   @override
@@ -142,84 +144,28 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(
-                        color: AppColors.of(context).background,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.of(context).border),
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          isExpanded: true,
-                          dropdownColor: AppColors.of(context).surface,
-                          icon: Icon(
-                            Icons.keyboard_arrow_down_rounded,
-                            color: AppColors.of(context).textMuted,
-                            size: 20,
-                          ),
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: AppColors.of(context).textPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          value: _selectedCategory ?? 'Semua Kategori',
-                          items: _categories
-                              .map(
-                                (c) =>
-                                    DropdownMenuItem(value: c, child: Text(c)),
-                              )
-                              .toList(),
-                          onChanged: (val) {
-                            setState(() {
-                              _selectedCategory = val == 'Semua Kategori'
-                                  ? null
-                                  : val;
-                            });
-                          },
-                        ),
-                      ),
+                    child: IosGlassDropdown<String>(
+                      value: _selectedCategory ?? 'Semua Kategori',
+                      items: _categories,
+                      itemLabelBuilder: (c) => c,
+                      onChanged: (val) {
+                        setState(() {
+                          _selectedCategory = val == 'Semua Kategori' ? null : val;
+                        });
+                      },
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(
-                        color: AppColors.of(context).background,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.of(context).border),
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          isExpanded: true,
-                          dropdownColor: AppColors.of(context).surface,
-                          icon: Icon(
-                            Icons.keyboard_arrow_down_rounded,
-                            color: AppColors.of(context).textMuted,
-                            size: 20,
-                          ),
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: AppColors.of(context).textPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          value: _selectedPriority ?? 'Semua Prioritas',
-                          items: _priorities
-                              .map(
-                                (p) =>
-                                    DropdownMenuItem(value: p, child: Text(p)),
-                              )
-                              .toList(),
-                          onChanged: (val) {
-                            setState(() {
-                              _selectedPriority = val == 'Semua Prioritas'
-                                  ? null
-                                  : val;
-                            });
-                          },
-                        ),
-                      ),
+                    child: IosGlassDropdown<String>(
+                      value: _selectedPriority ?? 'Semua Prioritas',
+                      items: _priorities,
+                      itemLabelBuilder: (p) => p,
+                      onChanged: (val) {
+                        setState(() {
+                          _selectedPriority = val == 'Semua Prioritas' ? null : val;
+                        });
+                      },
                     ),
                   ),
                 ],
@@ -594,36 +540,27 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
         description: 'Mengubah status tiket secara massal menjadi $status',
       );
     }
+    final count = _selectedTicketIds.length;
     setState(() {
       _isSelectionMode = false;
       _selectedTicketIds.clear();
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${_selectedTicketIds.length} tiket berhasil diupdate.'),
-      ),
+    AppNotifications.showNotification(
+      context,
+      title: 'Sukses',
+      message: '$count tiket berhasil diupdate.',
+      isError: false,
     );
   }
 
   Future<void> _handleBulkDelete() async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (c) => AlertDialog(
-        title: const Text('Hapus Massal'),
-        content: Text(
-          'Hapus ${_selectedTicketIds.length} tiket yang dipilih secara permanen?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(c, false),
-            child: const Text('Batal'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(c, true),
-            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
+    final confirm = await AppNotifications.showConfirmDialog(
+      context,
+      title: 'Hapus Massal',
+      message: 'Hapus ${_selectedTicketIds.length} tiket yang dipilih secara permanen?',
+      confirmLabel: 'Hapus',
+      cancelLabel: 'Batal',
+      isDestructive: true,
     );
 
     if (confirm == true) {
@@ -637,13 +574,12 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
           description: 'Menghapus tiket secara massal',
         );
       }
-      setState(() {
-        _isSelectionMode = false;
-        _selectedTicketIds.clear();
-      });
-      ScaffoldMessenger.of(
+      AppNotifications.showNotification(
         context,
-      ).showSnackBar(SnackBar(content: Text('$count tiket berhasil dihapus.')));
+        title: 'Sukses',
+        message: '$count tiket berhasil dihapus.',
+        isError: false,
+      );
     }
   }
 

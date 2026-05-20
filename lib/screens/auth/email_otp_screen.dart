@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/email_otp_service.dart';
+import '../../utils/app_notifications.dart';
 
 class EmailOtpScreen extends StatefulWidget {
   final String email;
@@ -123,7 +124,6 @@ class _EmailOtpScreenState extends State<EmailOtpScreen>
       );
       
       if (!mounted) return;
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
       // Registrasi berhasil, AuthWrapper berubah ke Dashboard, tapi kita harus pop layar OTP ini
       Navigator.of(context).popUntil((route) => route.isFirst);
     } catch (e) {
@@ -148,23 +148,12 @@ class _EmailOtpScreenState extends State<EmailOtpScreen>
   Future<void> _loginExistingAccount() async {
     if (!mounted) return;
 
-    // Tampilkan loading snackbar
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Row(children: [
-          SizedBox(
-            width: 18,
-            height: 18,
-            child: CircularProgressIndicator(
-                color: Colors.white, strokeWidth: 2),
-          ),
-          SizedBox(width: 12),
-          Text('Email sudah terdaftar, sedang masuk...'),
-        ]),
-        backgroundColor: Color(0xFF1A3A5C),
-        duration: Duration(seconds: 3),
-        behavior: SnackBarBehavior.floating,
-      ),
+    // Tampilkan loading notification
+    AppNotifications.showNotification(
+      context,
+      title: 'Info',
+      message: 'Email sudah terdaftar, sedang masuk...',
+      isError: false,
     );
 
     try {
@@ -172,30 +161,16 @@ class _EmailOtpScreenState extends State<EmailOtpScreen>
       await authProvider.login(widget.email, widget.password);
       
       if (!mounted) return;
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
       // Login berhasil, pop layar OTP untuk melihat Dashboard
       Navigator.of(context).popUntil((route) => route.isFirst);
     } catch (e) {
       if (!mounted) return;
       // Password salah — minta user login manual
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Row(children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.white),
-            SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'Email sudah terdaftar. Kata sandi tidak cocok, silakan login manual.',
-              ),
-            ),
-          ]),
-          backgroundColor: Colors.orange.shade800,
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          duration: const Duration(seconds: 4),
-        ),
+      AppNotifications.showNotification(
+        context,
+        title: 'Perhatian',
+        message: 'Email sudah terdaftar. Kata sandi tidak cocok, silakan login manual.',
+        isError: true,
       );
       // Segera kembali ke halaman login tanpa menunggu
       Navigator.of(context).pop();
@@ -213,11 +188,11 @@ class _EmailOtpScreenState extends State<EmailOtpScreen>
       setState(() => _currentOtp = newOtp);
       _startCountdown();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Kode OTP baru telah dikirim ke email Anda.'),
-          backgroundColor: Color(0xFF1A3A5C),
-        ),
+      AppNotifications.showNotification(
+        context,
+        title: 'Sukses',
+        message: 'Kode OTP baru telah dikirim ke email Anda.',
+        isError: false,
       );
     } catch (e) {
       if (!mounted) return;
@@ -229,19 +204,11 @@ class _EmailOtpScreenState extends State<EmailOtpScreen>
 
   void _showError(String msg) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.error_outline, color: Colors.white),
-            const SizedBox(width: 8),
-            Expanded(child: Text(msg)),
-          ],
-        ),
-        backgroundColor: Colors.red.shade700,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
+    AppNotifications.showNotification(
+      context,
+      title: 'Error',
+      message: msg,
+      isError: true,
     );
   }
 

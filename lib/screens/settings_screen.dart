@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -7,6 +8,7 @@ import '../providers/theme_provider.dart';
 import '../providers/language_provider.dart';
 import '../services/biometric_service.dart';
 import '../utils/app_colors.dart';
+import '../utils/app_notifications.dart';
 import 'about_screen.dart';
 import 'help_center_screen.dart';
 import 'privacy_policy_screen.dart';
@@ -56,14 +58,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _toggleBiometric(bool value) async {
     final auth = Provider.of<AuthProvider>(context, listen: false);
     final user = auth.user;
+    final c = AppColors.of(context);
 
     if (user?.email == null || user!.email!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Hanya pengguna email yang dapat menggunakan fitur biometrik.',
-          ),
-        ),
+      AppNotifications.showNotification(
+        context,
+        title: 'Biometrik',
+        message: 'Hanya pengguna email yang dapat menggunakan fitur biometrik.',
+        isError: true,
       );
       return;
     }
@@ -71,56 +73,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (value) {
       // Minta kata sandi untuk disimpan secara aman
       final passwordController = TextEditingController();
-      bool? confirmed = await showDialog<bool>(
+      bool? confirmed = await showCupertinoDialog<bool>(
         context: context,
-        builder: (ctx) => AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: const Text(
-            'Aktifkan Biometrik',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
+        builder: (ctx) => CupertinoAlertDialog(
+          title: const Text('Aktifkan Biometrik'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              const SizedBox(height: 8),
               const Text(
                 'Masukkan kata sandi Anda saat ini untuk mengaktifkan login menggunakan sidik jari/Face ID.',
-                style: TextStyle(color: Color(0xFF6B7280)),
               ),
-              const SizedBox(height: 16),
-              TextField(
+              const SizedBox(height: 12),
+              CupertinoTextField(
                 controller: passwordController,
+                placeholder: 'Kata Sandi',
                 obscureText: true,
-                decoration: InputDecoration(
-                  labelText: 'Kata Sandi',
-                  filled: true,
-                  fillColor: const Color(0xFFF9FAFB),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
                 ),
+                decoration: BoxDecoration(
+                  color: c.isDark
+                      ? const Color(0xFF253347)
+                      : CupertinoColors.extraLightBackgroundGray,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                style: TextStyle(color: c.isDark ? Colors.white : Colors.black),
               ),
             ],
           ),
           actions: [
-            TextButton(
+            CupertinoDialogAction(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+              child: const Text('Batal'),
             ),
-            ElevatedButton(
+            CupertinoDialogAction(
+              isDefaultAction: true,
               onPressed: () => Navigator.pop(ctx, true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1A3A5C),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              child: const Text(
-                'Simpan',
-                style: TextStyle(color: Colors.white),
-              ),
+              child: const Text('Simpan'),
             ),
           ],
         ),
@@ -134,8 +125,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         await _biometricService.setBiometricEnabled(true);
         setState(() => _biometricEnabled = true);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Login biometrik diaktifkan.')),
+          AppNotifications.showNotification(
+            context,
+            title: 'Sukses',
+            message: 'Login biometrik diaktifkan.',
+            isError: false,
           );
         }
       }
@@ -143,8 +137,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await _biometricService.setBiometricEnabled(false);
       setState(() => _biometricEnabled = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login biometrik dinonaktifkan.')),
+        AppNotifications.showNotification(
+          context,
+          title: 'Sukses',
+          message: 'Login biometrik dinonaktifkan.',
+          isError: false,
         );
       }
     }
@@ -215,12 +212,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showComingSoon() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Fitur ini sedang dalam pengembangan.'),
-        behavior: SnackBarBehavior.floating,
-        duration: Duration(seconds: 2),
-      ),
+    AppNotifications.showNotification(
+      context,
+      title: 'Info',
+      message: 'Fitur ini sedang dalam pengembangan.',
+      isError: false,
     );
   }
 
@@ -242,7 +238,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     int size = 0;
     try {
       if (await dir.exists()) {
-        await for (final FileSystemEntity entity in dir.list(recursive: true, followLinks: false)) {
+        await for (final FileSystemEntity entity in dir.list(
+          recursive: true,
+          followLinks: false,
+        )) {
           if (entity is File) {
             size += await entity.length();
           }
@@ -264,7 +263,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       final tempDir = await getTemporaryDirectory();
       if (await tempDir.exists()) {
-        await for (final FileSystemEntity entity in tempDir.list(recursive: true, followLinks: false)) {
+        await for (final FileSystemEntity entity in tempDir.list(
+          recursive: true,
+          followLinks: false,
+        )) {
           try {
             if (entity is File) {
               await entity.delete();
@@ -278,16 +280,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
       await _calculateCacheSize();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              context.read<LanguageProvider>().translate(
-                'Cache berhasil dibersihkan.',
-                'Cache cleared successfully.',
-              ),
-            ),
-            behavior: SnackBarBehavior.floating,
+        AppNotifications.showNotification(
+          context,
+          title: 'Sukses',
+          message: context.read<LanguageProvider>().translate(
+            'Cache berhasil dibersihkan.',
+            'Cache cleared successfully.',
           ),
+          isError: false,
         );
       }
     } catch (e) {
@@ -317,17 +317,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
         onRefresh: () async {
           await auth.refreshUserData();
           setState(() {}); // Trigger rebuild
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                lang.translate(
-                  'Data berhasil diperbarui',
-                  'Data updated successfully',
-                ),
-              ),
-              duration: const Duration(seconds: 1),
-              behavior: SnackBarBehavior.floating,
+          AppNotifications.showNotification(
+            context,
+            title: 'Sukses',
+            message: lang.translate(
+              'Data berhasil diperbarui',
+              'Data updated successfully',
             ),
+            isError: false,
           );
         },
         color: c.primary,
@@ -531,22 +528,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   value: _notificationsEnabled,
                   onChanged: (v) {
                     setState(() => _notificationsEnabled = v);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          v
-                              ? lang.translate(
-                                  'Pemberitahuan diaktifkan',
-                                  'Notifications enabled',
-                                )
-                              : lang.translate(
-                                  'Pemberitahuan dimatikan',
-                                  'Notifications disabled',
-                                ),
-                        ),
-                        duration: const Duration(seconds: 1),
-                        behavior: SnackBarBehavior.floating,
-                      ),
+                    AppNotifications.showNotification(
+                      context,
+                      title: 'Info',
+                      message: v
+                          ? lang.translate(
+                              'Pemberitahuan diaktifkan',
+                              'Notifications enabled',
+                            )
+                          : lang.translate(
+                              'Pemberitahuan dimatikan',
+                              'Notifications disabled',
+                            ),
+                      isError: false,
                     );
                   },
                 ),
@@ -555,7 +549,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   icon: Icons.dark_mode_outlined,
                   iconColor: const Color(0xFF6366F1),
                   bgColor: const Color(0xFFE0E7FF),
-                  label: lang.translate('Tema Gelap', 'Dark Mode'),
+                  label: lang.translate(
+                    'Tema Gelap ( Light Mode Recommended )',
+                    'Dark Mode ( Light Mode Recommended )',
+                  ),
                   value: _darkModeEnabled,
                   onChanged: (v) async {
                     setState(() => _darkModeEnabled = v);
@@ -702,13 +699,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Center(
               child: Column(
                 children: [
-                  Image.asset(
-                    'assets/itb.png',
-                    width: 54,
-                    height: 54,
-                    color: c.isDark ? Colors.white : null,
-                    colorBlendMode: c.isDark ? BlendMode.srcIn : null,
-                  ),
+                  Image.asset('assets/itb.png', width: 54, height: 54),
                   const SizedBox(height: 12),
                   const Text(
                     'SBM ITB Support',
@@ -752,93 +743,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
     BuildContext ctx,
     AuthProvider auth,
     LanguageProvider lang,
-  ) {
-    final c = AppColors.of(ctx);
-    showDialog(
-      context: ctx,
-      builder: (dialogCtx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        icon: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.red.shade50,
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            Icons.logout_rounded,
-            color: Colors.red.shade600,
-            size: 32,
-          ),
-        ),
-        title: Text(
-          lang.translate('Keluar Akun?', 'Log Out?'),
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-        ),
-        content: Text(
-          lang.translate(
-            'Apakah Anda yakin ingin keluar dari akun ini? Anda harus masuk kembali untuk menggunakan aplikasi.',
-            'Are you sure you want to log out from your account? You will need to log in again to use the application.',
-          ),
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Color(0xFF6B7280),
-            fontSize: 14,
-            height: 1.5,
-          ),
-        ),
-        actionsAlignment: MainAxisAlignment.center,
-        actionsPadding: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
-        actions: [
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => Navigator.pop(dialogCtx),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    side: BorderSide(color: c.isDark ? c.border : const Color(0xFFE5E7EB)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    foregroundColor: c.isDark ? Colors.white : const Color(0xFF374151),
-                  ),
-                  child: Text(
-                    lang.translate('Batal', 'Cancel'),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(dialogCtx);
-                    auth.logout();
-                    Navigator.of(ctx).popUntil((route) => route.isFirst);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red.shade600,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                  child: const Text(
-                    'Keluar',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
+  ) async {
+    final confirmed = await AppNotifications.showConfirmDialog(
+      ctx,
+      title: lang.translate('Keluar Akun?', 'Log Out?'),
+      message: lang.translate(
+        'Apakah Anda yakin ingin keluar dari akun ini? Anda harus masuk kembali untuk menggunakan aplikasi.',
+        'Are you sure you want to log out from your account? You will need to log in again to use the application.',
       ),
+      confirmLabel: lang.translate('Keluar', 'Log Out'),
+      cancelLabel: lang.translate('Batal', 'Cancel'),
+      isDestructive: true,
     );
+    if (confirmed) {
+      auth.logout();
+      Navigator.of(ctx).popUntil((route) => route.isFirst);
+    }
   }
 }
 

@@ -9,6 +9,8 @@ import '../../providers/ticket_provider.dart';
 import '../chat_screen.dart';
 import '../../services/chat_service.dart';
 import '../shared/ticket_card.dart';
+import '../../utils/app_notifications.dart';
+import '../../utils/app_colors.dart';
 
 class RequesterTicketDetailScreen extends StatefulWidget {
   final TicketModel ticket;
@@ -30,42 +32,13 @@ class _RequesterTicketDetailScreenState
   }
 
   Future<void> _cancelTicket() async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (c) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Batalkan Tiket',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Color(0xFFB91C1C),
-          ),
-        ),
-        content: const Text(
-          'Apakah Anda yakin masalah sudah terselesaikan dan ingin membatalkan tiket ini?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(c, false),
-            child: const Text(
-              'Tutup',
-              style: TextStyle(color: Color(0xFF64748B)),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(c, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFB91C1C),
-              elevation: 0,
-            ),
-            child: const Text(
-              'Batalkan',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ],
-      ),
+    final confirm = await AppNotifications.showConfirmDialog(
+      context,
+      title: 'Batalkan Tiket',
+      message: 'Apakah Anda yakin masalah sudah terselesaikan dan ingin membatalkan tiket ini?',
+      confirmLabel: 'Batalkan',
+      cancelLabel: 'Tutup',
+      isDestructive: true,
     );
 
     if (confirm == true && mounted) {
@@ -76,18 +49,23 @@ class _RequesterTicketDetailScreenState
           listen: false,
         ).updateTicketStatus(widget.ticket.ticketId, 'Resolved');
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Tiket berhasil dibatalkan/diselesaikan.'),
-            ),
+          AppNotifications.showNotification(
+            context,
+            title: 'Sukses',
+            message: 'Tiket berhasil dibatalkan/diselesaikan.',
+            isError: false,
           );
           Navigator.pop(context);
         }
       } catch (e) {
-        if (mounted)
-          ScaffoldMessenger.of(
+        if (mounted) {
+          AppNotifications.showNotification(
             context,
-          ).showSnackBar(SnackBar(content: Text('Gagal: $e')));
+            title: 'Gagal',
+            message: 'Gagal: $e',
+            isError: true,
+          );
+        }
       } finally {
         if (mounted) setState(() => _isCancelling = false);
       }
@@ -113,6 +91,7 @@ class _RequesterTicketDetailScreenState
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     final shortId =
         '#TKT-${widget.ticket.ticketId.substring(0, 4).toUpperCase()}-${widget.ticket.ticketId.substring(4, 8).toUpperCase()}';
 
@@ -129,7 +108,7 @@ class _RequesterTicketDetailScreenState
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FC),
+      backgroundColor: c.background,
       appBar: buildSbmAppBar(),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -140,7 +119,7 @@ class _RequesterTicketDetailScreenState
             ),
           );
         },
-        backgroundColor: const Color(0xFF1A3A5C),
+        backgroundColor: c.primary,
         child: const Icon(Icons.chat_bubble_outline_rounded, color: Colors.white),
       ),
       body: SingleChildScrollView(
@@ -151,18 +130,18 @@ class _RequesterTicketDetailScreenState
             // Back Button
             GestureDetector(
               onTap: () => Navigator.pop(context),
-              child: const Row(
+              child: Row(
                 children: [
                   Icon(
                     Icons.arrow_back_ios_new,
-                    color: Color(0xFF475569),
+                    color: c.textSecondary,
                     size: 18,
                   ),
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   Text(
                     'Kembali ke Inbox',
                     style: TextStyle(
-                      color: Color(0xFF475569),
+                      color: c.textSecondary,
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                     ),
@@ -177,8 +156,8 @@ class _RequesterTicketDetailScreenState
               children: [
                 Text(
                   shortId,
-                  style: const TextStyle(
-                    color: Color(0xFF94A3B8),
+                  style: TextStyle(
+                    color: c.textSecondary,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),
@@ -216,10 +195,10 @@ class _RequesterTicketDetailScreenState
             const SizedBox(height: 12),
             Text(
               displayTitle,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF0F172A),
+                color: c.textPrimary,
                 height: 1.2,
               ),
             ),
@@ -232,22 +211,22 @@ class _RequesterTicketDetailScreenState
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE2E8F0),
+                    color: c.isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.business,
                         size: 12,
-                        color: Color(0xFF475569),
+                        color: c.textSecondary,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         widget.ticket.category,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: Color(0xFF475569),
+                          color: c.textSecondary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -257,8 +236,8 @@ class _RequesterTicketDetailScreenState
                 const SizedBox(width: 10),
                 Text(
                   '•   ${_formatDate(widget.ticket.createdAt)}',
-                  style: const TextStyle(
-                    color: Color(0xFF64748B),
+                  style: TextStyle(
+                    color: c.textSecondary,
                     fontSize: 13,
                   ),
                 ),
@@ -268,23 +247,24 @@ class _RequesterTicketDetailScreenState
 
             // Card 1: Deskripsi Masalah
             _buildCardWrapper(
+              c: c,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Deskripsi Masalah',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F172A),
+                      color: c.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 12),
                   Text(
                     displayDesc,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
-                      color: Color(0xFF475569),
+                      color: c.textSecondary,
                       height: 1.5,
                     ),
                   ),
@@ -301,20 +281,20 @@ class _RequesterTicketDetailScreenState
                           return Container(
                             width: double.infinity,
                             height: 180,
-                            color: const Color(0xFFF1F5F9),
-                            child: const Column(
+                            color: c.surfaceElevated,
+                            child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
                                   Icons.broken_image_outlined,
-                                  color: Color(0xFF94A3B8),
+                                  color: c.textMuted,
                                   size: 40,
                                 ),
-                                SizedBox(height: 8),
+                                const SizedBox(height: 8),
                                 Text(
                                   'Gagal memuat gambar',
                                   style: TextStyle(
-                                    color: Color(0xFF64748B),
+                                    color: c.textSecondary,
                                     fontSize: 13,
                                   ),
                                 ),
@@ -326,11 +306,11 @@ class _RequesterTicketDetailScreenState
                     ),
                   ],
                   if (widget.ticket.technicianId != null) ...[
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16),
-                      child: Divider(color: Color(0xFFE2E8F0)),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Divider(color: c.border),
                     ),
-                    _buildTechnicianRow(widget.ticket.technicianId!),
+                    _buildTechnicianRow(widget.ticket.technicianId!, c),
                   ],
                 ],
               ),
@@ -341,15 +321,16 @@ class _RequesterTicketDetailScreenState
 
             // Card 3: Status Perjalanan
             _buildCardWrapper(
+              c: c,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Status Perjalanan',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F172A),
+                      color: c.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -388,9 +369,9 @@ class _RequesterTicketDetailScreenState
                       });
 
                       if (history.isEmpty) {
-                        return const Text(
+                        return Text(
                           'Belum ada riwayat status.',
-                          style: TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
+                          style: TextStyle(fontSize: 13, color: c.textMuted),
                         );
                       }
 
@@ -411,6 +392,7 @@ class _RequesterTicketDetailScreenState
                             true, // Mark as completed since it's in history
                             index == history.length - 1, // isCurrent if it's the last one
                             index == history.length - 1, // isLast
+                            c,
                           );
                         },
                       );
@@ -424,15 +406,16 @@ class _RequesterTicketDetailScreenState
             // Card Catatan Teknisi
             if (widget.ticket.note != null && widget.ticket.note!.isNotEmpty) ...[
               _buildCardWrapper(
+                c: c,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Catatan Teknisi',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF0F172A),
+                        color: c.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -440,15 +423,15 @@ class _RequesterTicketDetailScreenState
                       width: double.infinity,
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
+                        color: c.surfaceElevated,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        border: Border.all(color: c.border),
                       ),
                       child: Text(
                         widget.ticket.note!,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
-                          color: Color(0xFF475569),
+                          color: c.textSecondary,
                           height: 1.5,
                         ),
                       ),
@@ -462,10 +445,11 @@ class _RequesterTicketDetailScreenState
             // Card Bukti Perbaikan (Before & After)
             if (widget.ticket.photoBeforeUrl != null || widget.ticket.photoAfterUrl != null) ...[
               _buildCardWrapper(
+                c: c,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Bukti Perbaikan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+                    Text('Bukti Perbaikan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary)),
                     const SizedBox(height: 16),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -475,7 +459,7 @@ class _RequesterTicketDetailScreenState
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('Sebelum', style: TextStyle(fontSize: 13, color: Color(0xFF64748B), fontWeight: FontWeight.w600)),
+                                Text('Sebelum', style: TextStyle(fontSize: 13, color: c.textSecondary, fontWeight: FontWeight.w600)),
                                 const SizedBox(height: 8),
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
@@ -485,8 +469,8 @@ class _RequesterTicketDetailScreenState
                                     width: double.infinity,
                                     fit: BoxFit.cover,
                                     errorBuilder: (context, error, stackTrace) => Container(
-                                      height: 120, color: const Color(0xFFF1F5F9),
-                                      child: const Center(child: Icon(Icons.broken_image_outlined, color: Color(0xFF94A3B8))),
+                                      height: 120, color: c.surfaceElevated,
+                                      child: Center(child: Icon(Icons.broken_image_outlined, color: c.textMuted)),
                                     ),
                                   ),
                                 ),
@@ -500,7 +484,7 @@ class _RequesterTicketDetailScreenState
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('Sesudah', style: TextStyle(fontSize: 13, color: Color(0xFF64748B), fontWeight: FontWeight.w600)),
+                                Text('Sesudah', style: TextStyle(fontSize: 13, color: c.textSecondary, fontWeight: FontWeight.w600)),
                                 const SizedBox(height: 8),
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
@@ -510,8 +494,8 @@ class _RequesterTicketDetailScreenState
                                     width: double.infinity,
                                     fit: BoxFit.cover,
                                     errorBuilder: (context, error, stackTrace) => Container(
-                                      height: 120, color: const Color(0xFFF1F5F9),
-                                      child: const Center(child: Icon(Icons.broken_image_outlined, color: Color(0xFF94A3B8))),
+                                      height: 120, color: c.surfaceElevated,
+                                      child: Center(child: Icon(Icons.broken_image_outlined, color: c.textMuted)),
                                     ),
                                   ),
                                 ),
@@ -532,27 +516,27 @@ class _RequesterTicketDetailScreenState
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFEF2F2),
+                  color: c.isDark ? const Color(0xFF2E1919) : const Color(0xFFFEF2F2),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFFECACA)),
+                  border: Border.all(color: c.isDark ? const Color(0xFF4D1D1D) : const Color(0xFFFECACA)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Pembatalan',
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFFB91C1C),
+                        color: c.isDark ? const Color(0xFFFCA5A5) : const Color(0xFFB91C1C),
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       'Jika masalah sudah terselesaikan sendiri, Anda dapat membatalkan tiket ini.',
                       style: TextStyle(
                         fontSize: 13,
-                        color: Color(0xFF7F1D1D),
+                        color: c.isDark ? const Color(0xFFFCA5A5).withOpacity(0.8) : const Color(0xFF7F1D1D),
                         height: 1.4,
                       ),
                     ),
@@ -562,9 +546,9 @@ class _RequesterTicketDetailScreenState
                       child: OutlinedButton.icon(
                         onPressed: _isCancelling ? null : _cancelTicket,
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFFB91C1C),
-                          side: const BorderSide(color: Color(0xFFF87171)),
-                          backgroundColor: Colors.white,
+                          foregroundColor: c.isDark ? const Color(0xFFFCA5A5) : const Color(0xFFB91C1C),
+                          side: BorderSide(color: c.isDark ? const Color(0xFF4D1D1D) : const Color(0xFFF87171)),
+                          backgroundColor: c.surface,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -596,17 +580,17 @@ class _RequesterTicketDetailScreenState
     );
   }
 
-  Widget _buildCardWrapper({required Widget child}) {
+  Widget _buildCardWrapper({required Widget child, required AppColors c}) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: c.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: c.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: c.isDark ? Colors.transparent : Colors.black.withOpacity(0.02),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -622,7 +606,9 @@ class _RequesterTicketDetailScreenState
     bool isCompleted,
     bool isCurrent,
     bool isLast,
+    AppColors c,
   ) {
+    final circleColor = c.textPrimary;
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -633,24 +619,24 @@ class _RequesterTicketDetailScreenState
                 width: 24,
                 height: 24,
                 decoration: BoxDecoration(
-                  color: isCompleted ? const Color(0xFF0F172A) : Colors.white,
+                  color: isCompleted ? circleColor : c.surface,
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: isCompleted || isCurrent
-                        ? const Color(0xFF0F172A)
-                        : const Color(0xFFCBD5E1),
+                        ? circleColor
+                        : c.border,
                     width: 2,
                   ),
                 ),
                 child: isCompleted
-                    ? const Icon(Icons.check, size: 14, color: Colors.white)
+                    ? Icon(Icons.check, size: 14, color: c.isDark ? Colors.black : Colors.white)
                     : isCurrent
                     ? Center(
                         child: Container(
                           width: 8,
                           height: 8,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF0F172A),
+                          decoration: BoxDecoration(
+                            color: circleColor,
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -662,8 +648,8 @@ class _RequesterTicketDetailScreenState
                   child: Container(
                     width: 2,
                     color: isCompleted
-                        ? const Color(0xFF0F172A)
-                        : const Color(0xFFE2E8F0),
+                        ? circleColor
+                        : c.border,
                   ),
                 ),
             ],
@@ -681,8 +667,8 @@ class _RequesterTicketDetailScreenState
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: isCompleted || isCurrent
-                          ? const Color(0xFF0F172A)
-                          : const Color(0xFF94A3B8),
+                          ? c.textPrimary
+                          : c.textMuted,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -691,8 +677,8 @@ class _RequesterTicketDetailScreenState
                     style: TextStyle(
                       fontSize: 12,
                       color: isCompleted || isCurrent
-                          ? const Color(0xFF64748B)
-                          : const Color(0xFF94A3B8),
+                          ? c.textSecondary
+                          : c.textMuted,
                     ),
                   ),
                 ],
@@ -703,7 +689,7 @@ class _RequesterTicketDetailScreenState
       ),
     );
   }
-  Widget _buildTechnicianRow(String technicianId) {
+  Widget _buildTechnicianRow(String technicianId, AppColors c) {
     return FutureBuilder<DocumentSnapshot>(
       future: FirebaseFirestore.instance.collection('users').doc(technicianId).get(),
       builder: (_, snap) {
@@ -720,24 +706,24 @@ class _RequesterTicketDetailScreenState
               CircleAvatar(
                 radius: 20,
                 backgroundImage: NetworkImage(photoUrl),
-                backgroundColor: const Color(0xFFEEF2FF),
+                backgroundColor: c.primaryLight,
               )
             else
               Container(
                 width: 40,
                 height: 40,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFEEF2FF),
+                decoration: BoxDecoration(
+                  color: c.primaryLight,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.engineering_outlined, size: 20, color: Color(0xFF1A73E8)),
+                child: Icon(Icons.engineering_outlined, size: 20, color: c.primary),
               ),
             const SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Teknisi Penanggung Jawab', style: TextStyle(fontSize: 11, color: Color(0xFF64748B), fontWeight: FontWeight.bold)),
-                Text(name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+                Text('Teknisi Penanggung Jawab', style: TextStyle(fontSize: 11, color: c.textSecondary, fontWeight: FontWeight.bold)),
+                Text(name, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textPrimary)),
               ],
             ),
           ],

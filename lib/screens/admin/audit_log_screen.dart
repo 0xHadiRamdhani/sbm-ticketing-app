@@ -3,14 +3,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import '../shared/ticket_card.dart';
 import 'audit_log_detail_screen.dart';
+import '../../utils/app_colors.dart';
 
 class AuditLogScreen extends StatelessWidget {
   const AuditLogScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FC),
+      backgroundColor: c.background,
       appBar: buildSbmAppBar(
         showBackButton: true,
         onBackPressed: () => Navigator.pop(context),
@@ -38,7 +40,7 @@ class AuditLogScreen extends StatelessWidget {
                           Text(
                             'Gagal memuat log: ${snapshot.error}',
                             textAlign: TextAlign.center,
-                            style: const TextStyle(color: Color(0xFF64748B)),
+                            style: TextStyle(color: c.textSecondary),
                           ),
                         ],
                       ),
@@ -47,8 +49,8 @@ class AuditLogScreen extends StatelessWidget {
                 }
 
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: Color(0xFF1A3A5C)),
+                  return Center(
+                    child: CircularProgressIndicator(color: c.primary),
                   );
                 }
 
@@ -67,7 +69,7 @@ class AuditLogScreen extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final doc = logs[index];
                     final data = doc.data() as Map<String, dynamic>;
-                    return _buildLogItem(context, data, doc.id);
+                    return _buildLogItem(context, data, doc.id, c);
                   },
                 );
               },
@@ -78,14 +80,14 @@ class AuditLogScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLogItem(BuildContext context, Map<String, dynamic> data, String logId) {
+  Widget _buildLogItem(BuildContext context, Map<String, dynamic> data, String logId, AppColors c) {
     final timestamp = data['timestamp'] != null ? (data['timestamp'] as Timestamp).toDate() : DateTime.now();
     final type = data['action_type'] ?? 'UNKNOWN';
     
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Material(
-        color: Colors.white,
+        color: c.surface,
         borderRadius: BorderRadius.circular(12),
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
@@ -104,55 +106,55 @@ class AuditLogScreen extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+              border: Border.all(color: c.border),
             ),
             child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: _getActionColor(type).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(6),
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _getActionColor(type).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        type.replaceAll('_', ' '),
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: _getActionColor(type)),
+                      ),
+                    ),
+                    Text(
+                      DateFormat('dd MMM yyyy, HH:mm').format(timestamp),
+                      style: TextStyle(fontSize: 11, color: c.textSecondary),
+                    ),
+                  ],
                 ),
-                child: Text(
-                  type.replaceAll('_', ' '),
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: _getActionColor(type)),
-                ),
-              ),
-              Text(
-                DateFormat('dd MMM yyyy, HH:mm').format(timestamp),
-                style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            data['description'] ?? '',
-            style: const TextStyle(fontSize: 14, color: Color(0xFF0F172A), fontWeight: FontWeight.w500),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(Icons.person_outline, size: 14, color: Color(0xFF64748B)),
-              const SizedBox(width: 4),
-              Text(
-                data['admin_email'] ?? 'System',
-                style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-              ),
-              const Spacer(),
-              if (data['target_id'] != null)
+                const SizedBox(height: 12),
                 Text(
-                  'ID: #${data['target_id'].toString().substring(0, 5).toUpperCase()}',
-                  style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8), fontStyle: FontStyle.italic),
+                  data['description'] ?? '',
+                  style: TextStyle(fontSize: 14, color: c.textPrimary, fontWeight: FontWeight.w500),
                 ),
-            ],
-          ),
-        ],
-      ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(Icons.person_outline, size: 14, color: c.textSecondary),
+                    const SizedBox(width: 4),
+                    Text(
+                      data['admin_email'] ?? 'System',
+                      style: TextStyle(fontSize: 12, color: c.textSecondary),
+                    ),
+                    const Spacer(),
+                    if (data['target_id'] != null)
+                      Text(
+                        'ID: #${data['target_id'].toString().substring(0, 5).toUpperCase()}',
+                        style: TextStyle(fontSize: 11, color: c.textMuted, fontStyle: FontStyle.italic),
+                      ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

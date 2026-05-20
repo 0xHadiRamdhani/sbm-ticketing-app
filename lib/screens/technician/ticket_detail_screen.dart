@@ -8,6 +8,7 @@ import '../../models/ticket_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/ticket_provider.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/app_notifications.dart';
 import '../chat_screen.dart';
 import '../shared/ticket_card.dart';
 
@@ -88,8 +89,11 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal membuka sumber gambar: $e')),
+        AppNotifications.showNotification(
+          context,
+          title: 'Gagal',
+          message: 'Gagal membuka sumber gambar: $e',
+          isError: true,
         );
       }
     }
@@ -103,12 +107,11 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
     bool hasAfter = _photoAfter != null || widget.ticket.photoAfterUrl != null;
 
     if (_selectedStatus == 'Resolved' && (!hasBefore || !hasAfter)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Harap unggah foto sebelum dan sesudah perbaikan untuk status Resolved.',
-          ),
-        ),
+      AppNotifications.showNotification(
+        context,
+        title: 'Foto Wajib',
+        message: 'Harap unggah foto sebelum dan sesudah perbaikan untuk status Resolved.',
+        isError: true,
       );
       return;
     }
@@ -123,52 +126,34 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
         photoAfter: _photoAfter,
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Tiket berhasil diperbarui.')),
+        AppNotifications.showNotification(
+          context,
+          title: 'Sukses',
+          message: 'Tiket berhasil diperbarui.',
+          isError: false,
         );
         Navigator.pop(context);
       }
     } catch (e) {
-      if (mounted)
-        ScaffoldMessenger.of(
+      if (mounted) {
+        AppNotifications.showNotification(
           context,
-        ).showSnackBar(SnackBar(content: Text('Gagal: $e')));
+          title: 'Gagal',
+          message: 'Gagal: $e',
+          isError: true,
+        );
+      }
     }
   }
 
   Future<void> _deleteTicket() async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (c) => AlertDialog(
-        backgroundColor: Colors.white,
-        title: const Text(
-          'Hapus Tiket',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF1A3A5C),
-          ),
-        ),
-        content: const Text(
-          'Apakah Anda yakin ingin menghapus tiket ini secara permanen?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(c, false),
-            child: const Text(
-              'Batal',
-              style: TextStyle(color: Color(0xFF64748B)),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(c, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade700,
-              elevation: 0,
-            ),
-            child: const Text('Hapus', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
+    final confirm = await AppNotifications.showConfirmDialog(
+      context,
+      title: 'Hapus Tiket',
+      message: 'Apakah Anda yakin ingin menghapus tiket ini secara permanen?',
+      confirmLabel: 'Hapus',
+      cancelLabel: 'Batal',
+      isDestructive: true,
     );
     if (confirm == true && mounted) {
       await context.read<TicketProvider>().deleteTicket(widget.ticket.ticketId);

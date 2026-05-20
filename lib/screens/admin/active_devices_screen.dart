@@ -5,6 +5,7 @@ import '../../providers/auth_provider.dart';
 import '../../services/device_service.dart';
 import '../../services/audit_service.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/app_notifications.dart';
 import '../shared/ticket_card.dart';
 
 class ActiveDevicesScreen extends StatefulWidget {
@@ -51,48 +52,13 @@ class _ActiveDevicesScreenState extends State<ActiveDevicesScreen> {
   }
 
   Future<void> _revokeDevice(String uid, String userName, String deviceId, String deviceName) async {
-    final c = AppColors.of(context);
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: c.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        icon: Icon(Icons.logout_rounded, color: Colors.red.shade600, size: 40),
-        title: Text(
-          'Paksa Logout Perangkat?',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontWeight: FontWeight.bold, color: c.textPrimary),
-        ),
-        content: Text(
-          'Perangkat "$deviceName" milik $userName akan dikeluarkan dari sesi aktif. User perlu login ulang pada perangkat tersebut.',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: c.textSecondary, height: 1.5),
-        ),
-        actionsAlignment: MainAxisAlignment.center,
-        actionsPadding: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
-        actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-            child: const Text('Batal'),
-          ),
-          const SizedBox(width: 8),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade600,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-            child: const Text('Paksa Logout', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
+    final confirm = await AppNotifications.showConfirmDialog(
+      context,
+      title: 'Paksa Logout?',
+      message: 'Perangkat "$deviceName" milik $userName akan dikeluarkan dari sesi aktif. User perlu login ulang pada perangkat tersebut.',
+      confirmLabel: 'Paksa Logout',
+      cancelLabel: 'Batal',
+      isDestructive: true,
     );
 
     if (confirm == true) {
@@ -103,19 +69,11 @@ class _ActiveDevicesScreenState extends State<ActiveDevicesScreen> {
         description: 'Mencabut akses perangkat "$deviceName" milik $userName',
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle_outline, color: Colors.white),
-                const SizedBox(width: 8),
-                Expanded(child: Text('Perangkat "$deviceName" berhasil dikeluarkan')),
-              ],
-            ),
-            backgroundColor: const Color(0xFF16A34A),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
+        AppNotifications.showNotification(
+          context,
+          title: 'Sukses',
+          message: 'Perangkat "$deviceName" berhasil dikeluarkan',
+          isError: false,
         );
       }
     }

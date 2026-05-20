@@ -6,7 +6,7 @@ import '../services/device_service.dart';
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
   final DeviceService _deviceService = DeviceService();
-  
+
   UserModel? _user;
   UserModel? _originalAdminUser;
   bool _isLoading = true;
@@ -63,10 +63,22 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<void> register(String email, String password, String name, String role, String department) async {
+  Future<void> register(
+    String email,
+    String password,
+    String name,
+    String role,
+    String department,
+  ) async {
     _setLoading(true);
     try {
-      _user = await _authService.registerWithEmail(email, password, name, role, department);
+      _user = await _authService.registerWithEmail(
+        email,
+        password,
+        name,
+        role,
+        department,
+      );
     } finally {
       _setLoading(false);
     }
@@ -126,11 +138,18 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<void> updateProfile({required String name, required String photoUrl}) async {
+  Future<void> updateProfile({
+    required String name,
+    required String photoUrl,
+  }) async {
     if (_user == null) return;
     _setLoading(true);
     try {
-      await _authService.updateProfile(uid: _user!.uid, name: name, photoUrl: photoUrl);
+      await _authService.updateProfile(
+        uid: _user!.uid,
+        name: name,
+        photoUrl: photoUrl,
+      );
       // Update local user object
       _user = UserModel(
         uid: _user!.uid,
@@ -159,7 +178,10 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<void> changePassword(String currentPassword, String newPassword) async {
+  Future<void> changePassword(
+    String currentPassword,
+    String newPassword,
+  ) async {
     _setLoading(true);
     try {
       await _authService.changePassword(currentPassword, newPassword);

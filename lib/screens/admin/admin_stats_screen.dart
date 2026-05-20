@@ -4,14 +4,16 @@ import 'package:provider/provider.dart';
 import '../../providers/ticket_provider.dart';
 import '../../models/ticket_model.dart';
 import '../shared/ticket_card.dart';
+import '../../utils/app_colors.dart';
 
 class AdminStatsScreen extends StatelessWidget {
   const AdminStatsScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FC),
+      backgroundColor: c.background,
       appBar: buildSbmAppBar(
         showBackButton: true,
         onBackPressed: () => Navigator.pop(context),
@@ -21,13 +23,23 @@ class AdminStatsScreen extends StatelessWidget {
         stream: Provider.of<TicketProvider>(context, listen: false).fetchTickets(role: 'admin'),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: Color(0xFF1A3A5C)));
+            return Center(child: CircularProgressIndicator(color: c.primary));
           }
           if (snapshot.hasError) {
-            return const Center(child: Text('Terjadi kesalahan memuat data.'));
+            return Center(
+              child: Text(
+                'Terjadi kesalahan memuat data.',
+                style: TextStyle(color: c.textSecondary),
+              ),
+            );
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('Tidak ada data tiket untuk statistik.'));
+            return Center(
+              child: Text(
+                'Tidak ada data tiket untuk statistik.',
+                style: TextStyle(color: c.textSecondary),
+              ),
+            );
           }
 
           final allTickets = snapshot.data!;
@@ -37,18 +49,20 @@ class AdminStatsScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildSectionHeader('Volume Keluhan Bulanan', 'Tren jumlah tiket dalam 6 bulan terakhir'),
+                _buildSectionHeader('Volume Keluhan Bulanan', 'Tren jumlah tiket dalam 6 bulan terakhir', c),
                 const SizedBox(height: 16),
                 _buildChartCard(
-                  child: _buildVolumeChart(allTickets),
+                  c: c,
+                  child: _buildVolumeChart(allTickets, c),
                 ),
                 
                 const SizedBox(height: 32),
                 
-                _buildSectionHeader('Kecepatan Penyelesaian', 'Rata-rata waktu (jam) untuk penyelesaian tiket'),
+                _buildSectionHeader('Kecepatan Penyelesaian', 'Rata-rata waktu (jam) untuk penyelesaian tiket', c),
                 const SizedBox(height: 16),
                 _buildChartCard(
-                  child: _buildResolutionTimeChart(allTickets),
+                  c: c,
+                  child: _buildResolutionTimeChart(allTickets, c),
                 ),
                 
                 const SizedBox(height: 24),
@@ -60,41 +74,41 @@ class AdminStatsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionHeader(String title, String subtitle) {
+  Widget _buildSectionHeader(String title, String subtitle, AppColors c) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF0F172A),
+            color: c.textPrimary,
           ),
         ),
         const SizedBox(height: 4),
         Text(
           subtitle,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
-            color: Color(0xFF64748B),
+            color: c.textSecondary,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildChartCard({required Widget child}) {
+  Widget _buildChartCard({required Widget child, required AppColors c}) {
     return Container(
       height: 260,
       padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: c.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: c.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: c.isDark ? Colors.transparent : Colors.black.withOpacity(0.04),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -104,7 +118,7 @@ class AdminStatsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildVolumeChart(List<TicketModel> tickets) {
+  Widget _buildVolumeChart(List<TicketModel> tickets, AppColors c) {
     final now = DateTime.now();
     final List<FlSpot> spots = [];
     final List<String> monthLabels = [];
@@ -128,8 +142,8 @@ class AdminStatsScreen extends StatelessWidget {
           show: true,
           drawVerticalLine: true,
           horizontalInterval: (maxVal / 3).clamp(1, 100),
-          getDrawingHorizontalLine: (value) => FlLine(color: const Color(0xFFF1F5F9), strokeWidth: 1.5),
-          getDrawingVerticalLine: (value) => FlLine(color: const Color(0xFFF1F5F9), strokeWidth: 1.5),
+          getDrawingHorizontalLine: (value) => FlLine(color: c.divider, strokeWidth: 1.5),
+          getDrawingVerticalLine: (value) => FlLine(color: c.divider, strokeWidth: 1.5),
         ),
         titlesData: FlTitlesData(
           show: true,
@@ -147,7 +161,7 @@ class AdminStatsScreen extends StatelessWidget {
                   space: 8,
                   child: Text(
                     monthLabels[value.toInt()],
-                    style: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold, fontSize: 10),
+                    style: TextStyle(color: c.textSecondary, fontWeight: FontWeight.bold, fontSize: 10),
                   ),
                 );
               },
@@ -160,7 +174,7 @@ class AdminStatsScreen extends StatelessWidget {
               getTitlesWidget: (value, meta) {
                 return SideTitleWidget(
                   meta: meta,
-                  child: Text(value.toInt().toString(), style: const TextStyle(color: Color(0xFF64748B), fontSize: 11)),
+                  child: Text(value.toInt().toString(), style: TextStyle(color: c.textSecondary, fontSize: 11)),
                 );
               },
               reservedSize: 28,
@@ -173,15 +187,15 @@ class AdminStatsScreen extends StatelessWidget {
           LineChartBarData(
             spots: spots,
             isCurved: true,
-            gradient: const LinearGradient(colors: [Color(0xFF1A73E8), Color(0xFF1A3A5C)]),
+            gradient: LinearGradient(colors: [c.primary, c.accent]),
             barWidth: 3.5,
             dotData: FlDotData(
               show: true,
-              getDotPainter: (_, __, ___, ____) => FlDotCirclePainter(radius: 4, color: const Color(0xFF1A73E8), strokeColor: Colors.white, strokeWidth: 2),
+              getDotPainter: (_, __, ___, ____) => FlDotCirclePainter(radius: 4, color: c.primary, strokeColor: c.surface, strokeWidth: 2),
             ),
             belowBarData: BarAreaData(
               show: true,
-              gradient: LinearGradient(colors: [const Color(0xFF1A73E8).withOpacity(0.15), const Color(0xFF1A3A5C).withOpacity(0)], begin: Alignment.topCenter, end: Alignment.bottomCenter),
+              gradient: LinearGradient(colors: [c.primary.withOpacity(0.15), c.primary.withOpacity(0)], begin: Alignment.topCenter, end: Alignment.bottomCenter),
             ),
           ),
         ],
@@ -189,7 +203,7 @@ class AdminStatsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildResolutionTimeChart(List<TicketModel> tickets) {
+  Widget _buildResolutionTimeChart(List<TicketModel> tickets, AppColors c) {
     final now = DateTime.now();
     final List<FlSpot> spots = [];
     final List<String> monthLabels = [];
@@ -222,8 +236,8 @@ class AdminStatsScreen extends StatelessWidget {
           show: true,
           drawVerticalLine: true,
           horizontalInterval: (maxVal / 3).clamp(1, 100),
-          getDrawingHorizontalLine: (value) => FlLine(color: const Color(0xFFF1F5F9), strokeWidth: 1.5),
-          getDrawingVerticalLine: (value) => FlLine(color: const Color(0xFFF1F5F9), strokeWidth: 1.5),
+          getDrawingHorizontalLine: (value) => FlLine(color: c.divider, strokeWidth: 1.5),
+          getDrawingVerticalLine: (value) => FlLine(color: c.divider, strokeWidth: 1.5),
         ),
         titlesData: FlTitlesData(
           show: true,
@@ -239,7 +253,7 @@ class AdminStatsScreen extends StatelessWidget {
                 return SideTitleWidget(
                   meta: meta,
                   space: 8,
-                  child: Text(monthLabels[value.toInt()], style: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold, fontSize: 10)),
+                  child: Text(monthLabels[value.toInt()], style: TextStyle(color: c.textSecondary, fontWeight: FontWeight.bold, fontSize: 10)),
                 );
               },
             ),
@@ -251,7 +265,7 @@ class AdminStatsScreen extends StatelessWidget {
               getTitlesWidget: (value, meta) {
                 return SideTitleWidget(
                   meta: meta,
-                  child: Text('${value.toInt()}h', style: const TextStyle(color: Color(0xFF64748B), fontSize: 11)),
+                  child: Text('${value.toInt()}h', style: TextStyle(color: c.textSecondary, fontSize: 11)),
                 );
               },
               reservedSize: 32,
@@ -268,7 +282,7 @@ class AdminStatsScreen extends StatelessWidget {
             barWidth: 3.5,
             dotData: FlDotData(
               show: true,
-              getDotPainter: (_, __, ___, ____) => FlDotCirclePainter(radius: 4, color: const Color(0xFFF59E0B), strokeColor: Colors.white, strokeWidth: 2),
+              getDotPainter: (_, __, ___, ____) => FlDotCirclePainter(radius: 4, color: const Color(0xFFF59E0B), strokeColor: c.surface, strokeWidth: 2),
             ),
             belowBarData: BarAreaData(
               show: true,

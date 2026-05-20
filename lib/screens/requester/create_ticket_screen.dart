@@ -2,12 +2,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:speech_to_text/speech_to_text.dart' as stt;
-import 'package:permission_handler/permission_handler.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/ticket_provider.dart';
 import '../shared/ticket_card.dart'; // untuk buildSbmAppBar
+import '../shared/ios_glass_dropdown.dart';
 import '../settings_screen.dart';
+import '../../utils/app_notifications.dart';
+import '../../utils/app_colors.dart';
 
 class CreateTicketScreen extends StatefulWidget {
   @override
@@ -24,16 +25,6 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
 
   XFile? _imageFile;
   final ImagePicker _picker = ImagePicker();
-
-  late stt.SpeechToText _speech;
-  bool _isListening = false;
-  String _currentSpeechText = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _speech = stt.SpeechToText();
-  }
 
   @override
   void dispose() {
@@ -53,72 +44,7 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
     }
   }
 
-  void _listen() async {
-    if (!_isListening) {
-      // Pada beberapa OS (khususnya iOS), kita butuh Microphone dan Speech Recognition
-      var micStatus = await Permission.microphone.request();
-      if (micStatus.isPermanentlyDenied) {
-        openAppSettings();
-        return;
-      } else if (!micStatus.isGranted) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Izin mikrofon ditolak')),
-        );
-        return;
-      }
-      
-      var speechStatus = await Permission.speech.request();
-      if (speechStatus.isPermanentlyDenied) {
-        openAppSettings();
-        return;
-      } else if (!speechStatus.isGranted) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Izin pengenalan suara ditolak')),
-        );
-        return;
-      }
 
-      bool available = await _speech.initialize(
-        onStatus: (val) {
-          if (val == 'done' || val == 'notListening') {
-            if (mounted) setState(() => _isListening = false);
-          }
-        },
-        onError: (val) {
-          debugPrint('Speech onError: $val');
-          if (mounted) setState(() => _isListening = false);
-        },
-      );
-      if (available) {
-        setState(() {
-          _isListening = true;
-          _currentSpeechText = _descController.text;
-        });
-        _speech.listen(
-          onResult: (val) {
-            if (!mounted) return;
-            setState(() {
-              final newText = val.recognizedWords;
-              final prefix = _currentSpeechText.isNotEmpty && !_currentSpeechText.endsWith(' ') ? ' ' : '';
-              _descController.text = _currentSpeechText + prefix + newText;
-              _descController.selection = TextSelection.fromPosition(TextPosition(offset: _descController.text.length));
-            });
-          },
-        );
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Pengenalan suara tidak tersedia')),
-          );
-        }
-      }
-    } else {
-      setState(() => _isListening = false);
-      _speech.stop();
-    }
-  }
 
   void _submit() async {
     if (_formKey.currentState!.validate()) {
@@ -126,8 +52,11 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
       if (user == null) return;
 
       if (_category == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Pilih kategori masalah terlebih dahulu')),
+        AppNotifications.showNotification(
+          context,
+          title: 'Kategori Wajib',
+          message: 'Pilih kategori masalah terlebih dahulu',
+          isError: true,
         );
         return;
       }
@@ -146,13 +75,19 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
         );
         if (!mounted) return;
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Tiket berhasil dibuat!')),
+        AppNotifications.showNotification(
+          context,
+          title: 'Sukses',
+          message: 'Tiket berhasil dibuat!',
+          isError: false,
         );
       } catch (e) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal membuat tiket: $e')),
+        AppNotifications.showNotification(
+          context,
+          title: 'Gagal',
+          message: 'Gagal membuat tiket: $e',
+          isError: true,
         );
       }
     }
@@ -161,9 +96,10 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
   @override
   Widget build(BuildContext context) {
     final isLoading = Provider.of<TicketProvider>(context).isLoading;
+    final c = AppColors.of(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FC),
+      backgroundColor: c.background,
       appBar: buildSbmAppBar(
         onSettingsTap: () {
           Navigator.push(
@@ -172,32 +108,26 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
           );
         }
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _listen,
-        backgroundColor: _isListening ? Colors.red : const Color(0xFF1E3A8A),
-        child: Icon(_isListening ? Icons.mic : Icons.mic_none, color: Colors.white),
-        tooltip: 'Voice-to-Ticket',
-      ),
       // Menghapus bottomNavigationBar sesuai permintaan sebelumnya (hanya inbox)
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Pengajuan Tiket Baru',
               style: TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF0F172A),
+                color: c.textPrimary,
               ),
             ),
             const SizedBox(height: 10),
-            const Text(
+            Text(
               'Silakan isi formulir di bawah ini untuk melaporkan masalah atau mengajukan permintaan layanan terkait IT Support, Fasilitas, atau Akademik.',
               style: TextStyle(
                 fontSize: 14,
-                color: Color(0xFF64748B),
+                color: c.textSecondary,
                 height: 1.5,
               ),
             ),
@@ -206,12 +136,12 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: c.surface,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                border: Border.all(color: c.border),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.02),
+                    color: Colors.black.withOpacity(c.isDark ? 0.15 : 0.02),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -222,81 +152,61 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildLabel('Judul Masalah'),
+                    _buildLabel('Judul Masalah', c),
                     _buildTextField(
                       controller: _titleController,
                       hint: 'Contoh: Kerusakan AC di Ruang Kelas',
+                      c: c,
                       validator: (val) => val == null || val.isEmpty ? 'Wajib diisi' : null,
                     ),
                     const SizedBox(height: 18),
                     
-                    _buildLabel('Kategori'),
-                    DropdownButtonFormField<String>(
+                    _buildLabel('Kategori', c),
+                    IosGlassDropdownFormField<String>(
                       value: ['IT', 'Fasilitas', 'Akademik', 'Lainnya'].contains(_category) ? _category : null,
-                      hint: const Text('Pilih kategori masalah', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 14)),
-                      icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF64748B)),
-                      decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                        filled: true,
-                        fillColor: Colors.white,
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Color(0xFF1E3A8A), width: 1.5),
-                        ),
-                        errorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Colors.red),
-                        ),
-                        focusedErrorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Colors.red, width: 1.5),
-                        ),
-                      ),
-                      items: ['IT', 'Fasilitas', 'Akademik', 'Lainnya']
-                          .map((e) => DropdownMenuItem(value: e, child: Text(e, style: const TextStyle(fontSize: 14, color: Color(0xFF334155)))))
-                          .toList(),
+                      hint: 'Pilih kategori masalah',
+                      items: const ['IT', 'Fasilitas', 'Akademik', 'Lainnya'],
+                      itemLabelBuilder: (e) => e,
                       onChanged: (val) => setState(() => _category = val),
                       validator: (val) => val == null ? 'Wajib dipilih' : null,
                     ),
                     const SizedBox(height: 18),
                     
-                    _buildLabel('Lokasi / Ruangan (Opsional)'),
+                    _buildLabel('Lokasi / Ruangan (Opsional)', c),
                     _buildTextField(
                       controller: _locationController,
                       hint: 'Contoh: Gedung SBM Lantai 2',
+                      c: c,
                     ),
                     const SizedBox(height: 18),
                     
-                    _buildLabel('Deskripsi Detail'),
+                    _buildLabel('Deskripsi Detail', c),
                     _buildTextField(
                       controller: _descController,
                       hint: 'Jelaskan masalah secara detail, termasuk langkah-langkah yang sudah Anda coba atau pesan error yang muncul...',
                       maxLines: 5,
+                      c: c,
                       validator: (val) => val == null || val.isEmpty ? 'Wajib diisi' : null,
                     ),
                     const SizedBox(height: 18),
                     
-                    _buildLabel('Lampiran (Opsional)'),
+                    _buildLabel('Lampiran (Opsional)', c),
                     GestureDetector(
                       onTap: _pickImage,
                       child: Container(
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF7F9FC),
+                          color: c.surfaceElevated,
                           borderRadius: BorderRadius.circular(8),
                           // Simulated dashed border using a light solid border
                           border: Border.all(
-                            color: const Color(0xFFCBD5E1),
+                            color: c.border,
                             width: 1.5,
                           ),
                         ),
                         child: _imageFile != null
-                            ? Column(
+                             ? Column(
                                 children: [
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(8),
@@ -307,20 +217,20 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
                                     ),
                                   ),
                                   const SizedBox(height: 12),
-                                  const Text('Ketuk untuk mengganti foto', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                                  Text('Ketuk untuk mengganti foto', style: TextStyle(fontSize: 12, color: c.textSecondary)),
                                 ],
                               )
                             : Column(
                                 children: [
-                                  const Icon(Icons.cloud_upload_outlined, size: 36, color: Color(0xFF334155)),
+                                  Icon(Icons.cloud_upload_outlined, size: 36, color: c.textPrimary),
                                   const SizedBox(height: 12),
                                   RichText(
                                     textAlign: TextAlign.center,
-                                    text: const TextSpan(
-                                      style: TextStyle(fontSize: 13, color: Color(0xFF64748B), height: 1.5),
+                                    text: TextSpan(
+                                      style: TextStyle(fontSize: 13, color: c.textSecondary, height: 1.5),
                                       children: [
-                                        TextSpan(text: 'Klik untuk mengunggah\n', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A))),
-                                        TextSpan(text: 'atau seret dan lepas file di sini.\n(Maks. 5MB, format: JPG, PNG, PDF)'),
+                                        TextSpan(text: 'Klik untuk mengunggah\n', style: TextStyle(fontWeight: FontWeight.bold, color: c.primary)),
+                                        const TextSpan(text: 'atau seret dan lepas file di sini.\n(Maks. 5MB, format: JPG, PNG, PDF)'),
                                       ],
                                     ),
                                   ),
@@ -336,10 +246,10 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
                         onPressed: isLoading ? null : () => Navigator.pop(context),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          side: const BorderSide(color: Color(0xFFCBD5E1)),
+                          side: BorderSide(color: c.border),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                         ),
-                        child: const Text('Batal', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Color(0xFF334155))),
+                        child: Text('Batal', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c.textPrimary)),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -349,7 +259,7 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
                       child: ElevatedButton.icon(
                         onPressed: isLoading ? null : _submit,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF0F172A),
+                          backgroundColor: c.primary,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
@@ -374,15 +284,15 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
     );
   }
 
-  Widget _buildLabel(String text) {
+  Widget _buildLabel(String text, AppColors c) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8, left: 2),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w600,
-          color: Color(0xFF334155),
+          color: c.textPrimary,
         ),
       ),
     );
@@ -391,6 +301,7 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
   Widget _buildTextField({
     required TextEditingController controller,
     required String hint,
+    required AppColors c,
     int maxLines = 1,
     String? Function(String?)? validator,
   }) {
@@ -398,20 +309,20 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
       controller: controller,
       maxLines: maxLines,
       validator: validator,
-      style: const TextStyle(fontSize: 14, color: Color(0xFF334155)),
+      style: TextStyle(fontSize: 14, color: c.textPrimary),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+        hintStyle: TextStyle(color: c.textMuted, fontSize: 14),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         filled: true,
-        fillColor: Colors.white,
+        fillColor: c.surfaceElevated,
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+          borderSide: BorderSide(color: c.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Color(0xFF1E3A8A), width: 1.5),
+          borderSide: BorderSide(color: c.primary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),

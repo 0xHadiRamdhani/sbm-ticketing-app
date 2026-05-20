@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../utils/app_notifications.dart';
+import '../shared/ios_glass_dropdown.dart';
 
 class PhoneLoginScreen extends StatefulWidget {
   const PhoneLoginScreen({super.key});
@@ -72,13 +74,11 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen>
 
   void _showError(String msg) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: Colors.red.shade700,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
+    AppNotifications.showNotification(
+      context,
+      title: 'Error',
+      message: msg,
+      isError: true,
     );
   }
 
@@ -389,23 +389,26 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen>
                 val == null || val.isEmpty ? 'Nama tidak boleh kosong' : null,
           ),
           const SizedBox(height: 16),
-          DropdownButtonFormField<String>(
+          IosGlassDropdownFormField<String>(
             value: _selectedRole,
-            decoration: InputDecoration(
-              labelText: 'Peran / Role',
-              prefixIcon: const Icon(Icons.badge_outlined),
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            items: const [
-              DropdownMenuItem(value: 'student', child: Text('Mahasiswa')),
-              DropdownMenuItem(value: 'staff', child: Text('Staf / Dosen')),
-              DropdownMenuItem(value: 'technician', child: Text('Teknisi IT')),
-            ],
-            onChanged: (val) => setState(() => _selectedRole = val!),
+            items: const ['student', 'staff', 'technician'],
+            itemLabelBuilder: (r) {
+              switch (r) {
+                case 'student':
+                  return 'Mahasiswa';
+                case 'staff':
+                  return 'Staf / Dosen';
+                case 'technician':
+                  return 'Teknisi IT';
+                default:
+                  return '';
+              }
+            },
+            onChanged: (val) {
+              if (val != null) {
+                setState(() => _selectedRole = val);
+              }
+            },
           ),
           const SizedBox(height: 28),
           Consumer<AuthProvider>(

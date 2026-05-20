@@ -5,6 +5,9 @@ import '../../models/user_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/audit_service.dart';
 import '../shared/ticket_card.dart';
+import '../shared/ios_glass_dropdown.dart';
+import '../../utils/app_notifications.dart';
+import '../../utils/app_colors.dart';
 
 class UserManagementScreen extends StatefulWidget {
   @override
@@ -29,148 +32,54 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       );
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle_outline, color: Colors.white),
-              const SizedBox(width: 8),
-              Expanded(child: Text('Pengguna "$name" berhasil dihapus')),
-            ],
-          ),
-          backgroundColor: const Color(0xFF16A34A),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
+      AppNotifications.showNotification(
+        context,
+        title: 'Sukses',
+        message: 'Pengguna "$name" berhasil dihapus',
+        isError: false,
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.error_outline, color: Colors.white),
-              const SizedBox(width: 8),
-              Expanded(child: Text('Gagal menghapus pengguna: $e')),
-            ],
-          ),
-          backgroundColor: Colors.red.shade700,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
+      AppNotifications.showNotification(
+        context,
+        title: 'Gagal',
+        message: 'Gagal menghapus pengguna: $e',
+        isError: true,
       );
     }
   }
 
-  void _showDeleteConfirmationDialog(UserModel user) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        icon: Icon(
-          Icons.delete_forever_rounded,
-          color: Colors.red.shade600,
-          size: 40,
-        ),
-        title: const Text(
-          'Hapus Pengguna?',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF0F172A),
-          ),
-        ),
-        content: Text(
-          'Akun "${user.name}" akan dihapus secara permanen dari sistem.\n\nTindakan ini tidak dapat dibatalkan.',
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            height: 1.5,
-            color: Color(0xFF475569),
-            fontSize: 14,
-          ),
-        ),
-        actionsAlignment: MainAxisAlignment.center,
-        actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.pop(ctx),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            child: const Text(
-              'Batal',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          const SizedBox(width: 8),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              _deleteUser(user.uid, user.name);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade600,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            child: const Text(
-              'Hapus',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
-      ),
+  void _showDeleteConfirmationDialog(UserModel user) async {
+    final confirm = await AppNotifications.showConfirmDialog(
+      context,
+      title: 'Hapus Pengguna?',
+      message: 'Akun "${user.name}" akan dihapus secara permanen dari sistem.\n\nTindakan ini tidak dapat dibatalkan.',
+      confirmLabel: 'Hapus',
+      cancelLabel: 'Batal',
+      isDestructive: true,
     );
+    if (confirm == true) {
+      _deleteUser(user.uid, user.name);
+    }
   }
 
   Future<void> _updateUserRole(String uid, String newRole) async {
     try {
       await _firestore.collection('users').doc(uid).update({'role': newRole});
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Row(
-            children: [
-              Icon(Icons.check_circle_outline, color: Colors.white),
-              SizedBox(width: 8),
-              Expanded(child: Text('Peran pengguna berhasil diperbarui')),
-            ],
-          ),
-          backgroundColor: const Color(0xFF16A34A),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
+      AppNotifications.showNotification(
+        context,
+        title: 'Sukses',
+        message: 'Peran pengguna berhasil diperbarui',
+        isError: false,
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.error_outline, color: Colors.white),
-              const SizedBox(width: 8),
-              Expanded(child: Text('Gagal memperbarui: $e')),
-            ],
-          ),
-          backgroundColor: Colors.red.shade700,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
+      AppNotifications.showNotification(
+        context,
+        title: 'Gagal',
+        message: 'Gagal memperbarui peran: $e',
+        isError: true,
       );
     }
   }
@@ -181,65 +90,25 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     super.dispose();
   }
 
-  void _showConfirmationDialog(UserModel user, String newRole) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: const Text(
-            'Ubah Peran',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1A3A5C),
-            ),
-          ),
-          content: Text(
-            'Anda yakin ingin mengubah peran\n${user.name}\nmenjadi ${newRole.toUpperCase()}?',
-            style: const TextStyle(height: 1.5, color: Color(0xFF334155)),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text(
-                'Batal',
-                style: TextStyle(
-                  color: Color(0xFF64748B),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _updateUserRole(user.uid, newRole);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1A3A5C),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                elevation: 0,
-              ),
-              child: const Text(
-                'Ya, Ubah',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-          ],
-        );
-      },
+  void _showConfirmationDialog(UserModel user, String newRole) async {
+    final confirm = await AppNotifications.showConfirmDialog(
+      context,
+      title: 'Ubah Peran?',
+      message: 'Anda yakin ingin mengubah peran ${user.name} menjadi ${newRole.toUpperCase()}?',
+      confirmLabel: 'Ubah',
+      cancelLabel: 'Batal',
+      isDestructive: false,
     );
+    if (confirm == true) {
+      _updateUserRole(user.uid, newRole);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FC),
+      backgroundColor: c.background,
       appBar: buildSbmAppBar(
         showBackButton: true,
         onBackPressed: () => Navigator.pop(context),
@@ -249,22 +118,23 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         children: [
           // ── Search Bar Section ─────────────────────────────────────────
           Container(
-            color: Colors.white,
+            color: c.surface,
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
             child: TextField(
               controller: _searchController,
               onChanged: (val) =>
                   setState(() => _searchQuery = val.toLowerCase()),
+              style: TextStyle(color: c.textPrimary, fontSize: 14),
               decoration: InputDecoration(
                 hintText: 'Cari nama pengguna...',
-                hintStyle: const TextStyle(
-                    color: Color(0xFFADB5BD), fontSize: 13),
-                prefixIcon: const Icon(Icons.search_rounded,
-                    color: Color(0xFF9CA3AF), size: 20),
-                suffixIcon: const Icon(Icons.tune_rounded,
-                    color: Color(0xFF9CA3AF), size: 20),
+                hintStyle: TextStyle(
+                    color: c.textMuted, fontSize: 13),
+                prefixIcon: Icon(Icons.search_rounded,
+                    color: c.textMuted, size: 20),
+                suffixIcon: Icon(Icons.tune_rounded,
+                    color: c.textMuted, size: 20),
                 filled: true,
-                fillColor: const Color(0xFFF3F4F6),
+                fillColor: c.searchBar,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -276,22 +146,22 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
 
           // ── Filter Section ─────────────────────────────────────────────
           Container(
-            color: Colors.white,
+            color: c.surface,
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
             child: SizedBox(
               height: 38,
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 children: [
-                  _buildFilterChip(null, 'Semua'),
+                  _buildFilterChip(null, 'Semua', c),
                   const SizedBox(width: 8),
-                  _buildFilterChip('student', 'Mahasiswa'),
+                  _buildFilterChip('student', 'Mahasiswa', c),
                   const SizedBox(width: 8),
-                  _buildFilterChip('staff', 'Dosen/Staff'),
+                  _buildFilterChip('staff', 'Dosen/Staff', c),
                   const SizedBox(width: 8),
-                  _buildFilterChip('technician', 'Teknisi'),
+                  _buildFilterChip('technician', 'Teknisi', c),
                   const SizedBox(width: 8),
-                  _buildFilterChip('admin', 'Admin'),
+                  _buildFilterChip('admin', 'Admin', c),
                 ],
               ),
             ),
@@ -303,20 +173,22 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               stream: _firestore.collection('users').snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: Color(0xFF1A3A5C)),
+                  return Center(
+                    child: CircularProgressIndicator(color: c.primary),
                   );
                 }
                 if (snapshot.hasError) {
                   return _emptyState(
                     Icons.error_outline,
                     'Terjadi kesalahan memuat data.',
+                    c,
                   );
                 }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return _emptyState(
                     Icons.people_alt_outlined,
                     'Tidak ada pengguna terdaftar.',
+                    c,
                   );
                 }
 
@@ -343,6 +215,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                     _searchQuery.isEmpty
                         ? 'Tidak ada pengguna dengan peran ini.'
                         : 'Tidak ada hasil untuk "$_searchQuery"',
+                    c,
                   );
                 }
 
@@ -358,12 +231,12 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                       margin: const EdgeInsets.only(bottom: 12),
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: c.surface,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        border: Border.all(color: c.border),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.02),
+                            color: c.isDark ? Colors.transparent : Colors.black.withOpacity(0.02),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -377,8 +250,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                               Container(
                                 width: 46,
                                 height: 46,
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFFEEF2FF),
+                                decoration: BoxDecoration(
+                                  color: c.primaryLight,
                                   shape: BoxShape.circle,
                                 ),
                                 alignment: Alignment.center,
@@ -386,10 +259,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                   user.name.isNotEmpty
                                       ? user.name[0].toUpperCase()
                                       : '?',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1A73E8),
+                                    color: c.primary,
                                   ),
                                 ),
                               ),
@@ -402,10 +275,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                       user.name.isNotEmpty
                                           ? user.name
                                           : 'Tanpa Nama',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
-                                        color: Color(0xFF0F172A),
+                                        color: c.textPrimary,
                                       ),
                                     ),
                                     const SizedBox(height: 2),
@@ -413,8 +286,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                       user.email.isNotEmpty
                                           ? user.email
                                           : user.phoneNumber,
-                                      style: const TextStyle(
-                                        color: Color(0xFF64748B),
+                                      style: TextStyle(
+                                        color: c.textSecondary,
                                         fontSize: 13,
                                       ),
                                     ),
@@ -422,8 +295,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                       const SizedBox(height: 2),
                                       Text(
                                         user.department,
-                                        style: const TextStyle(
-                                          color: Color(0xFF94A3B8),
+                                        style: TextStyle(
+                                          color: c.textMuted,
                                           fontSize: 12,
                                         ),
                                       ),
@@ -433,16 +306,16 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                               ),
                             ],
                           ),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 12),
-                            child: Divider(color: Color(0xFFF1F5F9), height: 1),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            child: Divider(color: c.divider, height: 1),
                           ),
-                          const Text(
+                          Text(
                             'Peran Akses',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF64748B),
+                              color: c.textSecondary,
                               letterSpacing: 0.5,
                             ),
                           ),
@@ -450,35 +323,13 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                           Row(
                             children: [
                               Expanded(
-                                child: Container(
-                                  height: 42,
-                                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFF7F9FC),
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                                  ),
-                                  child: DropdownButtonHideUnderline(
-                                    child: DropdownButton<String>(
-                                      value: _roles.contains(user.role) ? user.role : 'student',
-                                      icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: Color(0xFF64748B)),
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF1A3A5C),
-                                      ),
-                                      isExpanded: true,
-                                      items: _roles.map((r) => DropdownMenuItem(
-                                        value: r,
-                                        child: Text(r.toUpperCase()),
-                                      )).toList(),
-                                      onChanged: (newRole) {
-                                        if (newRole != null && newRole != user.role) {
-                                          _showConfirmationDialog(user, newRole);
-                                        }
-                                      },
-                                    ),
-                                  ),
+                                child: IosGlassDropdown<String>(
+                                  value: _roles.contains(user.role) ? user.role : 'student',
+                                  items: _roles,
+                                  itemLabelBuilder: (r) => r.toUpperCase(),
+                                  onChanged: (newRole) {
+                                    _showConfirmationDialog(user, newRole);
+                                  },
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -488,17 +339,13 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                   final auth = context.read<AuthProvider>();
                                   if (user.uid == auth.user?.uid) return;
                                   
-                                  final confirm = await showDialog<bool>(
-                                    context: context,
-                                    builder: (c) => AlertDialog(
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                      title: const Text('Login Sebagai'),
-                                      content: Text('Anda akan masuk sebagai ${user.name}. Sesi Anda sebagai Admin akan tetap terjaga.'),
-                                      actions: [
-                                        TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Batal')),
-                                        TextButton(onPressed: () => Navigator.pop(c, true), child: const Text('Lanjutkan', style: TextStyle(fontWeight: FontWeight.bold))),
-                                      ],
-                                    ),
+                                  final confirm = await AppNotifications.showConfirmDialog(
+                                    context,
+                                    title: 'Login Sebagai',
+                                    message: 'Anda akan masuk sebagai ${user.name}. Sesi Anda sebagai Admin akan tetap terjaga.',
+                                    confirmLabel: 'Lanjutkan',
+                                    cancelLabel: 'Batal',
+                                    isDestructive: false,
                                   );
 
                                   if (confirm == true) {
@@ -515,15 +362,15 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                   height: 42,
                                   padding: const EdgeInsets.symmetric(horizontal: 14),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF1A3A5C).withOpacity(0.05),
+                                    color: c.primary.withOpacity(0.05),
                                     borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(color: const Color(0xFF1A3A5C).withOpacity(0.2)),
+                                    border: Border.all(color: c.primary.withOpacity(0.2)),
                                   ),
                                   child: Row(
                                     children: [
-                                      const Icon(Icons.login_rounded, size: 16, color: Color(0xFF1A3A5C)),
+                                      Icon(Icons.login_rounded, size: 16, color: c.primary),
                                       const SizedBox(width: 6),
-                                      const Text('Login', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1A3A5C))),
+                                      Text('Login', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: c.primary)),
                                     ],
                                   ),
                                 ),
@@ -536,14 +383,14 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                   width: 42,
                                   height: 42,
                                   decoration: BoxDecoration(
-                                    color: Colors.red.shade50,
+                                    color: c.isDark ? Colors.red.withOpacity(0.1) : Colors.red.shade50,
                                     borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(color: Colors.red.shade200),
+                                    border: Border.all(color: c.isDark ? Colors.red.withOpacity(0.3) : Colors.red.shade200),
                                   ),
                                   child: Icon(
                                     Icons.delete_outline_rounded,
                                     size: 20,
-                                    color: Colors.red.shade600,
+                                    color: c.isDark ? Colors.redAccent.shade100 : Colors.red.shade600,
                                   ),
                                 ),
                               ),
@@ -561,8 +408,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       ),
     );
   }
-
-  Widget _buildFilterChip(String? role, String label) {
+ 
+  Widget _buildFilterChip(String? role, String label, AppColors c) {
     bool isSelected = _selectedFilterRole == role;
     return GestureDetector(
       onTap: () => setState(() => _selectedFilterRole = role),
@@ -570,12 +417,12 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF1A3A5C) : Colors.white,
+          color: isSelected ? c.chipSelected : c.chipUnselected,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected
-                ? const Color(0xFF1A3A5C)
-                : const Color(0xFFE5E7EB),
+                ? c.chipSelected
+                : c.chipBorder,
           ),
         ),
         child: Center(
@@ -584,24 +431,24 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: isSelected ? Colors.white : const Color(0xFF6B7280),
+              color: isSelected ? Colors.white : c.textSecondary,
             ),
           ),
         ),
       ),
     );
   }
-
-  Widget _emptyState(IconData icon, String message) {
+ 
+  Widget _emptyState(IconData icon, String message, AppColors c) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 60, color: const Color(0xFFCBD5E1)),
+          Icon(icon, size: 60, color: c.textMuted),
           const SizedBox(height: 16),
           Text(
             message,
-            style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 15),
+            style: TextStyle(color: c.textSecondary, fontSize: 15),
           ),
         ],
       ),

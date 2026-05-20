@@ -246,7 +246,25 @@ class _RequesterDashboardState extends State<RequesterDashboard> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 12),
                     itemCount: tickets.length,
-                    itemBuilder: (_, i) => TicketCard(ticket: tickets[i]),
+                    itemBuilder: (_, i) {
+                      final ticket = tickets[i];
+                      return TweenAnimationBuilder<double>(
+                        key: ValueKey(ticket.ticketId),
+                        tween: Tween(begin: 0.0, end: 1.0),
+                        duration: Duration(milliseconds: 300 + (i * 60).clamp(0, 300)),
+                        curve: Curves.easeOutQuad,
+                        builder: (context, value, child) {
+                          return Transform.translate(
+                            offset: Offset(0, 20 * (1 - value)),
+                            child: Opacity(
+                              opacity: value,
+                              child: child,
+                            ),
+                          );
+                        },
+                        child: TicketCard(ticket: ticket),
+                      );
+                    },
                   ),
                 );
               },

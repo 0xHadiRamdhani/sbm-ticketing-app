@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:excel/excel.dart' hide Border;
 import 'package:path_provider/path_provider.dart';
@@ -6,7 +7,9 @@ import 'package:share_plus/share_plus.dart';
 import 'dart:io';
 import 'package:intl/intl.dart';
 import '../shared/ticket_card.dart';
+import '../shared/ios_glass_dropdown.dart';
 import '../../models/ticket_model.dart';
+import '../../utils/app_notifications.dart';
 
 class ExportReportsScreen extends StatefulWidget {
   const ExportReportsScreen({Key? key}) : super(key: key);
@@ -124,17 +127,11 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
   Widget _buildLabel(String text) => Padding(padding: const EdgeInsets.only(bottom: 8), child: Text(text, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF64748B))));
 
   Widget _buildDropdown(List<String> items, String current, ValueChanged<String?> onChanged) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(color: const Color(0xFFF7F9FC), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFE2E8F0))),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: current,
-          isExpanded: true,
-          onChanged: onChanged,
-          items: items.map((e) => DropdownMenuItem(value: e, child: Text(e, style: const TextStyle(fontSize: 14)))).toList(),
-        ),
-      ),
+    return IosGlassDropdown<String>(
+      value: current,
+      items: items,
+      itemLabelBuilder: (e) => e,
+      onChanged: (val) => onChanged(val),
     );
   }
 
@@ -220,27 +217,26 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
   }
 
   void _showScheduledInfo(String type) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Fitur $type otomatis memerlukan Cloud Functions. Status berhasil diperbarui secara lokal.'),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 3),
-      ),
+    AppNotifications.showNotification(
+      context,
+      title: 'Laporan Otomatis',
+      message: 'Fitur $type otomatis memerlukan Cloud Functions. Status berhasil diperbarui secara lokal.',
+      isError: false,
     );
   }
 
   Future<void> _handleExport() async {
-    showDialog(
+    showCupertinoDialog(
       context: context,
       barrierDismissible: false,
-      builder: (c) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      builder: (c) => CupertinoAlertDialog(
         title: const Text('Menyiapkan Laporan'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: const [
-            CircularProgressIndicator(color: Color(0xFF1A3A5C)),
-            SizedBox(height: 16),
+            SizedBox(height: 12),
+            CupertinoActivityIndicator(radius: 14),
+            SizedBox(height: 12),
             Text('Sedang mengambil dan memproses data tiket SBM ITB...', textAlign: TextAlign.center, style: TextStyle(fontSize: 13)),
           ],
         ),
@@ -266,7 +262,12 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
       if (tickets.isEmpty) {
         if (!mounted) return;
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tidak ada data tiket untuk kriteria yang dipilih.')));
+        AppNotifications.showNotification(
+          context,
+          title: 'Tidak Ada Data',
+          message: 'Tidak ada data tiket untuk kriteria yang dipilih.',
+          isError: true,
+        );
         return;
       }
 
@@ -335,7 +336,12 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
       } else {
         if (!mounted) return;
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Format PDF akan segera tersedia.')));
+        AppNotifications.showNotification(
+          context,
+          title: 'Belum Tersedia',
+          message: 'Format PDF akan segera tersedia.',
+          isError: true,
+        );
         return;
       }
 
@@ -350,10 +356,12 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
       debugPrint(stack.toString());
       if (!mounted) return;
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Gagal membuat laporan: $e'),
-        backgroundColor: Colors.red.shade700,
-      ));
+      AppNotifications.showNotification(
+        context,
+        title: 'Ekspor Gagal',
+        message: 'Gagal membuat laporan: $e',
+        isError: true,
+      );
     }
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/device_service.dart';
+import '../../utils/app_notifications.dart';
 import '../utils/app_colors.dart';
 import 'shared/ticket_card.dart';
 
@@ -61,84 +62,33 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
   }
 
   Future<void> _removeDevice(String uid, String deviceId, String deviceName, bool isCurrentDevice) async {
-    final c = AppColors.of(context);
     if (isCurrentDevice) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.info_outline, color: Colors.white),
-              const SizedBox(width: 8),
-              const Expanded(child: Text('Tidak bisa menghapus perangkat yang sedang digunakan.')),
-            ],
-          ),
-          backgroundColor: Colors.orange.shade700,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
+      AppNotifications.showNotification(
+        context,
+        title: 'Info',
+        message: 'Tidak bisa menghapus perangkat yang sedang digunakan.',
+        isError: true,
       );
       return;
     }
 
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: c.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        icon: Icon(Icons.logout_rounded, color: Colors.red.shade600, size: 40),
-        title: Text(
-          'Hapus Perangkat?',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontWeight: FontWeight.bold, color: c.textPrimary),
-        ),
-        content: Text(
-          'Perangkat "$deviceName" akan dihapus dari daftar sesi aktif Anda.',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: c.textSecondary, height: 1.5),
-        ),
-        actionsAlignment: MainAxisAlignment.center,
-        actionsPadding: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
-        actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-            child: const Text('Batal'),
-          ),
-          const SizedBox(width: 8),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade600,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-            child: const Text('Hapus', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
+    final confirm = await AppNotifications.showConfirmDialog(
+      context,
+      title: 'Hapus Perangkat?',
+      message: 'Perangkat "$deviceName" akan dihapus dari daftar sesi aktif Anda.',
+      confirmLabel: 'Hapus',
+      cancelLabel: 'Batal',
+      isDestructive: true,
     );
 
     if (confirm == true) {
       await _deviceService.removeDevice(uid, deviceId);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle_outline, color: Colors.white),
-                const SizedBox(width: 8),
-                Expanded(child: Text('Perangkat "$deviceName" dihapus')),
-              ],
-            ),
-            backgroundColor: const Color(0xFF16A34A),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
+        AppNotifications.showNotification(
+          context,
+          title: 'Sukses',
+          message: 'Perangkat "$deviceName" dihapus',
+          isError: false,
         );
       }
     }

@@ -130,11 +130,11 @@ class _TechnicianDashboardState extends State<TechnicianDashboard> {
                           const SizedBox(height: 12),
                           Row(
                             children: [
-                              Expanded(child: _buildStatCard(context, 'Ditugaskan', assignedCount, const Color(0xFF3B82F6), Icons.assignment_ind_rounded)),
+                              Expanded(child: _buildStatCard(context, 'Ditugaskan', assignedCount, const Color(0xFF3B82F6), Icons.assignment_ind_rounded, 0)),
                               const SizedBox(width: 12),
-                              Expanded(child: _buildStatCard(context, 'Diproses', inProgressCount, const Color(0xFFF59E0B), Icons.autorenew_rounded)),
+                              Expanded(child: _buildStatCard(context, 'Diproses', inProgressCount, const Color(0xFFF59E0B), Icons.autorenew_rounded, 1)),
                               const SizedBox(width: 12),
-                              Expanded(child: _buildStatCard(context, 'Selesai', completedCount, const Color(0xFF10B981), Icons.check_circle_rounded)),
+                              Expanded(child: _buildStatCard(context, 'Selesai', completedCount, const Color(0xFF10B981), Icons.check_circle_rounded, 2)),
                             ],
                           ),
                           const SizedBox(height: 20),
@@ -232,7 +232,25 @@ class _TechnicianDashboardState extends State<TechnicianDashboard> {
                               child: ListView.builder(
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                 itemCount: displayedTickets.length,
-                                itemBuilder: (_, i) => TicketCard(ticket: displayedTickets[i]),
+                                itemBuilder: (_, i) {
+                                  final ticket = displayedTickets[i];
+                                  return TweenAnimationBuilder<double>(
+                                    key: ValueKey(ticket.ticketId),
+                                    tween: Tween(begin: 0.0, end: 1.0),
+                                    duration: Duration(milliseconds: 300 + (i * 60).clamp(0, 300)),
+                                    curve: Curves.easeOutQuad,
+                                    builder: (context, value, child) {
+                                      return Transform.translate(
+                                        offset: Offset(0, 20 * (1 - value)),
+                                        child: Opacity(
+                                          opacity: value,
+                                          child: child,
+                                        ),
+                                      );
+                                    },
+                                    child: TicketCard(ticket: ticket),
+                                  );
+                                },
                               ),
                             ),
                     ),
@@ -246,27 +264,57 @@ class _TechnicianDashboardState extends State<TechnicianDashboard> {
     );
   }
 
-  Widget _buildStatCard(BuildContext context, String title, int count, Color color, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Icon(icon, size: 20, color: color),
-              Text(count.toString(), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color)),
-            ],
+  Widget _buildStatCard(BuildContext context, String title, int count, Color color, IconData icon, int index) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: Duration(milliseconds: 400 + (index * 100)),
+      curve: Curves.easeOutBack,
+      builder: (context, value, child) {
+        return Transform.scale(
+          scale: value,
+          child: Opacity(
+            opacity: value.clamp(0.0, 1.0),
+            child: child,
           ),
-          const SizedBox(height: 8),
-          Text(title, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color.withOpacity(0.8))),
-        ],
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withOpacity(0.2)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Icon(icon, size: 20, color: color),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 350),
+                  transitionBuilder: (child, animation) {
+                    return SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0.0, 0.4),
+                        end: Offset.zero,
+                      ).animate(animation),
+                      child: FadeTransition(opacity: animation, child: child),
+                    );
+                  },
+                  child: Text(
+                    count.toString(),
+                    key: ValueKey<int>(count),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(title, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color.withOpacity(0.8))),
+          ],
+        ),
       ),
     );
   }

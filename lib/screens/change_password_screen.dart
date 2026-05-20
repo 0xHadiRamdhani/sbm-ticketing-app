@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../utils/app_colors.dart';
 import 'shared/ticket_card.dart';
+import '../utils/app_notifications.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -43,26 +44,22 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       );
       
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Kata sandi berhasil diubah.'),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-        ),
+      AppNotifications.showNotification(
+        context,
+        title: 'Sukses',
+        message: 'Kata sandi berhasil diubah.',
+        isError: false,
       );
       Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            e.toString().contains('wrong-password') 
-                ? 'Kata sandi saat ini salah.' 
-                : 'Gagal mengubah kata sandi. Pastikan Anda masuk menggunakan email.'
-          ),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-        ),
+      AppNotifications.showNotification(
+        context,
+        title: 'Gagal',
+        message: e.toString().contains('wrong-password') 
+            ? 'Kata sandi saat ini salah.' 
+            : 'Gagal mengubah kata sandi. Pastikan Anda masuk menggunakan email.',
+        isError: true,
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
