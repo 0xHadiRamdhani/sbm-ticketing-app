@@ -1,7 +1,7 @@
 # SBM ITB Ticketing Helpdesk App
 
 <p align="center">
-  <img src="assets/images/logo.png" alt="SBM ITB Logo" width="120" style="margin-bottom: 20px;"/>
+  <img src="assets/itb.png" alt="SBM ITB Logo" width="120" style="margin-bottom: 20px;"/>
 </p>
 
 <p align="center">
@@ -13,13 +13,13 @@
 
 ---
 
-**SBM ITB Ticketing App** adalah platform *helpdesk* terintegrasi yang dirancang khusus untuk memenuhi kebutuhan operasional School of Business and Management (SBM) ITB. Aplikasi ini mendigitalisasi proses pelaporan keluhan fasilitas, infrastruktur IT, dan layanan operasional lainnya secara transparan, akuntabel, dan *real-time*.
+SBM ITB Ticketing App adalah platform helpdesk terintegrasi yang dirancang khusus untuk memenuhi kebutuhan operasional School of Business and Management (SBM) ITB. Aplikasi ini mendigitalisasi proses pelaporan keluhan fasilitas, infrastruktur IT, dan layanan operasional lainnya secara transparan, akuntabel, dan real-time.
 
 ---
 
-## 🗺️ Arsitektur dan Alur Sistem
+## Arsitektur dan Alur Sistem
 
-Aplikasi ini menggunakan model peran (*Role-Based*) yang terstruktur untuk menjamin efisiensi alur kerja antara pelapor, tim teknis, dan manajemen.
+Aplikasi ini menggunakan model peran (Role-Based) yang terstruktur untuk menjamin efisiensi alur kerja antara pelapor, tim teknis, dan manajemen.
 
 ```mermaid
 graph TD
@@ -32,45 +32,58 @@ graph TD
 ```
 
 > [!TIP]
-> Dokumentasi alur kerja aktor (*Actor Workflow*) yang lebih detail dapat ditemukan pada file: [`diagram/actor_workflow.drawio`](diagram/actor_workflow.drawio)
+> Dokumentasi alur kerja aktor (Actor Workflow) yang lebih detail dapat ditemukan pada file: `diagram/actor_workflow.drawio`
 
 ---
 
-## 🎨 Pratinjau Antarmuka (Screenshots)
+## Pratinjau Antarmuka (Screenshots)
 
+Berikut adalah beberapa tampilan utama dari aplikasi helpdesk:
+
+### Halaman Masuk (Login Screen)
+Halaman masuk dengan autentikasi email, kata sandi, dan integrasi Google Sign-In yang modern dan minimalis.
 <p align="center">
-  <img src="screenshots/screen_1.png" width="200" style="border-radius: 12px; margin: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);"/>
-  <img src="screenshots/screen_2.png" width="200" style="border-radius: 12px; margin: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);"/>
-  <img src="screenshots/screen_3.png" width="200" style="border-radius: 12px; margin: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);"/>
-  <img src="screenshots/screen_4.png" width="200" style="border-radius: 12px; margin: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);"/>
+  <img src="assets/login_screen.png" width="320" style="border-radius: 12px; margin: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);"/>
+</p>
+
+### Halaman Utama Pengaju (Requester Dashboard)
+Halaman utama bagi pelapor untuk memantau status tiket, mencari riwayat keluhan, dan membuat tiket baru dengan cepat.
+<p align="center">
+  <img src="assets/requester_dashboard.png" width="320" style="border-radius: 12px; margin: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);"/>
+</p>
+
+### Halaman Utama Teknisi (Technician Dashboard)
+Dashboard khusus bagi tim teknis untuk memantau statistik tugas yang ditugaskan, diproses, dan diselesaikan, lengkap dengan saringan kategori yang responsif.
+<p align="center">
+  <img src="assets/technician_dashboard.png" width="320" style="border-radius: 12px; margin: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);"/>
 </p>
 
 ---
 
-## ✨ Fitur Unggulan (Versi 2.1.0)
+## Fitur Unggulan (Versi 2.1.0)
 
-### 🎨 Premium UI/UX & High-Fidelity Animations (New)
-*   **iOS Liquid Glass Dropdown**: Komponen dropdown khusus dengan efek *backdrop blur* dinamis (Glassmorphic) dan transisi rotasi ikon *chevron* 180 derajat yang mulus.
-*   **Staggered Entrance Transitions**: Animasi pemuatan data (*fade-in* & *slide-up*) bertahap pada daftar tiket di Dashboard Pengaju dan Teknisi.
-*   **Tactile Stats Counter**: Animasi penghitung dinamis menggunakan `AnimatedSwitcher` yang meluncur dan memudar saat angka statistik berubah.
+### Desain Antarmuka Premium dan Animasi High-Fidelity
+*   iOS Liquid Glass Dropdown: Komponen dropdown kustom dengan efek blur dinamis (Glassmorphism) serta transisi rotasi ikon chevron yang halus.
+*   Staggered Entrance Transitions: Animasi masuk daftar tiket secara bertahap pada halaman pengaju dan teknisi.
+*   Tactile Stats Counter: Animasi perubahan angka statistik interaktif menggunakan transisi slide dan fade.
 
-### 🛡️ Sistem Keamanan & Audit
-*   **Audit Log System**: Pencatatan otomatis seluruh aksi administratif (update massal, penghapusan, perubahan role) untuk transparansi operasional.
-*   **Resolved State Locking**: Proteksi integritas data di mana teknisi tidak dapat mengubah foto atau catatan setelah tiket dinyatakan *Resolved*.
-*   **Admin Impersonation**: Fitur pengujian bagi admin untuk melihat perspektif pengguna lain secara aman.
+### Sistem Keamanan dan Audit
+*   Audit Log System: Pencatatan otomatis aktivitas administratif untuk menjamin transparansi operasional.
+*   Resolved State Locking: Penguncian data tiket yang telah selesai agar tidak dapat diubah kembali oleh teknisi.
+*   Admin Impersonation: Fitur simulasi peran pengguna bagi administrator untuk mempermudah pemecahan masalah.
 
-### 📊 Manajemen Data & Laporan (Reporting)
-*   **Export to Excel/CSV**: Fitur ekspor laporan tiket secara instan dengan filter tanggal dan kategori.
-*   **SLA Monitoring**: Pelacakan batas waktu penyelesaian (Service Level Agreement) berdasarkan tingkat prioritas (Critical, High, Medium, Low).
-*   **Scheduled Reports Simulation**: Antarmuka untuk pengaturan pengiriman laporan otomatis (Mingguan/Bulanan).
+### Laporan dan Manajemen Data
+*   Ekspor Laporan: Pengunduhan laporan data tiket dalam format Excel dan CSV dengan saringan rentang tanggal.
+*   Pemantauan SLA: Pelacakan penyelesaian kendala berdasarkan tingkat prioritas layanan.
+*   Simulasi Laporan Terjadwal: Pengaturan waktu kirim laporan mingguan atau bulanan otomatis.
 
-### 💬 Komunikasi & Kolaborasi
-*   **Internal Notes (Staff Only)**: Catatan rahasia antar Admin dan Teknisi yang tidak terlihat oleh Pelapor.
-*   **Unified Timeline**: Riwayat perjalanan tiket yang sinkron di semua role secara kronologis (Ascending).
+### Komunikasi dan Kolaborasi
+*   Catatan Internal: Fitur diskusi tertutup khusus bagi admin dan teknisi.
+*   Timeline Terpadu: Riwayat perkembangan tiket secara kronologis dari awal hingga selesai.
 
 ---
 
-## 🛠️ Stack Teknologi
+## Stack Teknologi
 
 | Komponen | Teknologi | Deskripsi |
 | :--- | :--- | :--- |
@@ -82,7 +95,7 @@ graph TD
 
 ---
 
-## 📂 Struktur Direktori Utama
+## Struktur Direktori Utama
 
 ```text
 lib/
@@ -109,7 +122,7 @@ lib/
 
 ---
 
-## 🚀 Panduan Instalasi
+## Panduan Instalasi
 
 1.  **Clone repositori:**
     ```bash
@@ -130,7 +143,7 @@ lib/
 
 ---
 
-## 📋 Riwayat Rilis
+## Riwayat Rilis
 
 *   **Versi 2.1.0 (Terbaru)**:
     *   Penerapan desain Glassmorphic iOS Liquid Glass Dropdown di seluruh aplikasi.
