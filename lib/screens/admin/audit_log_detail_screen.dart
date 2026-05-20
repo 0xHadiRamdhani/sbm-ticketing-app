@@ -17,8 +17,8 @@ class AuditLogDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
-    final timestamp = logData['timestamp'] != null 
-        ? (logData['timestamp'] as Timestamp).toDate() 
+    final timestamp = logData['timestamp'] != null
+        ? (logData['timestamp'] as Timestamp).toDate()
         : DateTime.now();
     final type = logData['action_type'] ?? 'UNKNOWN';
 
@@ -43,7 +43,9 @@ class AuditLogDetailScreen extends StatelessWidget {
                 border: Border.all(color: c.border),
                 boxShadow: [
                   BoxShadow(
-                    color: c.isDark ? Colors.transparent : Colors.black.withOpacity(0.03),
+                    color: c.isDark
+                        ? Colors.transparent
+                        : Colors.black.withOpacity(0.03),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -52,7 +54,10 @@ class AuditLogDetailScreen extends StatelessWidget {
               child: Column(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: _getActionColor(type).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
@@ -101,15 +106,40 @@ class AuditLogDetailScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  _buildDetailRow(Icons.tag_rounded, 'Log ID', logId.substring(0, 8).toUpperCase(), c),
+                  _buildDetailRow(
+                    Icons.tag_rounded,
+                    'Log ID',
+                    logId.substring(0, 8).toUpperCase(),
+                    c,
+                  ),
                   Divider(height: 24, color: c.border),
-                  _buildDetailRow(Icons.calendar_today_rounded, 'Waktu Kejadian', DateFormat('dd MMMM yyyy, HH:mm:ss').format(timestamp), c),
+                  _buildDetailRow(
+                    Icons.calendar_today_rounded,
+                    'Waktu Kejadian',
+                    DateFormat('dd MMMM yyyy, HH:mm:ss').format(timestamp),
+                    c,
+                  ),
                   Divider(height: 24, color: c.border),
-                  _buildDetailRow(Icons.person_outline_rounded, 'Dilakukan Oleh (Email)', logData['admin_email'] ?? 'System', c),
+                  _buildDetailRow(
+                    Icons.person_outline_rounded,
+                    'Dilakukan Oleh (Email)',
+                    logData['admin_email'] ?? 'System',
+                    c,
+                  ),
                   Divider(height: 24, color: c.border),
-                  _buildDetailRow(Icons.badge_outlined, 'Admin ID', logData['admin_id'] ?? '-', c),
+                  _buildDetailRow(
+                    Icons.badge_outlined,
+                    'Admin ID',
+                    logData['admin_id'] ?? '-',
+                    c,
+                  ),
                   Divider(height: 24, color: c.border),
-                  _buildDetailRow(Icons.my_location_rounded, 'Target ID', logData['target_id'] ?? '-', c),
+                  _buildDetailRow(
+                    Icons.my_location_rounded,
+                    'Target ID',
+                    logData['target_id'] ?? '-',
+                    c,
+                  ),
                 ],
               ),
             ),
@@ -129,7 +159,9 @@ class AuditLogDetailScreen extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: c.isDark ? const Color(0xFF1E293B) : const Color(0xFF0F172A),
+                  color: c.isDark
+                      ? const Color(0xFF1E293B)
+                      : const Color(0xFF0F172A),
                   borderRadius: BorderRadius.circular(16),
                   border: c.isDark ? Border.all(color: c.border) : null,
                 ),
@@ -138,7 +170,9 @@ class AuditLogDetailScreen extends StatelessWidget {
                   style: TextStyle(
                     fontFamily: 'monospace',
                     fontSize: 13,
-                    color: c.isDark ? const Color(0xFF38BDF8) : const Color(0xFF38BDF8),
+                    color: c.isDark
+                        ? const Color(0xFF38BDF8)
+                        : const Color(0xFF38BDF8),
                   ),
                 ),
               ),
@@ -149,7 +183,12 @@ class AuditLogDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(IconData icon, String label, String value, AppColors c) {
+  Widget _buildDetailRow(
+    IconData icon,
+    String label,
+    String value,
+    AppColors c,
+  ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

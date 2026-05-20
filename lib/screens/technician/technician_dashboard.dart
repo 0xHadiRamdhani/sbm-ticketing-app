@@ -9,6 +9,7 @@ import '../../utils/app_colors.dart';
 import '../settings_screen.dart';
 import '../shared/ticket_card.dart';
 import '../shared/impersonation_banner.dart';
+import 'technician_my_reports_screen.dart';
 
 class TechnicianDashboard extends StatefulWidget {
   @override
@@ -77,6 +78,17 @@ class _TechnicianDashboardState extends State<TechnicianDashboard> {
           context,
           MaterialPageRoute(builder: (_) => SettingsScreen()),
         ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => TechnicianMyReportsScreen()),
+        ),
+        backgroundColor: const Color(0xFF1A3A5C),
+        icon: const Icon(Icons.history_edu, color: Colors.white),
+        label: const Text('Laporan Teknisi',
+            style: TextStyle(
+                color: Colors.white, fontWeight: FontWeight.bold)),
       ),
       body: Column(
         children: [

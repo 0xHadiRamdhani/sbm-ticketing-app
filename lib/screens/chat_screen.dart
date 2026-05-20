@@ -8,8 +8,6 @@ import '../services/chat_service.dart';
 import '../providers/auth_provider.dart';
 import '../utils/app_colors.dart';
 import 'shared/ticket_card.dart';
-import 'package:speech_to_text/speech_to_text.dart' as stt;
-import 'package:permission_handler/permission_handler.dart';
 import '../utils/app_notifications.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -28,92 +26,12 @@ class _ChatScreenState extends State<ChatScreen> {
   final Map<String, String> _userNames = {};
   final Map<String, String> _userRoles = {};
 
-  late stt.SpeechToText _speech;
-  bool _isListening = false;
-  String _currentSpeechText = '';
-
   @override
   void initState() {
     super.initState();
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     currentUserId = authProvider.user?.uid ?? '';
-    _speech = stt.SpeechToText();
     _fetchUsersInfo();
-  }
-
-  void _listen() async {
-    if (!_isListening) {
-      var micStatus = await Permission.microphone.request();
-      if (micStatus.isPermanentlyDenied) {
-        openAppSettings();
-        return;
-      } else if (!micStatus.isGranted) {
-        if (!mounted) return;
-        AppNotifications.showNotification(
-          context,
-          title: 'Izin Ditolak',
-          message: 'Izin mikrofon ditolak',
-          isError: true,
-        );
-        return;
-      }
-      
-      var speechStatus = await Permission.speech.request();
-      if (speechStatus.isPermanentlyDenied) {
-        openAppSettings();
-        return;
-      } else if (!speechStatus.isGranted) {
-        if (!mounted) return;
-        AppNotifications.showNotification(
-          context,
-          title: 'Izin Ditolak',
-          message: 'Izin pengenalan suara ditolak',
-          isError: true,
-        );
-        return;
-      }
-
-      bool available = await _speech.initialize(
-        onStatus: (val) {
-          if (val == 'done' || val == 'notListening') {
-            if (mounted) setState(() => _isListening = false);
-          }
-        },
-        onError: (val) {
-          debugPrint('Speech onError: $val');
-          if (mounted) setState(() => _isListening = false);
-        },
-      );
-      if (available) {
-        setState(() {
-          _isListening = true;
-          _currentSpeechText = _messageController.text;
-        });
-        _speech.listen(
-          onResult: (val) {
-            if (!mounted) return;
-            setState(() {
-              final newText = val.recognizedWords;
-              final prefix = _currentSpeechText.isNotEmpty && !_currentSpeechText.endsWith(' ') ? ' ' : '';
-              _messageController.text = _currentSpeechText + prefix + newText;
-              _messageController.selection = TextSelection.fromPosition(TextPosition(offset: _messageController.text.length));
-            });
-          },
-        );
-      } else {
-        if (mounted) {
-          AppNotifications.showNotification(
-            context,
-            title: 'Info',
-            message: 'Pengenalan suara tidak tersedia',
-            isError: true,
-          );
-        }
-      }
-    } else {
-      setState(() => _isListening = false);
-      _speech.stop();
-    }
   }
 
   Future<void> _fetchUsersInfo() async {
@@ -386,13 +304,6 @@ class _ChatScreenState extends State<ChatScreen> {
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 20,
                     vertical: 12,
-                  ),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _isListening ? Icons.mic : Icons.mic_none,
-                      color: _isListening ? Colors.red : c.textSecondary,
-                    ),
-                    onPressed: _listen,
                   ),
                 ),
                 maxLines: null,

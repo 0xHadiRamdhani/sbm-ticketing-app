@@ -18,7 +18,7 @@ class TicketService {
   }) {
     Query query = _firestore.collection('tickets');
 
-    if (role == 'student' || role == 'staff') {
+    if (role == 'student' || role == 'staff' || role == 'technician_as_requester') {
       query = query
           .where('requester_id', isEqualTo: uid)
           .orderBy('created_at', descending: true);
