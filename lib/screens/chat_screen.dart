@@ -6,6 +6,7 @@ import '../models/ticket_model.dart';
 import '../models/message_model.dart';
 import '../services/chat_service.dart';
 import '../providers/auth_provider.dart';
+import '../utils/app_colors.dart';
 import 'shared/ticket_card.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -89,9 +90,11 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FC),
+      backgroundColor: c.background,
       appBar: buildSbmAppBar(
+        context: context,
         showBackButton: true,
         onBackPressed: () => Navigator.pop(context),
         titleText: 'Chat Tiket #${widget.ticket.ticketId.substring(0, 5)}',
@@ -107,13 +110,23 @@ class _ChatScreenState extends State<ChatScreen> {
                 }
 
                 if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
+                  return Center(
+                    child: Text(
+                      'Error: ${snapshot.error}',
+                      style: TextStyle(color: c.textPrimary),
+                    ),
+                  );
                 }
 
                 final messages = snapshot.data ?? [];
 
                 if (messages.isEmpty) {
-                  return const Center(child: Text('Belum ada pesan.'));
+                  return Center(
+                    child: Text(
+                      'Belum ada pesan.',
+                      style: TextStyle(color: c.textMuted),
+                    ),
+                  );
                 }
 
                 return ListView.builder(
@@ -128,19 +141,27 @@ class _ChatScreenState extends State<ChatScreen> {
                         margin: const EdgeInsets.only(bottom: 12),
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFFFBEB),
+                          color: c.isDark ? const Color(0xFF2E2315) : const Color(0xFFFFFBEB),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFFDE68A)),
+                          border: Border.all(color: c.isDark ? const Color(0xFF4D3715) : const Color(0xFFFDE68A)),
                         ),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(Icons.info_outline, size: 18, color: Color(0xFFD97706)),
+                            Icon(
+                              Icons.info_outline,
+                              size: 18,
+                              color: c.isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706),
+                            ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
                                 message.text,
-                                style: const TextStyle(fontSize: 13, color: Color(0xFF92400E), fontWeight: FontWeight.w500),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: c.isDark ? const Color(0xFFFDE68A) : const Color(0xFF92400E),
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ),
                           ],
@@ -162,6 +183,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildMessageBubble(MessageModel message, bool isMe) {
+    final c = AppColors.of(context);
     final senderName = _userNames[message.senderId] ?? '...';
     final senderRole = _userRoles[message.senderId] ?? '';
     final roleLabel = senderRole == 'technician' ? 'Teknisi' : (senderRole == 'admin' ? 'Admin' : '');
@@ -175,10 +197,10 @@ class _ChatScreenState extends State<ChatScreen> {
           if (!isMe) ...[
             CircleAvatar(
               radius: 16,
-              backgroundColor: const Color(0xFF1A3A5C),
+              backgroundColor: c.primaryLight,
               child: Text(
                 senderName.isNotEmpty ? senderName[0].toUpperCase() : '?',
-                style: const TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 12, color: c.primary, fontWeight: FontWeight.bold),
               ),
             ),
             const SizedBox(width: 8),
@@ -192,22 +214,23 @@ class _ChatScreenState extends State<ChatScreen> {
                     padding: const EdgeInsets.only(left: 4, bottom: 4),
                     child: Text(
                       roleLabel.isNotEmpty ? '$senderName ($roleLabel)' : senderName,
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF64748B)),
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: c.textSecondary),
                     ),
                   ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
-                    color: isMe ? const Color(0xFF1A3A5C) : Colors.white,
+                    color: isMe ? c.primary : c.surface,
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(16),
                       topRight: const Radius.circular(16),
                       bottomLeft: isMe ? const Radius.circular(16) : Radius.zero,
                       bottomRight: isMe ? Radius.zero : const Radius.circular(16),
                     ),
+                    border: isMe ? null : Border.all(color: c.border),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: c.isDark ? Colors.transparent : Colors.black.withValues(alpha: 0.05),
                         blurRadius: 5,
                         offset: const Offset(0, 2),
                       ),
@@ -219,7 +242,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       Text(
                         message.text,
                         style: TextStyle(
-                          color: isMe ? Colors.white : Colors.black87,
+                          color: isMe ? Colors.white : c.textPrimary,
                           fontSize: 14,
                         ),
                       ),
@@ -227,7 +250,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       Text(
                         DateFormat('HH:mm').format(message.timestamp),
                         style: TextStyle(
-                          color: isMe ? Colors.white70 : Colors.black54,
+                          color: isMe ? Colors.white.withValues(alpha: 0.7) : c.textMuted,
                           fontSize: 10,
                         ),
                       ),
@@ -241,10 +264,10 @@ class _ChatScreenState extends State<ChatScreen> {
             const SizedBox(width: 8),
             CircleAvatar(
               radius: 16,
-              backgroundColor: Colors.blue[100],
+              backgroundColor: c.primaryLight,
               child: Text(
                 senderName.isNotEmpty ? senderName[0].toUpperCase() : '?',
-                style: const TextStyle(fontSize: 12, color: Color(0xFF1A3A5C), fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 12, color: c.primary, fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -254,17 +277,12 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildMessageInput() {
+    final c = AppColors.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
+        color: c.surface,
+        border: Border(top: BorderSide(color: c.border)),
       ),
       child: SafeArea(
         child: Row(
@@ -272,14 +290,16 @@ class _ChatScreenState extends State<ChatScreen> {
             Expanded(
               child: TextField(
                 controller: _messageController,
+                style: TextStyle(color: c.textPrimary),
                 decoration: InputDecoration(
                   hintText: 'Ketik pesan...',
+                  hintStyle: TextStyle(color: c.textMuted),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(24),
                     borderSide: BorderSide.none,
                   ),
                   filled: true,
-                  fillColor: Colors.grey[100],
+                  fillColor: c.searchBar,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 20,
                     vertical: 12,
@@ -293,7 +313,7 @@ class _ChatScreenState extends State<ChatScreen> {
             const SizedBox(width: 12),
             Container(
               decoration: BoxDecoration(
-                color: Colors.blue[800],
+                color: c.primary,
                 shape: BoxShape.circle,
               ),
               child: IconButton(

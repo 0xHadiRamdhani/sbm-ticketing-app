@@ -147,7 +147,25 @@ class AuthService {
     await _firestore.collection('users').doc(uid).update({
       'name': name,
       'photoUrl': photoUrl,
+    }).timeout(const Duration(seconds: 10), onTimeout: () {
+      throw Exception('Koneksi database habis (Timeout). Periksa koneksi internet Anda.');
     });
+  }
+
+  // Ubah Kata Sandi
+  Future<void> changePassword(String currentPassword, String newPassword) async {
+    User? currentUser = _auth.currentUser;
+    if (currentUser == null) throw Exception("Pengguna tidak ditemukan");
+    if (currentUser.email == null) throw Exception("Hanya pengguna email yang dapat mengubah kata sandi");
+
+    AuthCredential credential = EmailAuthProvider.credential(
+      email: currentUser.email!,
+      password: currentPassword,
+    );
+    
+    // Autentikasi ulang pengguna sebelum mengubah kata sandi
+    await currentUser.reauthenticateWithCredential(credential);
+    await currentUser.updatePassword(newPassword);
   }
 
   // Logout

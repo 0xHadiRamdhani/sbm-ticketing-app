@@ -3,7 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
+import 'providers/theme_provider.dart';
 import 'providers/ticket_provider.dart';
+import 'providers/language_provider.dart';
 import 'screens/dashboard_wrapper.dart';
 import 'services/notification_service.dart';
 
@@ -36,6 +38,8 @@ void main() async {
             providers: [
               ChangeNotifierProvider(create: (_) => AuthProvider()),
               ChangeNotifierProvider(create: (_) => TicketProvider()),
+              ChangeNotifierProvider(create: (_) => ThemeProvider()),
+              ChangeNotifierProvider(create: (_) => LanguageProvider()),
             ],
             child: const TicketingApp(),
           )
@@ -101,56 +105,18 @@ class TicketingApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'SBM ITB Ticketing',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue.shade900,
-          primary: Colors.blue.shade800,
-          secondary: Colors.orange.shade600,
-        ),
-        useMaterial3: true,
-        fontFamily: 'Inter',
-        scaffoldBackgroundColor: Colors.grey[50], // Modern lighter background 
-        appBarTheme: AppBarTheme(
-          centerTitle: true,
-          backgroundColor: Colors.blue.shade800,
-          foregroundColor: Colors.white,
-          elevation: 0,
-        ),
-
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blue.shade800,
-            foregroundColor: Colors.white,
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8), // Less rounded corners
-            ),
-            padding: EdgeInsets.symmetric(vertical: 16),
-            textStyle: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-          ),
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: Colors.white,
-          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: Colors.grey.shade300),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: Colors.grey.shade300),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: Colors.blue.shade800, width: 2),
-          ),
-        ),
-      ),
-      home: DashboardWrapper(),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return MaterialApp(
+          title: 'SBM ITB Ticketing',
+          debugShowCheckedModeBanner: false,
+          theme: ThemeProvider.lightTheme,
+          darkTheme: ThemeProvider.darkTheme,
+          themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+          home: DashboardWrapper(),
+        );
+      },
     );
   }
 }
+

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/theme_provider.dart';
+import '../../services/biometric_service.dart';
 import '../../services/email_otp_service.dart';
+import '../../utils/app_colors.dart';
 import 'email_otp_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -23,8 +26,10 @@ class _LoginScreenState extends State<LoginScreen>
 
   bool _isObscure = true;
   bool _isLogin = true; // Mode saklar: Login atau Register
-
   bool _isSendingOtp = false;
+  bool _biometricAvailable = false;
+
+  final BiometricService _biometricService = BiometricService();
 
   AnimationController? _animController;
   Animation<double>? _fadeAnimation;
@@ -41,6 +46,27 @@ class _LoginScreenState extends State<LoginScreen>
       curve: Curves.easeOut,
     );
     _animController!.forward();
+    _checkBiometricAvailability();
+  }
+
+  Future<void> _checkBiometricAvailability() async {
+    final isEnabled = await _biometricService.isBiometricEnabled();
+    if (mounted) setState(() => _biometricAvailable = isEnabled);
+  }
+
+  Future<void> _tryBiometricLogin() async {
+    final credentials = await _biometricService.authenticateAndGetCredentials();
+    if (credentials == null) return;
+    if (!mounted) return;
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    try {
+      await authProvider.login(credentials['email']!, credentials['password']!);
+    } catch (e) {
+      if (!mounted) return;
+      String msg = e.toString();
+      if (msg.contains(']')) msg = msg.split(']').last.trim();
+      _showSnackBar(msg, isError: true);
+    }
   }
 
   @override
@@ -140,8 +166,9 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FC),
+      backgroundColor: c.background,
       body: Stack(
         children: [
           // Background Gradient Header
@@ -183,12 +210,41 @@ class _LoginScreenState extends State<LoginScreen>
               ),
             ),
           ),
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 10,
+            right: 16,
+            child: Consumer<ThemeProvider>(
+              builder: (context, themeProvider, _) {
+                final isDark = themeProvider.isDarkMode;
+                return Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.2),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: IconButton(
+                    icon: Icon(
+                      isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                      color: Colors.white,
+                      size: 22,
+                    ),
+                    onPressed: () => themeProvider.toggleTheme(!isDark),
+                    tooltip: isDark ? 'Light Mode' : 'Dark Mode',
+                  ),
+                );
+              },
+            ),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildContent() {
+    final c = AppColors.of(context);
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -205,25 +261,44 @@ class _LoginScreenState extends State<LoginScreen>
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: c.isDark ? Colors.transparent : Colors.white,
               shape: BoxShape.circle,
+              border: c.isDark
+                  ? Border.all(
+                      color: c.primary.withValues(alpha: 0.8),
+                      width: 2.0,
+                    )
+                  : Border.all(
+                      color: Colors.transparent,
+                      width: 0,
+                    ),
               boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 24,
-                  offset: const Offset(0, 10),
-                ),
+                if (c.isDark)
+                  BoxShadow(
+                    color: c.primary.withValues(alpha: 0.5),
+                    blurRadius: 24,
+                    spreadRadius: 4,
+                  )
+                else
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 24,
+                    offset: const Offset(0, 10),
+                  ),
               ],
             ),
             padding: const EdgeInsets.all(20),
             child: Image.asset(
+              key: ValueKey(c.isDark),
               'assets/sbm.png',
               fit: BoxFit.contain,
+              color: c.isDark ? c.primary : null,
+              colorBlendMode: c.isDark ? BlendMode.srcIn : null,
               errorBuilder: (context, error, stackTrace) {
-                return const Icon(
+                return Icon(
                   Icons.confirmation_num_rounded,
                   size: 60,
-                  color: Color(0xFF1A3A5C),
+                  color: c.isDark ? c.primary : const Color(0xFF1A3A5C),
                 );
               },
             ),
@@ -254,11 +329,11 @@ class _LoginScreenState extends State<LoginScreen>
         Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.of(context).surface,
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.06),
+                color: Colors.black.withOpacity(AppColors.of(context).isDark ? 0.2 : 0.06),
                 blurRadius: 24,
                 offset: const Offset(0, 8),
               ),
@@ -345,9 +420,9 @@ class _LoginScreenState extends State<LoginScreen>
                   TextFormField(
                     controller: _passwordController,
                     obscureText: _isObscure,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
-                      color: Color(0xFF334155),
+                      color: c.textPrimary,
                     ),
                     decoration:
                         _inputDecoration(
@@ -359,7 +434,7 @@ class _LoginScreenState extends State<LoginScreen>
                               _isObscure
                                   ? Icons.visibility_off_outlined
                                   : Icons.visibility_outlined,
-                              color: const Color(0xFF94A3B8),
+                              color: c.textMuted,
                               size: 20,
                             ),
                             onPressed: () =>
@@ -414,6 +489,43 @@ class _LoginScreenState extends State<LoginScreen>
                       );
                     },
                   ),
+                  // Tombol Biometrik (hanya muncul saat mode Login & biometrik diaktifkan)
+                  if (_isLogin && _biometricAvailable) ...[
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(child: Divider(color: c.divider)),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Text('atau', style: TextStyle(color: c.textMuted, fontSize: 13)),
+                        ),
+                        Expanded(child: Divider(color: c.divider)),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: _tryBiometricLogin,
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          side: BorderSide(color: c.isDark ? c.border : const Color(0xFFE2E8F0), width: 1.5),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          backgroundColor: c.isDark ? c.searchBar : const Color(0xFFF8FAFC),
+                          foregroundColor: c.isDark ? Colors.white : const Color(0xFF1A3A5C),
+                        ),
+                        icon: Icon(Icons.fingerprint_rounded, color: c.isDark ? c.primary : const Color(0xFF1A3A5C), size: 26),
+                        label: Text(
+                          'Masuk dengan Sidik Jari / Face ID',
+                          style: TextStyle(
+                            color: c.isDark ? Colors.white : const Color(0xFF1A3A5C),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -426,9 +538,9 @@ class _LoginScreenState extends State<LoginScreen>
           style: TextButton.styleFrom(splashFactory: NoSplash.splashFactory),
           child: RichText(
             text: TextSpan(
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14.5,
-                color: Color(0xFF64748B),
+                color: c.textSecondary,
                 fontFamily: 'Inter',
               ),
               children: [
@@ -437,9 +549,9 @@ class _LoginScreenState extends State<LoginScreen>
                 ),
                 TextSpan(
                   text: _isLogin ? 'Daftar sekarang' : 'Masuk di sini',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1A3A5C),
+                    color: c.isDark ? c.primary : const Color(0xFF1A3A5C),
                   ),
                 ),
               ],
@@ -452,14 +564,15 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Widget _buildLabel(String text) {
+    final c = AppColors.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 8, left: 4),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 13.5,
           fontWeight: FontWeight.w600,
-          color: Color(0xFF334155),
+          color: c.textSecondary,
         ),
       ),
     );
@@ -472,11 +585,12 @@ class _LoginScreenState extends State<LoginScreen>
     TextInputType? keyboardType,
     String? Function(String?)? validator,
   }) {
+    final c = AppColors.of(context);
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       validator: validator,
-      style: const TextStyle(fontSize: 14, color: Color(0xFF334155)),
+      style: TextStyle(fontSize: 14, color: c.textPrimary),
       decoration: _inputDecoration(hint: hint, icon: icon),
     );
   }
@@ -485,22 +599,23 @@ class _LoginScreenState extends State<LoginScreen>
     required String hint,
     required IconData? icon,
   }) {
+    final c = AppColors.of(context);
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+      hintStyle: TextStyle(color: c.textMuted, fontSize: 14),
       prefixIcon: icon != null
-          ? Icon(icon, color: const Color(0xFF94A3B8), size: 20)
+          ? Icon(icon, color: c.textMuted, size: 20)
           : null,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       filled: true,
-      fillColor: const Color(0xFFF8FAFC),
+      fillColor: c.isDark ? c.searchBar : const Color(0xFFF8FAFC),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+        borderSide: BorderSide(color: c.isDark ? c.divider : const Color(0xFFE2E8F0)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Color(0xFF1A3A5C), width: 1.5),
+        borderSide: BorderSide(color: c.primary, width: 1.5),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),

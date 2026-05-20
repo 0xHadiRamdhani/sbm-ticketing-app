@@ -1,9 +1,12 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../utils/app_colors.dart';
+import '../../providers/language_provider.dart';
 import 'admin_stats_screen.dart';
 import 'audit_log_screen.dart';
 import 'notification_templates_screen.dart';
+import 'active_devices_screen.dart';
 import 'export_reports_screen.dart';
 import 'user_management_screen.dart';
 import '../../services/audit_service.dart';
@@ -26,7 +29,6 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
   bool _isSelectionMode = false;
 
   final _filters = ['Semua', 'Open', 'In Progress', 'Resolved', 'Pending'];
-
 
   final List<String> _categories = [
     'Semua Kategori',
@@ -56,7 +58,7 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
       children: [
         // ── Search + Filter ─────────────────────────────────────────────
         Container(
-          color: Colors.white,
+          color: AppColors.of(context).surface,
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
           child: Column(
             children: [
@@ -66,20 +68,29 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
                     setState(() => _searchQuery = v.toLowerCase()),
                 decoration: InputDecoration(
                   hintText: 'Cari ID Tiket, Kategori, atau Pelapor...',
-                  hintStyle: const TextStyle(
-                      color: Color(0xFFADB5BD), fontSize: 13),
-                  prefixIcon: const Icon(Icons.search_rounded,
-                      color: Color(0xFF9CA3AF), size: 20),
-                  suffixIcon: const Icon(Icons.tune_rounded,
-                      color: Color(0xFF9CA3AF), size: 20),
+                  hintStyle: TextStyle(
+                    color: AppColors.of(context).textMuted,
+                    fontSize: 13,
+                  ),
+                  prefixIcon: Icon(
+                    Icons.search_rounded,
+                    color: AppColors.of(context).textMuted,
+                    size: 20,
+                  ),
+                  suffixIcon: Icon(
+                    Icons.tune_rounded,
+                    color: AppColors.of(context).textMuted,
+                    size: 20,
+                  ),
                   filled: true,
-                  fillColor: const Color(0xFFF3F4F6),
+                  fillColor: AppColors.of(context).background,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
                   ),
                   contentPadding: const EdgeInsets.symmetric(vertical: 10),
                 ),
+                style: TextStyle(color: AppColors.of(context).textPrimary),
               ),
               const SizedBox(height: 12),
               SizedBox(
@@ -92,20 +103,24 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
                     final opt = _filters[i];
                     final sel = (_selectedStatus ?? 'Semua') == opt;
                     return GestureDetector(
-                      onTap: () => setState(() => _selectedStatus = opt == 'Semua' ? null : opt),
+                      onTap: () => setState(
+                        () => _selectedStatus = opt == 'Semua' ? null : opt,
+                      ),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 18, vertical: 8),
+                          horizontal: 18,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
                           color: sel
-                              ? const Color(0xFF1A3A5C)
-                              : Colors.white,
+                              ? AppColors.of(context).primary
+                              : AppColors.of(context).surface,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
                             color: sel
-                                ? const Color(0xFF1A3A5C)
-                                : const Color(0xFFE5E7EB),
+                                ? AppColors.of(context).primary
+                                : AppColors.of(context).border,
                           ),
                         ),
                         child: Text(
@@ -115,7 +130,7 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
                             fontWeight: FontWeight.w600,
                             color: sel
                                 ? Colors.white
-                                : const Color(0xFF6B7280),
+                                : AppColors.of(context).textSecondary,
                           ),
                         ),
                       ),
@@ -130,27 +145,29 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF7F9FC),
+                        color: AppColors.of(context).background,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        border: Border.all(color: AppColors.of(context).border),
                       ),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
                           isExpanded: true,
-                          icon: const Icon(
+                          dropdownColor: AppColors.of(context).surface,
+                          icon: Icon(
                             Icons.keyboard_arrow_down_rounded,
-                            color: Color(0xFF94A3B8),
+                            color: AppColors.of(context).textMuted,
                             size: 20,
                           ),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
-                            color: Color(0xFF334155),
+                            color: AppColors.of(context).textPrimary,
                             fontWeight: FontWeight.w600,
                           ),
                           value: _selectedCategory ?? 'Semua Kategori',
                           items: _categories
                               .map(
-                                (c) => DropdownMenuItem(value: c, child: Text(c)),
+                                (c) =>
+                                    DropdownMenuItem(value: c, child: Text(c)),
                               )
                               .toList(),
                           onChanged: (val) {
@@ -169,27 +186,29 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF7F9FC),
+                        color: AppColors.of(context).background,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        border: Border.all(color: AppColors.of(context).border),
                       ),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
                           isExpanded: true,
-                          icon: const Icon(
+                          dropdownColor: AppColors.of(context).surface,
+                          icon: Icon(
                             Icons.keyboard_arrow_down_rounded,
-                            color: Color(0xFF94A3B8),
+                            color: AppColors.of(context).textMuted,
                             size: 20,
                           ),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
-                            color: Color(0xFF334155),
+                            color: AppColors.of(context).textPrimary,
                             fontWeight: FontWeight.w600,
                           ),
                           value: _selectedPriority ?? 'Semua Prioritas',
                           items: _priorities
                               .map(
-                                (p) => DropdownMenuItem(value: p, child: Text(p)),
+                                (p) =>
+                                    DropdownMenuItem(value: p, child: Text(p)),
                               )
                               .toList(),
                           onChanged: (val) {
@@ -262,6 +281,18 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
                 const SizedBox(width: 12),
                 _buildQuickAction(
                   context,
+                  icon: Icons.devices_rounded,
+                  label: 'Perangkat',
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ActiveDevicesScreen(),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                _buildQuickAction(
+                  context,
                   icon: Icons.bar_chart_rounded,
                   label: 'Statistik',
                   onTap: () => Navigator.push(
@@ -283,8 +314,10 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
             ).fetchTickets(role: 'admin'),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                  child: CircularProgressIndicator(color: Color(0xFF1A3A5C)),
+                return Center(
+                  child: CircularProgressIndicator(
+                    color: AppColors.of(context).primary,
+                  ),
                 );
               }
               if (snapshot.hasError) {
@@ -312,12 +345,16 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
                     t.priority == _selectedPriority;
                 bool matchStatus =
                     _selectedStatus == null || t.status == _selectedStatus;
-                bool matchSearch = _searchQuery.isEmpty ||
+                bool matchSearch =
+                    _searchQuery.isEmpty ||
                     t.ticketId.toLowerCase().contains(_searchQuery) ||
                     (t.location ?? '').toLowerCase().contains(_searchQuery) ||
                     t.category.toLowerCase().contains(_searchQuery) ||
                     (t.description).toLowerCase().contains(_searchQuery);
-                return matchCategory && matchPriority && matchStatus && matchSearch;
+                return matchCategory &&
+                    matchPriority &&
+                    matchStatus &&
+                    matchSearch;
               }).toList();
 
               // Stats
@@ -336,7 +373,7 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
                 children: [
                   // ── Statistics Cards ────────────────────────────────────────
                   Container(
-                    color: Colors.white,
+                    color: AppColors.of(context).surface,
                     padding: const EdgeInsets.only(
                       left: 16,
                       right: 16,
@@ -349,26 +386,26 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
                           _buildStatCard(
                             'Total',
                             total,
-                            const Color(0xFF0F172A),
-                            const Color(0xFFF1F5F9),
+                            AppColors.of(context).isDark ? const Color(0xFFE2E8F0) : const Color(0xFF0F172A),
+                            AppColors.of(context).isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
                           ),
                           _buildStatCard(
                             'Open',
                             open,
-                            const Color(0xFFDC2626),
-                            const Color(0xFFFEF2F2),
+                            AppColors.of(context).isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626),
+                            AppColors.of(context).isDark ? const Color(0xFF450A0A) : const Color(0xFFFEF2F2),
                           ),
                           _buildStatCard(
                             'In Progress',
                             inProgress,
-                            const Color(0xFFD97706),
-                            const Color(0xFFFFFBEB),
+                            AppColors.of(context).isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706),
+                            AppColors.of(context).isDark ? const Color(0xFF451A03) : const Color(0xFFFFFBEB),
                           ),
                           _buildStatCard(
                             'Resolved',
                             resolved,
-                            const Color(0xFF16A34A),
-                            const Color(0xFFF0FDF4),
+                            AppColors.of(context).isDark ? const Color(0xFF4ADE80) : const Color(0xFF16A34A),
+                            AppColors.of(context).isDark ? const Color(0xFF064E3B) : const Color(0xFFF0FDF4),
                           ),
                         ],
                       ),
@@ -378,7 +415,7 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
                   // ── Ticket List ─────────────────────────────────────────────
                   Expanded(
                     child: Container(
-                      color: const Color(0xFFF7F9FC),
+                      color: AppColors.of(context).background,
                       child: filteredTickets.isEmpty
                           ? const DashboardEmptyState(
                               icon: Icons.search_off_rounded,
@@ -391,7 +428,7 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
                                   const Duration(milliseconds: 500),
                                 );
                               },
-                              color: const Color(0xFF1A3A5C),
+                              color: AppColors.of(context).primary,
                               child: ListView.builder(
                                 padding: const EdgeInsets.all(16),
                                 itemCount: filteredTickets.length,
@@ -448,18 +485,19 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
     required String label,
     required VoidCallback onTap,
   }) {
+    final c = AppColors.of(context);
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: c.surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+          border: Border.all(color: c.border),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.02),
+              color: Colors.black.withOpacity(c.isDark ? 0.1 : 0.02),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -468,14 +506,14 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 18, color: const Color(0xFF1A3A5C)),
+            Icon(icon, size: 18, color: c.primary),
             const SizedBox(width: 8),
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1A3A5C),
+                color: c.primary,
               ),
             ),
           ],
@@ -492,7 +530,7 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A3A5C),
+        color: AppColors.of(context).primary,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -609,7 +647,6 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
     }
   }
 
-
   Widget _buildStatCard(String title, int count, Color fgColor, Color bgColor) {
     return Container(
       margin: const EdgeInsets.only(right: 12),
@@ -617,7 +654,7 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: fgColor.withOpacity(0.1)),
+        border: Border.all(color: fgColor.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -627,7 +664,7 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: fgColor.withOpacity(0.8),
+              color: fgColor.withValues(alpha: 0.8),
               letterSpacing: 0.5,
             ),
           ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../settings_screen.dart';
 import '../shared/ticket_card.dart';
+import '../../utils/app_colors.dart';
 import 'admin_tickets_screen.dart';
 import 'user_management_screen.dart';
 import 'admin_stats_screen.dart';
@@ -12,9 +13,11 @@ import '../shared/impersonation_banner.dart';
 class AdminDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FC),
+      backgroundColor: c.background,
       appBar: buildSbmAppBar(
+        context: context,
         onSettingsTap: () {
           Navigator.push(
             context,

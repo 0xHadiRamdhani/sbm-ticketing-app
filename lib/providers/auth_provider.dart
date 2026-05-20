@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
+import '../services/device_service.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
+  final DeviceService _deviceService = DeviceService();
   
   UserModel? _user;
   UserModel? _originalAdminUser;
@@ -19,7 +21,7 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> _initAuth() async {
     _authService.userStream.listen((firebaseUser) async {
-      if (isImpersonating) return; // Don't overwrite if impersonating
+      if (isImpersonating) return;
       try {
         if (firebaseUser == null) {
           _user = null;
@@ -27,9 +29,9 @@ class AuthProvider with ChangeNotifier {
           UserModel? fetchedUser = await _authService.getCurrentUser();
           if (fetchedUser != null) {
             _user = fetchedUser;
+            // Daftarkan perangkat saat ini secara otomatis
+            _deviceService.registerCurrentDevice(_user!.uid);
           } else {
-            // Failsafe: Jika fetch gagal tapi _user sudah disetel sebelumnya oleh login/register, 
-            // jangan hapus _user (Race condition protection).
             if (_user == null || _user!.uid != firebaseUser.uid) {
               _user = null;
             }
@@ -37,7 +39,6 @@ class AuthProvider with ChangeNotifier {
         }
       } catch (e) {
         debugPrint("Error fetching user data from Firestore: $e");
-        // Jangan hapus _user jika hanya error jaringan sementara
       } finally {
         _isLoading = false;
         notifyListeners();
@@ -72,7 +73,10 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<void> logout() async {
+    _originalAdminUser = null;
+    _user = null;
     await _authService.logout();
+    notifyListeners();
   }
 
   /// Kirim OTP ke nomor telepon.
@@ -137,6 +141,28 @@ class AuthProvider with ChangeNotifier {
         phoneNumber: _user!.phoneNumber,
         photoUrl: photoUrl,
       );
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> refreshUserData() async {
+    if (isImpersonating || _user == null) return;
+    try {
+      UserModel? fetchedUser = await _authService.getCurrentUser();
+      if (fetchedUser != null) {
+        _user = fetchedUser;
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint("Error refreshing user data: $e");
+    }
+  }
+
+  Future<void> changePassword(String currentPassword, String newPassword) async {
+    _setLoading(true);
+    try {
+      await _authService.changePassword(currentPassword, newPassword);
     } finally {
       _setLoading(false);
     }

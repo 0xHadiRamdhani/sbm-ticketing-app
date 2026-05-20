@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../../models/ticket_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/ticket_provider.dart';
+import '../../utils/app_colors.dart';
 import '../chat_screen.dart';
 import '../shared/ticket_card.dart';
 
@@ -184,6 +185,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     final user = Provider.of<AuthProvider>(context, listen: false).user;
     final isAdmin = user?.role == 'admin';
     final isResolved = widget.ticket.status == 'Resolved';
@@ -202,12 +204,13 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FC),
+      backgroundColor: c.background,
       appBar: buildSbmAppBar(
+        context: context,
         extraActions: [
           if (isAdmin)
             PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert, color: Color(0xFF475569)),
+              icon: Icon(Icons.more_vert, color: c.textSecondary),
               onSelected: (val) {
                 if (val == 'delete') _deleteTicket();
               },
@@ -232,7 +235,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             ),
           );
         },
-        backgroundColor: const Color(0xFF1A3A5C),
+        backgroundColor: c.primary,
         child: const Icon(
           Icons.chat_bubble_outline_rounded,
           color: Colors.white,
@@ -245,18 +248,18 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
           children: [
             GestureDetector(
               onTap: () => Navigator.pop(context),
-              child: const Row(
+              child: Row(
                 children: [
                   Icon(
                     Icons.arrow_back_ios_new,
-                    color: Color(0xFF475569),
+                    color: c.textSecondary,
                     size: 18,
                   ),
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   Text(
                     'Kembali ke Kotak Masuk',
                     style: TextStyle(
-                      color: Color(0xFF475569),
+                      color: c.textSecondary,
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                     ),
@@ -288,8 +291,8 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                 const SizedBox(width: 12),
                 Text(
                   shortId,
-                  style: const TextStyle(
-                    color: Color(0xFF64748B),
+                  style: TextStyle(
+                    color: c.textMuted,
                     fontSize: 14,
                   ),
                 ),
@@ -298,10 +301,10 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             const SizedBox(height: 12),
             Text(
               displayTitle,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF0F172A),
+                color: c.textPrimary,
               ),
             ),
             const SizedBox(height: 24),
@@ -310,25 +313,25 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             Container(
               width: double.infinity,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: c.surface,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                border: Border.all(color: c.border),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Padding(
-                    padding: EdgeInsets.all(20),
+                  Padding(
+                    padding: const EdgeInsets.all(20),
                     child: Text(
                       'Detail Laporan',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF0F172A),
+                        color: c.textPrimary,
                       ),
                     ),
                   ),
-                  const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                  Divider(height: 1, color: c.divider),
                   Padding(
                     padding: const EdgeInsets.all(20),
                     child: Column(
@@ -357,30 +360,30 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                               ' WIB',
                         ),
                         const SizedBox(height: 20),
-                        Container(
+                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF1F5F9),
+                            color: c.searchBar,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
+                              Text(
                                 'Deskripsi Kendala',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: Color(0xFF475569),
+                                  color: c.textSecondary,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
                               const SizedBox(height: 8),
                               Text(
                                 '"$displayDesc"',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 13,
-                                  color: Color(0xFF334155),
+                                  color: c.textPrimary,
                                   height: 1.5,
                                 ),
                               ),
@@ -418,9 +421,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                   width: double.infinity,
                   margin: const EdgeInsets.only(bottom: 20),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFF7ED),
+                    color: c.isDark ? const Color(0xFF2A2015) : const Color(0xFFFFF7ED),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFFED7AA)),
+                    border: Border.all(color: c.isDark ? const Color(0xFF4C3015) : const Color(0xFFFED7AA)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -429,16 +432,20 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                         padding: const EdgeInsets.all(16),
                         child: Row(
                           children: [
-                            const Icon(Icons.lock_outline, size: 18, color: Color(0xFFC2410C)),
+                            Icon(Icons.lock_outline, size: 18, color: c.isDark ? const Color(0xFFFB923C) : const Color(0xFFC2410C)),
                             const SizedBox(width: 8),
-                            const Text(
+                            Text(
                               'Catatan Internal Admin',
-                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFFC2410C)),
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: c.isDark ? const Color(0xFFFB923C) : const Color(0xFFC2410C),
+                              ),
                             ),
                           ],
                         ),
                       ),
-                      const Divider(height: 1, color: Color(0xFFFED7AA)),
+                      Divider(height: 1, color: c.isDark ? const Color(0xFF4C3015) : const Color(0xFFFED7AA)),
                       ListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
@@ -449,7 +456,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                           return Container(
                             padding: const EdgeInsets.all(16),
                             decoration: index != notes.length - 1 
-                              ? const BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xFFFED7AA), width: 0.5)))
+                              ? BoxDecoration(border: Border(bottom: BorderSide(color: c.isDark ? const Color(0xFF4C3015) : const Color(0xFFFED7AA), width: 0.5)))
                               : null,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -459,19 +466,30 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                                   children: [
                                     Text(
                                       data['author_name'] ?? 'Admin',
-                                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF9A3412)),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: c.isDark ? const Color(0xFFFDBA74) : const Color(0xFF9A3412),
+                                      ),
                                     ),
                                     if (time != null)
                                       Text(
                                         DateFormat('dd MMM, HH:mm').format(time),
-                                        style: const TextStyle(fontSize: 10, color: Color(0xFFC2410C)),
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: c.isDark ? const Color(0xFFFB923C) : const Color(0xFFC2410C),
+                                        ),
                                       ),
                                   ],
                                 ),
                                 const SizedBox(height: 6),
                                 Text(
                                   data['note'] ?? '-',
-                                  style: const TextStyle(fontSize: 13, color: Color(0xFF431407), height: 1.4),
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: c.isDark ? const Color(0xFFFED7AA) : const Color(0xFF431407),
+                                    height: 1.4,
+                                  ),
                                 ),
                               ],
                             ),
@@ -489,19 +507,19 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: c.surface,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                border: Border.all(color: c.border),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Pembaruan Status',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F172A),
+                      color: c.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -516,12 +534,12 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  const Text(
+                  Text(
                     'Catatan Perbaikan',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F172A),
+                      color: c.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -529,40 +547,40 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                     controller: _noteController,
                     maxLines: 4,
                     enabled: !isResolved,
-                    style: TextStyle(fontSize: 13, color: isResolved ? const Color(0xFF64748B) : const Color(0xFF0F172A)),
+                    style: TextStyle(fontSize: 13, color: isResolved ? c.textMuted : c.textPrimary),
                     decoration: InputDecoration(
                       hintText:
                           'Masukkan detail tindakan yang telah dilakukan...',
-                      hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
+                      hintStyle: TextStyle(color: c.textMuted),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                        borderSide: BorderSide(color: c.border),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                        borderSide: BorderSide(color: c.border),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Color(0xFF0F172A)),
+                        borderSide: BorderSide(color: c.primary),
                       ),
                       disabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                        borderSide: BorderSide(color: c.divider),
                       ),
-                      fillColor: isResolved ? const Color(0xFFF7F9FC) : Colors.transparent,
+                      fillColor: isResolved ? c.background : Colors.transparent,
                       filled: isResolved,
                       contentPadding: const EdgeInsets.all(16),
                     ),
                   ),
                   const SizedBox(height: 24),
 
-                  const Text(
+                  Text(
                     'Bukti Foto Perbaikan',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F172A),
+                      color: c.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -570,9 +588,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                   const SizedBox(height: 12),
                   _buildPhotoUploadBtn('Unggah Foto Sesudah', false, isResolved),
                   const SizedBox(height: 12),
-                  const Text(
+                  Text(
                     'Format didukung: JPG, PNG (Maks 5MB per foto)',
-                    style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                    style: TextStyle(fontSize: 11, color: c.textMuted),
                   ),
 
                   const SizedBox(height: 32),
@@ -585,7 +603,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                         child: ElevatedButton(
                           onPressed: tp.isLoading ? null : _submitUpdate,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF0F172A),
+                            backgroundColor: c.primary,
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -630,10 +648,11 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   }
 
   Widget _buildInfoRow(IconData icon, String label, String value) {
+    final c = AppColors.of(context);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20, color: const Color(0xFF64748B)),
+        Icon(icon, size: 20, color: c.textSecondary),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -641,16 +660,16 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             children: [
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: Color(0xFF64748B),
+                  color: c.textSecondary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: 2),
               Text(
                 value,
-                style: const TextStyle(fontSize: 14, color: Color(0xFF0F172A)),
+                style: TextStyle(fontSize: 14, color: c.textPrimary),
               ),
             ],
           ),
@@ -682,18 +701,19 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   }
 
   Widget _buildStatusChip(String title, IconData icon, bool isDisabled) {
+    final c = AppColors.of(context);
     bool isSelected = _selectedStatus == title;
     return GestureDetector(
       onTap: isDisabled ? null : () => setState(() => _selectedStatus = title),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF06B6D4) : (isDisabled ? const Color(0xFFF1F5F9) : Colors.white),
+          color: isSelected ? const Color(0xFF06B6D4) : (isDisabled ? c.divider : c.surface),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isSelected
                 ? const Color(0xFF06B6D4)
-                : (isDisabled ? const Color(0xFFE2E8F0) : const Color(0xFFCBD5E1)),
+                : (isDisabled ? c.divider : c.border),
           ),
         ),
         child: Row(
@@ -702,7 +722,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             Icon(
               icon,
               size: 16,
-              color: isSelected ? Colors.white : (isDisabled ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
+              color: isSelected ? Colors.white : (isDisabled ? c.textMuted : c.textSecondary),
             ),
             const SizedBox(width: 8),
             Text(
@@ -710,7 +730,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: isSelected ? Colors.white : (isDisabled ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
+                color: isSelected ? Colors.white : (isDisabled ? c.textMuted : c.textSecondary),
               ),
             ),
           ],
@@ -720,11 +740,11 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   }
 
   Widget _buildPhotoUploadBtn(String label, bool isBefore, bool isDisabled) {
+    final c = AppColors.of(context);
     XFile? file = isBefore ? _photoBefore : _photoAfter;
     String? existingUrl = isBefore
         ? widget.ticket.photoBeforeUrl
         : widget.ticket.photoAfterUrl;
-
 
     if (file != null || existingUrl != null) {
       return Container(
@@ -732,7 +752,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
         height: 100,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFCBD5E1)),
+          border: Border.all(color: c.border),
         ),
         child: Stack(
           fit: StackFit.expand,
@@ -773,16 +793,16 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
         width: double.infinity,
         height: 100,
         decoration: BoxDecoration(
-          color: const Color(0xFFF1F5F9),
+          color: c.divider,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+          border: Border.all(color: c.divider),
         ),
-        child: const Column(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.image_not_supported_outlined, color: Color(0xFF94A3B8), size: 28),
-            SizedBox(height: 8),
-            Text('Foto tidak tersedia', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13)),
+            Icon(Icons.image_not_supported_outlined, color: c.textMuted, size: 28),
+            const SizedBox(height: 8),
+            Text('Foto tidak tersedia', style: TextStyle(color: c.textMuted, fontSize: 13)),
           ],
         ),
       );
@@ -794,26 +814,26 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
         width: double.infinity,
         height: 100,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: c.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: const Color(0xFFCBD5E1),
+            color: c.border,
             style: BorderStyle.solid,
           ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.camera_alt_outlined,
-              color: Color(0xFF64748B),
+              color: c.textSecondary,
               size: 28,
             ),
             const SizedBox(height: 8),
             Text(
               label,
-              style: const TextStyle(
-                color: Color(0xFF475569),
+              style: TextStyle(
+                color: c.textSecondary,
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
               ),

@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:permission_handler/permission_handler.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/ticket_provider.dart';
 import '../shared/ticket_card.dart'; // untuk buildSbmAppBar
@@ -23,6 +25,16 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
   XFile? _imageFile;
   final ImagePicker _picker = ImagePicker();
 
+  late stt.SpeechToText _speech;
+  bool _isListening = false;
+  String _currentSpeechText = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _speech = stt.SpeechToText();
+  }
+
   @override
   void dispose() {
     _titleController.dispose();
@@ -38,6 +50,73 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
     );
     if (image != null) {
       setState(() => _imageFile = image);
+    }
+  }
+
+  void _listen() async {
+    if (!_isListening) {
+      // Pada beberapa OS (khususnya iOS), kita butuh Microphone dan Speech Recognition
+      var micStatus = await Permission.microphone.request();
+      if (micStatus.isPermanentlyDenied) {
+        openAppSettings();
+        return;
+      } else if (!micStatus.isGranted) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Izin mikrofon ditolak')),
+        );
+        return;
+      }
+      
+      var speechStatus = await Permission.speech.request();
+      if (speechStatus.isPermanentlyDenied) {
+        openAppSettings();
+        return;
+      } else if (!speechStatus.isGranted) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Izin pengenalan suara ditolak')),
+        );
+        return;
+      }
+
+      bool available = await _speech.initialize(
+        onStatus: (val) {
+          if (val == 'done' || val == 'notListening') {
+            if (mounted) setState(() => _isListening = false);
+          }
+        },
+        onError: (val) {
+          debugPrint('Speech onError: $val');
+          if (mounted) setState(() => _isListening = false);
+        },
+      );
+      if (available) {
+        setState(() {
+          _isListening = true;
+          _currentSpeechText = _descController.text;
+        });
+        _speech.listen(
+          onResult: (val) {
+            if (!mounted) return;
+            setState(() {
+              final newText = val.recognizedWords;
+              final prefix = _currentSpeechText.isNotEmpty && !_currentSpeechText.endsWith(' ') ? ' ' : '';
+              _descController.text = _currentSpeechText + prefix + newText;
+              _descController.selection = TextSelection.fromPosition(TextPosition(offset: _descController.text.length));
+            });
+          },
+        );
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Pengenalan suara tidak tersedia')),
+          );
+        }
+      }
+    } else {
+      setState(() => _isListening = false);
+      _speech.stop();
     }
   }
 
@@ -92,6 +171,12 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
             MaterialPageRoute(builder: (_) => SettingsScreen()),
           );
         }
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _listen,
+        backgroundColor: _isListening ? Colors.red : const Color(0xFF1E3A8A),
+        child: Icon(_isListening ? Icons.mic : Icons.mic_none, color: Colors.white),
+        tooltip: 'Voice-to-Ticket',
       ),
       // Menghapus bottomNavigationBar sesuai permintaan sebelumnya (hanya inbox)
       body: SingleChildScrollView(

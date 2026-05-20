@@ -117,7 +117,9 @@ class TicketService {
       final response = await http.post(
         Uri.parse('https://api.imgbb.com/1/upload'),
         body: {'key': '639f57d0cc80d6da8ddb0c1927ea1a8a', 'image': base64Image},
-      );
+      ).timeout(const Duration(seconds: 45), onTimeout: () {
+        throw Exception('Koneksi unggah foto lampiran tiket habis (Timeout).');
+      });
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
         return responseData['data']['url'];

@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import '../providers/auth_provider.dart';
+import '../utils/app_colors.dart';
 import 'shared/ticket_card.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -50,7 +51,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 title: const Text('Pilih dari Galeri'),
                 onTap: () async {
                   Navigator.pop(ctx);
-                  final image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+                  final image = await picker.pickImage(
+                    source: ImageSource.gallery,
+                    imageQuality: 70,
+                    maxWidth: 512,
+                    maxHeight: 512,
+                  );
                   if (image != null) setState(() => _selectedImage = image);
                 },
               ),
@@ -59,7 +65,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 title: const Text('Ambil dari Kamera'),
                 onTap: () async {
                   Navigator.pop(ctx);
-                  final image = await picker.pickImage(source: ImageSource.camera, imageQuality: 70);
+                  final image = await picker.pickImage(
+                    source: ImageSource.camera,
+                    imageQuality: 70,
+                    maxWidth: 512,
+                    maxHeight: 512,
+                  );
                   if (image != null) setState(() => _selectedImage = image);
                 },
               ),
@@ -77,7 +88,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       final response = await http.post(
         Uri.parse('https://api.imgbb.com/1/upload'),
         body: {'key': '639f57d0cc80d6da8ddb0c1927ea1a8a', 'image': base64Image},
-      );
+      ).timeout(const Duration(seconds: 45), onTimeout: () {
+        throw Exception('Koneksi unggah foto profil habis (Timeout).');
+      });
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
         return responseData['data']['url'];
@@ -138,6 +151,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget build(BuildContext context) {
     final user = Provider.of<AuthProvider>(context).user;
     if (user == null) return const SizedBox.shrink();
+    final c = AppColors.of(context);
 
     // Determine current photo to show
     ImageProvider? imageProvider;
@@ -148,7 +162,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FC),
+      backgroundColor: c.background,
       appBar: buildSbmAppBar(
         showBackButton: true,
         onBackPressed: () => Navigator.pop(context),
@@ -167,7 +181,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     width: 120,
                     height: 120,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE2E8F0),
+                      color: c.surfaceElevated,
                       shape: BoxShape.circle,
                       image: imageProvider != null
                           ? DecorationImage(
@@ -175,10 +189,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               fit: BoxFit.cover,
                             )
                           : null,
-                      border: Border.all(color: Colors.white, width: 4),
+                      border: Border.all(color: c.surface, width: 4),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withOpacity(c.isDark ? 0.2 : 0.1),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
@@ -188,10 +202,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ? Center(
                             child: Text(
                               user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 40,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF94A3B8),
+                                color: c.textMuted,
                               ),
                             ),
                           )
@@ -221,32 +235,33 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Nama Lengkap',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF64748B),
+                    color: c.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: _nameController,
+                  style: TextStyle(color: c.textPrimary),
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: Colors.white,
-                    prefixIcon: const Icon(Icons.person_outline, color: Color(0xFF94A3B8)),
+                    fillColor: c.surface,
+                    prefixIcon: Icon(Icons.person_outline, color: c.textMuted),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      borderSide: BorderSide(color: c.border),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      borderSide: BorderSide(color: c.border),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF1A3A5C), width: 1.5),
+                      borderSide: BorderSide(color: c.primary, width: 1.5),
                     ),
                   ),
                 ),
@@ -255,9 +270,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             const SizedBox(height: 24),
             
             // Fixed Info Fields (Email / Role)
-            _buildReadOnlyField('Email', user.email.isEmpty ? user.phoneNumber : user.email, Icons.email_outlined),
+            _buildReadOnlyField(context, 'Email', user.email.isEmpty ? user.phoneNumber : user.email, Icons.email_outlined),
             const SizedBox(height: 24),
-            _buildReadOnlyField('Peran (Role)', user.role.toUpperCase(), Icons.badge_outlined),
+            _buildReadOnlyField(context, 'Peran (Role)', user.role.toUpperCase(), Icons.badge_outlined),
 
             const SizedBox(height: 48),
 
@@ -296,16 +311,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Widget _buildReadOnlyField(String label, String value, IconData icon) {
+  Widget _buildReadOnlyField(BuildContext context, String label, String value, IconData icon) {
+    final c = AppColors.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF64748B),
+            color: c.textSecondary,
           ),
         ),
         const SizedBox(height: 8),
@@ -313,19 +329,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           decoration: BoxDecoration(
-            color: const Color(0xFFF1F5F9), // Light grey indicating read-only
+            color: c.surfaceElevated, // Light grey indicating read-only
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
+            border: Border.all(color: c.border),
           ),
           child: Row(
             children: [
-              Icon(icon, color: const Color(0xFF94A3B8), size: 20),
+              Icon(icon, color: c.textMuted, size: 20),
               const SizedBox(width: 12),
               Text(
                 value,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
-                  color: Color(0xFF64748B),
+                  color: c.textSecondary,
                 ),
               ),
             ],

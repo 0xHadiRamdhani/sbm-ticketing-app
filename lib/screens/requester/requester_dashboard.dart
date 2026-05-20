@@ -5,6 +5,7 @@ import '../../models/ticket_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/ticket_provider.dart';
 import '../../services/notification_service.dart';
+import '../../utils/app_colors.dart';
 import '../settings_screen.dart';
 import '../shared/ticket_card.dart';
 import '../shared/impersonation_banner.dart';
@@ -99,9 +100,10 @@ class _RequesterDashboardState extends State<RequesterDashboard> {
   @override
   Widget build(BuildContext context) {
     final user = Provider.of<AuthProvider>(context, listen: false).user;
+    final c = AppColors.of(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FC),
+      backgroundColor: c.background,
       appBar: buildSbmAppBar(
         onSettingsTap: () => Navigator.push(
           context,
@@ -124,25 +126,21 @@ class _RequesterDashboardState extends State<RequesterDashboard> {
           const ImpersonationBanner(),
           // ── Search + Filter ─────────────────────────────────────────────
           Container(
-            color: Colors.white,
+            color: c.surface,
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
             child: Column(
               children: [
                 TextField(
                   controller: _searchCtrl,
-                  onChanged: (v) =>
-                      setState(() => _searchQuery = v.toLowerCase()),
+                  onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
+                  style: TextStyle(color: c.textPrimary),
                   decoration: InputDecoration(
-                    hintText:
-                        'Cari tiket berdasarkan kategori atau lokasi...',
-                    hintStyle: const TextStyle(
-                        color: Color(0xFFADB5BD), fontSize: 13),
-                    prefixIcon: const Icon(Icons.search_rounded,
-                        color: Color(0xFF9CA3AF), size: 20),
-                    suffixIcon: const Icon(Icons.tune_rounded,
-                        color: Color(0xFF9CA3AF), size: 20),
+                    hintText: 'Cari tiket berdasarkan kategori atau lokasi...',
+                    hintStyle: TextStyle(color: c.textMuted, fontSize: 13),
+                    prefixIcon: Icon(Icons.search_rounded, color: c.textMuted, size: 20),
+                    suffixIcon: Icon(Icons.tune_rounded, color: c.textMuted, size: 20),
                     filled: true,
-                    fillColor: const Color(0xFFF3F4F6),
+                    fillColor: c.searchBar,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
@@ -164,17 +162,12 @@ class _RequesterDashboardState extends State<RequesterDashboard> {
                         onTap: () => setState(() => _filterStatus = opt),
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 18, vertical: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
                           decoration: BoxDecoration(
-                            color: sel
-                                ? const Color(0xFF1A3A5C)
-                                : Colors.white,
+                            color: sel ? c.chipSelected : c.chipUnselected,
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: sel
-                                  ? const Color(0xFF1A3A5C)
-                                  : const Color(0xFFE5E7EB),
+                              color: sel ? c.chipSelected : c.chipBorder,
                             ),
                           ),
                           child: Text(
@@ -182,9 +175,7 @@ class _RequesterDashboardState extends State<RequesterDashboard> {
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
-                              color: sel
-                                  ? Colors.white
-                                  : const Color(0xFF6B7280),
+                              color: sel ? Colors.white : c.textSecondary,
                             ),
                           ),
                         ),
