@@ -25,7 +25,7 @@ class _RequesterDashboardState extends State<RequesterDashboard> {
   bool _isFirstLoad = true;
   Map<String, TicketModel> _knownTickets = {};
 
-  final _filters = ['All', 'Open', 'In Progress', 'Resolved'];
+  final _filters = ['All', 'New', 'Assigned', 'In Progress', 'Pending', 'Resolved', 'Closed'];
 
   @override
   void initState() {
@@ -80,10 +80,14 @@ class _RequesterDashboardState extends State<RequesterDashboard> {
 
   String _statusLabelIndo(String status) {
     switch (status) {
-      case 'Open': return 'Diajukan';
+      case 'New': return 'Baru Masuk';
+      case 'Assigned': return 'Ditugaskan';
       case 'In Progress': return 'Diproses';
-      case 'Resolved': return 'Selesai';
-      case 'Pending': return 'Ditunda';
+      case 'Pending': return 'Menunggu Info';
+      case 'Resolved': return 'Menunggu Konfirmasi';
+      case 'Closed': return 'Selesai';
+      case 'Re-opened': return 'Dibuka Kembali';
+      case 'Open': return 'Diajukan';
       default: return status;
     }
   }

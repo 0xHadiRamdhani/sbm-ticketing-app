@@ -25,7 +25,7 @@ class _TechnicianMyReportsScreenState extends State<TechnicianMyReportsScreen> {
   bool _isFirstLoad = true;
   Map<String, TicketModel> _knownTickets = {};
 
-  final _filters = ['All', 'Open', 'In Progress', 'Resolved'];
+  final _filters = ['All', 'New', 'Assigned', 'In Progress', 'Pending', 'Resolved', 'Closed'];
 
   @override
   void initState() {

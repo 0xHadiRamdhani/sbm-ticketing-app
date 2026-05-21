@@ -24,6 +24,13 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
   bool _isWeeklyActive = true;
   bool _isMonthlyActive = false;
 
+  final List<String> _availableColumns = [
+    'ID Tiket', 'Tanggal', 'Kategori', 'Prioritas', 'Status', 'Lokasi', 'Deskripsi'
+  ];
+  final Set<String> _selectedColumns = {
+    'ID Tiket', 'Tanggal', 'Kategori', 'Prioritas', 'Status', 'Lokasi', 'Deskripsi'
+  };
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -163,14 +170,35 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
   Widget _buildColumnChips() {
     return Wrap(
       spacing: 8,
-      children: ['ID Tiket', 'Tgl Buat', 'Kategori', 'Prioritas', 'Status', 'Pelapor', 'Teknisi'].map((label) {
+      children: _availableColumns.map((label) {
+        final isSelected = _selectedColumns.contains(label);
         return FilterChip(
           label: Text(label, style: const TextStyle(fontSize: 11)),
-          selected: true,
-          onSelected: (_) {},
+          selected: isSelected,
+          onSelected: (selected) {
+            setState(() {
+              if (selected) {
+                _selectedColumns.add(label);
+              } else {
+                if (_selectedColumns.length > 1) {
+                  _selectedColumns.remove(label);
+                } else {
+                  AppNotifications.showNotification(
+                    context,
+                    title: 'Perhatian',
+                    message: 'Minimal satu kolom harus dipilih.',
+                    isError: true,
+                  );
+                }
+              }
+            });
+          },
           selectedColor: const Color(0xFF1A3A5C).withOpacity(0.1),
           checkmarkColor: const Color(0xFF1A3A5C),
-          labelStyle: const TextStyle(color: Color(0xFF1A3A5C), fontWeight: FontWeight.bold),
+          labelStyle: TextStyle(
+            color: isSelected ? const Color(0xFF1A3A5C) : const Color(0xFF64748B), 
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal
+          ),
           backgroundColor: const Color(0xFFF1F5F9),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         );
@@ -288,7 +316,7 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
         );
 
         // Header row
-        List<String> headers = ['ID Tiket', 'Tanggal', 'Kategori', 'Prioritas', 'Status', 'Lokasi', 'Deskripsi'];
+        List<String> headers = _availableColumns.where((col) => _selectedColumns.contains(col)).toList();
         for (var i = 0; i < headers.length; i++) {
           var cell = sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
           cell.value = TextCellValue(headers[i]);
@@ -299,14 +327,29 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
         for (var i = 0; i < tickets.length; i++) {
           var t = tickets[i];
           int rowIndex = i + 1;
+          int colIndex = 0;
           
-          sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: rowIndex)).value = TextCellValue(t.ticketId.substring(0, 8).toUpperCase());
-          sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: rowIndex)).value = TextCellValue(DateFormat('dd/MM/yyyy HH:mm').format(t.createdAt));
-          sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: rowIndex)).value = TextCellValue(t.category);
-          sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: rowIndex)).value = TextCellValue(t.priority);
-          sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: rowIndex)).value = TextCellValue(t.status);
-          sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: rowIndex)).value = TextCellValue(t.location ?? '-');
-          sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: rowIndex)).value = TextCellValue(t.description);
+          if (_selectedColumns.contains('ID Tiket')) {
+            sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: colIndex++, rowIndex: rowIndex)).value = TextCellValue(t.ticketId.substring(0, 8).toUpperCase());
+          }
+          if (_selectedColumns.contains('Tanggal')) {
+            sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: colIndex++, rowIndex: rowIndex)).value = TextCellValue(DateFormat('dd/MM/yyyy HH:mm').format(t.createdAt));
+          }
+          if (_selectedColumns.contains('Kategori')) {
+            sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: colIndex++, rowIndex: rowIndex)).value = TextCellValue(t.category);
+          }
+          if (_selectedColumns.contains('Prioritas')) {
+            sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: colIndex++, rowIndex: rowIndex)).value = TextCellValue(t.priority);
+          }
+          if (_selectedColumns.contains('Status')) {
+            sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: colIndex++, rowIndex: rowIndex)).value = TextCellValue(t.status);
+          }
+          if (_selectedColumns.contains('Lokasi')) {
+            sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: colIndex++, rowIndex: rowIndex)).value = TextCellValue(t.location ?? '-');
+          }
+          if (_selectedColumns.contains('Deskripsi')) {
+            sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: colIndex++, rowIndex: rowIndex)).value = TextCellValue(t.description);
+          }
         }
 
         final directory = await getTemporaryDirectory();
@@ -322,11 +365,23 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
       } else if (_selectedFormat.contains('CSV')) {
         // 3. Generate CSV
         StringBuffer csvContent = StringBuffer();
-        csvContent.writeln('ID Tiket,Tanggal,Kategori,Prioritas,Status,Lokasi,Deskripsi');
+        
+        List<String> headers = _availableColumns.where((col) => _selectedColumns.contains(col)).toList();
+        csvContent.writeln(headers.join(','));
         
         for (var t in tickets) {
-          String safeDesc = t.description.replaceAll('\n', ' ').replaceAll(',', ';').replaceAll('"', '""');
-          csvContent.writeln('${t.ticketId.substring(0, 8)},${DateFormat('dd/MM/yyyy HH:mm').format(t.createdAt)},${t.category},${t.priority},${t.status},${t.location ?? "-"},"$safeDesc"');
+          List<String> rowData = [];
+          if (_selectedColumns.contains('ID Tiket')) rowData.add(t.ticketId.substring(0, 8).toUpperCase());
+          if (_selectedColumns.contains('Tanggal')) rowData.add(DateFormat('dd/MM/yyyy HH:mm').format(t.createdAt));
+          if (_selectedColumns.contains('Kategori')) rowData.add(t.category);
+          if (_selectedColumns.contains('Prioritas')) rowData.add(t.priority);
+          if (_selectedColumns.contains('Status')) rowData.add(t.status);
+          if (_selectedColumns.contains('Lokasi')) rowData.add(t.location ?? "-");
+          if (_selectedColumns.contains('Deskripsi')) {
+            String safeDesc = t.description.replaceAll('\n', ' ').replaceAll(',', ';').replaceAll('"', '""');
+            rowData.add('"$safeDesc"');
+          }
+          csvContent.writeln(rowData.join(','));
         }
 
         final directory = await getTemporaryDirectory();

@@ -5,7 +5,7 @@ class TicketModel {
   final DateTime createdAt;
   final String category; // 'Laptop', 'Printer', 'Jaringan', 'Proyektor'
   final String description;
-  final String status; // 'Open', 'In Progress', 'Pending', 'Resolved'
+  final String status; // 'New', 'Assigned', 'In Progress', 'Pending', 'Resolved', 'Closed', 'Re-opened'
   final String priority; // 'Low', 'Medium', 'High'
   final String requesterId;
   final String? technicianId;
@@ -43,7 +43,7 @@ class TicketModel {
       createdAt: (data['created_at'] as Timestamp).toDate(),
       category: data['category'] ?? 'Lainnya',
       description: data['description'] ?? '',
-      status: data['status'] ?? 'Open',
+      status: data['status'] ?? 'New',
       priority: data['priority'] ?? 'Low',
       requesterId: data['requester_id'] ?? '',
       technicianId: data['technician_id'],

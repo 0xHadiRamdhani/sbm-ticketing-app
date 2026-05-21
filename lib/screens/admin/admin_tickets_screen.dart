@@ -29,8 +29,9 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
   final _searchCtrl = TextEditingController();
   final Set<String> _selectedTicketIds = {};
   bool _isSelectionMode = false;
+  bool _isAnalyticsExpanded = true;
 
-  final _filters = ['Semua', 'Open', 'In Progress', 'Resolved', 'Pending'];
+  final _filters = ['Semua', 'New', 'Assigned', 'In Progress', 'Pending', 'Resolved', 'Closed', 'Re-opened'];
 
   final List<String> _categories = [
     'Semua Kategori',
@@ -212,18 +213,18 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
                     ),
                   ),
                 ),
-                // const SizedBox(width: 12),
-                // _buildQuickAction(
-                //   context,
-                //   icon: Icons.file_download_outlined,
-                //   label: 'Ekspor',
-                //   onTap: () => Navigator.push(
-                //     context,
-                //     MaterialPageRoute(
-                //       builder: (_) => const ExportReportsScreen(),
-                //     ),
-                //   ),
-                // ),
+                const SizedBox(width: 12),
+                _buildQuickAction(
+                  context,
+                  icon: Icons.file_download_outlined,
+                  label: 'Ekspor',
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ExportReportsScreen(),
+                    ),
+                  ),
+                ),
                 const SizedBox(width: 12),
                 _buildQuickAction(
                   context,
@@ -300,20 +301,14 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
                 return matchCategory &&
                     matchPriority &&
                     matchStatus &&
-                    matchSearch;
+                      matchSearch;
               }).toList();
 
               // Stats
               int total = filteredTickets.length;
-              int open = filteredTickets
-                  .where((t) => t.status == 'Open')
-                  .length;
-              int inProgress = filteredTickets
-                  .where((t) => t.status == 'In Progress')
-                  .length;
-              int resolved = filteredTickets
-                  .where((t) => t.status == 'Resolved')
-                  .length;
+              int open = filteredTickets.where((t) => t.status == 'New' || t.status == 'Re-opened').length;
+              int inProgress = filteredTickets.where((t) => t.status == 'In Progress' || t.status == 'Assigned').length;
+              int resolved = filteredTickets.where((t) => t.status == 'Resolved' || t.status == 'Closed').length;
 
               return Column(
                 children: [
@@ -357,6 +352,7 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
                       ),
                     ),
                   ),
+                  _buildAnalyticsChart(allTickets),
                   _buildBulkActionBar(),
                   // ── Ticket List ─────────────────────────────────────────────
                   Expanded(
@@ -584,13 +580,25 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
   }
 
   Widget _buildStatCard(String title, int count, Color fgColor, Color bgColor) {
+    final isDark = AppColors.of(context).isDark;
     return Container(
       margin: const EdgeInsets.only(right: 12),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: bgColor,
+        // Gradient for premium look in dark mode, solid color in light mode
+        gradient: isDark
+            ? LinearGradient(colors: [bgColor.withOpacity(0.9), bgColor.withOpacity(0.6)])
+            : null,
+        color: isDark ? null : bgColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: fgColor.withValues(alpha: 0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -612,6 +620,169 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
               fontWeight: FontWeight.bold,
               color: fgColor,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAnalyticsChart(List<TicketModel> tickets) {
+    final now = DateTime.now();
+    final List<BarChartGroupData> barGroups = [];
+    final List<String> monthLabels = [];
+
+    for (int i = 5; i >= 0; i--) {
+      final date = DateTime(now.year, now.month - i, 1);
+      
+      final masuk = tickets.where((t) => 
+        t.createdAt.month == date.month && t.createdAt.year == date.year
+      ).length;
+      
+      final selesai = tickets.where((t) {
+        if (t.status != 'Resolved') return false;
+        final d = t.resolvedAt ?? t.createdAt;
+        return d.month == date.month && d.year == date.year;
+      }).length;
+      
+      barGroups.add(
+        BarChartGroupData(
+          x: 5 - i,
+          barRods: [
+            BarChartRodData(
+              toY: masuk.toDouble(),
+              color: AppColors.of(context).primary,
+              width: 10,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            BarChartRodData(
+              toY: selesai.toDouble(),
+              color: Colors.green,
+              width: 10,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ],
+        )
+      );
+      
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+      monthLabels.add(months[date.month - 1]);
+    }
+
+    double maxY = 10;
+    for (var group in barGroups) {
+      for (var rod in group.barRods) {
+        if (rod.toY > maxY) maxY = rod.toY;
+      }
+    }
+    maxY += 5;
+
+    return Container(
+      margin: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.of(context).surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.of(context).border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Tiket Masuk vs Selesai (6 Bulan)',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.of(context).textPrimary,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (_isAnalyticsExpanded) ...[
+                const SizedBox(width: 8),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(width: 10, height: 10, decoration: BoxDecoration(color: AppColors.of(context).primary, borderRadius: BorderRadius.circular(2))),
+                    const SizedBox(width: 4),
+                    Text('Masuk', style: TextStyle(fontSize: 10, color: AppColors.of(context).textSecondary)),
+                    const SizedBox(width: 8),
+                    Container(width: 10, height: 10, decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(2))),
+                    const SizedBox(width: 4),
+                    Text('Selesai', style: TextStyle(fontSize: 10, color: AppColors.of(context).textSecondary)),
+                  ],
+                ),
+              ],
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: () => setState(() => _isAnalyticsExpanded = !_isAnalyticsExpanded),
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: AppColors.of(context).primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: AnimatedRotation(
+                    turns: _isAnalyticsExpanded ? 0 : -0.5,
+                    duration: const Duration(milliseconds: 350),
+                    curve: Curves.easeOutCubic,
+                    child: Icon(
+                      Icons.keyboard_arrow_up_rounded,
+                      size: 18,
+                      color: AppColors.of(context).primary,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          AnimatedCrossFade(
+            duration: const Duration(milliseconds: 350),
+            firstCurve: Curves.easeOutCubic,
+            secondCurve: Curves.easeOutCubic,
+            sizeCurve: Curves.easeOutCubic,
+            crossFadeState: _isAnalyticsExpanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+            firstChild: Column(
+              children: [
+                const SizedBox(height: 16),
+                SizedBox(
+                  height: 150,
+                  child: BarChart(
+                    BarChartData(
+                      alignment: BarChartAlignment.spaceAround,
+                      maxY: maxY,
+                      barTouchData: BarTouchData(enabled: false),
+                      titlesData: FlTitlesData(
+                        show: true,
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            getTitlesWidget: (double value, _) {
+                              return Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: Text(
+                                  monthLabels[value.toInt()],
+                                  style: TextStyle(fontSize: 10, color: AppColors.of(context).textSecondary),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      ),
+                      gridData: const FlGridData(show: false),
+                      borderData: FlBorderData(show: false),
+                      barGroups: barGroups,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            secondChild: const SizedBox(width: double.infinity, height: 0),
           ),
         ],
       ),

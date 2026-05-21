@@ -33,10 +33,12 @@ class TicketService {
         return TicketModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
       }).toList();
 
-      // Technician base filter: Only see 'Open' tickets OR tickets assigned to them
+      // Technician base filter: Only see 'Assigned' or 'In Progress' tickets assigned to them, 
+      // or 'New' tickets if they are expected to pick them up (if that's the logic).
+      // Here we allow them to see 'New' tickets OR tickets assigned to them.
       if (role == 'technician') {
         tickets = tickets
-            .where((t) => t.status == 'Open' || t.technicianId == uid)
+            .where((t) => t.status == 'New' || t.technicianId == uid)
             .toList();
       }
 
@@ -91,7 +93,7 @@ class TicketService {
       createdAt: DateTime.now(),
       category: category,
       description: description,
-      status: 'Open',
+      status: 'New',
       priority: priority,
       requesterId: requesterId,
       imageUrl: imageUrl,
@@ -104,8 +106,8 @@ class TicketService {
 
     // Record initial status history
     await docRef.collection('status_history').add({
-      'status': 'Open',
-      'label': 'Diajukan',
+      'status': 'New',
+      'label': 'Baru',
       'timestamp': FieldValue.serverTimestamp(),
     });
   }
@@ -147,7 +149,7 @@ class TicketService {
     if (!docSnapshot.exists) return;
 
     final oldData = docSnapshot.data() as Map<String, dynamic>;
-    final oldStatus = oldData['status'] ?? 'Open';
+    final oldStatus = oldData['status'] ?? 'New';
     final oldNote = oldData['note'] ?? '';
 
     Map<String, dynamic> updateData = {'status': newStatus};
@@ -181,7 +183,7 @@ class TicketService {
 
     if (newStatus == 'Resolved') {
       updateData['resolved_at'] = FieldValue.serverTimestamp();
-    } else if (newStatus == 'In Progress' && oldStatus == 'Open') {
+    } else if (newStatus == 'In Progress' && (oldStatus == 'New' || oldStatus == 'Assigned' || oldStatus == 'Re-opened' || oldStatus == 'Pending')) {
       updateData['in_progress_at'] = FieldValue.serverTimestamp();
     }
 
@@ -249,14 +251,22 @@ class TicketService {
 
   String _getStatusLabel(String status) {
     switch (status) {
-      case 'Open':
-        return 'Diajukan';
+      case 'New':
+        return 'Baru Masuk';
+      case 'Assigned':
+        return 'Ditugaskan';
       case 'In Progress':
         return 'Diproses';
-      case 'Resolved':
-        return 'Selesai';
       case 'Pending':
-        return 'Ditunda';
+        return 'Menunggu Info User';
+      case 'Resolved':
+        return 'Menunggu Konfirmasi User';
+      case 'Closed':
+        return 'Selesai Sepenuhnya';
+      case 'Re-opened':
+        return 'Dibuka Kembali';
+      case 'Open':
+        return 'Diajukan'; // Legacy
       default:
         return status;
     }

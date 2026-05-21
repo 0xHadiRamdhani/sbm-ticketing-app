@@ -25,7 +25,7 @@ class _TechnicianDashboardState extends State<TechnicianDashboard> {
   bool _isFirstLoad = true;
   Set<String> _knownTickets = {};
 
-  final _filters = ['All', 'Assigned', 'In Progress', 'Completed'];
+  final _filters = ['All', 'New', 'Assigned', 'In Progress', 'Pending', 'Resolved', 'Closed'];
 
   @override
   void initState() {
@@ -36,7 +36,7 @@ class _TechnicianDashboardState extends State<TechnicianDashboard> {
   void _startNotifListener() {
     final tp = Provider.of<TicketProvider>(context, listen: false);
     final uid = Provider.of<AuthProvider>(context, listen: false).user?.uid;
-    _notifSub = tp.fetchTickets(role: 'technician', uid: uid, status: 'Open').listen(
+    _notifSub = tp.fetchTickets(role: 'technician', uid: uid, status: 'New').listen(
       (tickets) {
         if (_isFirstLoad) {
           _knownTickets = tickets.map((t) => t.ticketId).toSet();
@@ -106,15 +106,13 @@ class _TechnicianDashboardState extends State<TechnicianDashboard> {
                 }
 
                 final allTickets = snap.data ?? [];
-                final assignedCount  = allTickets.where((t) => t.status != 'Open' && t.status != 'Resolved').length;
-                final inProgressCount = allTickets.where((t) => t.status == 'In Progress').length;
-                final completedCount  = allTickets.where((t) => t.status == 'Resolved').length;
+                final assignedCount  = allTickets.where((t) => t.status == 'Assigned' || t.status == 'New').length;
+                final inProgressCount = allTickets.where((t) => t.status == 'In Progress' || t.status == 'Pending').length;
+                final completedCount  = allTickets.where((t) => t.status == 'Resolved' || t.status == 'Closed').length;
 
                 var displayedTickets = allTickets;
                 if (_filterStatus != 'All') {
                   displayedTickets = displayedTickets.where((t) {
-                    if (_filterStatus == 'Assigned')  return t.status != 'Open' && t.status != 'Resolved';
-                    if (_filterStatus == 'Completed') return t.status == 'Resolved';
                     return t.status == _filterStatus;
                   }).toList();
                 }

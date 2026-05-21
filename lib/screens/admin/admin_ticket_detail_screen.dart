@@ -644,14 +644,11 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
   }
 
   Widget _buildStatusChip(String status) {
-    Color color = const Color(0xFFF59E0B);
-    if (status.toLowerCase() == 'in progress') color = const Color(0xFF06B6D4);
-    if (status.toLowerCase() == 'resolved') color = const Color(0xFF10B981);
-    
+    Color color = statusDotColor(status);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(20)),
-      child: Text(status, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+      child: Text(statusLabel(status), style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
     );
   }
 

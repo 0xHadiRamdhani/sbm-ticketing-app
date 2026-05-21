@@ -162,10 +162,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   }
 
   Color _statusColor(String status) {
-    if (status.toLowerCase() == 'in progress')
-      return const Color(0xFF06B6D4); // Cyan color from image
-    if (status.toLowerCase() == 'resolved') return const Color(0xFF10B981);
-    return const Color(0xFFF59E0B);
+    return statusDotColor(status);
   }
 
   @override
@@ -512,8 +509,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                     spacing: 12,
                     runSpacing: 12,
                     children: [
-                      _buildStatusChip('Pending', Icons.access_time, isResolved),
+                      _buildStatusChip('Assigned', Icons.assignment_ind, isResolved),
                       _buildStatusChip('In Progress', Icons.build_outlined, isResolved),
+                      _buildStatusChip('Pending', Icons.access_time, isResolved),
                       _buildStatusChip('Resolved', Icons.check_circle_outline, isResolved),
                     ],
                   ),
@@ -693,11 +691,11 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF06B6D4) : (isDisabled ? c.divider : c.surface),
+          color: isSelected ? _statusColor(title) : (isDisabled ? c.divider : c.surface),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isSelected
-                ? const Color(0xFF06B6D4)
+                ? _statusColor(title)
                 : (isDisabled ? c.divider : c.border),
           ),
         ),

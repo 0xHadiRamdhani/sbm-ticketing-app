@@ -26,20 +26,28 @@ IconData categoryIcon(String category) {
 // ─── Status helpers ───────────────────────────────────────────────────────────
 Color statusDotColor(String s) {
   switch (s.toLowerCase()) {
-    case 'in progress': return const Color(0xFF1A73E8);
-    case 'resolved':    return const Color(0xFF1E8C45);
-    case 'pending':     return const Color(0xFFF29900);
-    case 'open':        return const Color(0xFF9E9E9E);
+    case 'new':         return const Color(0xFF6366F1); // Indigo
+    case 'assigned':    return const Color(0xFF8B5CF6); // Purple
+    case 'in progress': return const Color(0xFF3B82F6); // Blue
+    case 'pending':     return const Color(0xFFF59E0B); // Amber
+    case 'resolved':    return const Color(0xFF10B981); // Emerald
+    case 'closed':      return const Color(0xFF1F2937); // Dark Gray
+    case 're-opened':   return const Color(0xFFEF4444); // Red
+    case 'open':        return const Color(0xFF6366F1); // Legacy
     default:            return const Color(0xFF9E9E9E);
   }
 }
 
 String statusLabel(String s) {
   switch (s.toLowerCase()) {
+    case 'new':         return 'NEW';
+    case 'assigned':    return 'ASSIGNED';
     case 'in progress': return 'IN PROGRESS';
-    case 'resolved':    return 'RESOLVED';
     case 'pending':     return 'PENDING';
-    case 'open':        return 'OPEN';
+    case 'resolved':    return 'RESOLVED';
+    case 'closed':      return 'CLOSED';
+    case 're-opened':   return 'RE-OPENED';
+    case 'open':        return 'NEW'; // Mapping legacy to New
     default:            return s.toUpperCase();
   }
 }
@@ -91,12 +99,14 @@ class TicketCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 14),
         decoration: BoxDecoration(
           color: c.surface,
+          // Apply subtle gradient in dark mode for premium look
+          gradient: c.isDark ? const LinearGradient(colors: [Color(0xFF1E2836), Color(0xFF253347)]) : null,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(c.isDark ? 0.2 : 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
+              color: Colors.black.withOpacity(c.isDark ? 0.3 : 0.07),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
           ],
         ),

@@ -1199,9 +1199,6 @@ PODS:
     - Firebase/Firestore (~> 12.12.0)
     - firebase_core
     - FlutterMacOS
-  - CwlCatchException (2.2.1):
-    - CwlCatchExceptionSupport (~> 2.2.1)
-  - CwlCatchExceptionSupport (2.2.1)
   - file_selector_macos (0.0.1):
     - FlutterMacOS
   - Firebase/Auth (12.12.1):
@@ -1412,10 +1409,6 @@ PODS:
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
-  - speech_to_text (7.2.0):
-    - CwlCatchException
-    - Flutter
-    - FlutterMacOS
   - url_launcher_macos (0.0.1):
     - FlutterMacOS
 
@@ -1432,15 +1425,12 @@ DEPENDENCIES:
   - path_provider_foundation (from `Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin`)
   - share_plus (from `Flutter/ephemeral/.symlinks/plugins/share_plus/macos`)
   - shared_preferences_foundation (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin`)
-  - speech_to_text (from `Flutter/ephemeral/.symlinks/plugins/speech_to_text/darwin`)
   - url_launcher_macos (from `Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos`)
 
 SPEC REPOS:
   trunk:
     - abseil
     - BoringSSL-GRPC
-    - CwlCatchException
-    - CwlCatchExceptionSupport
     - Firebase
     - FirebaseAppCheckInterop
     - FirebaseAuth
@@ -1484,8 +1474,6 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/share_plus/macos
   shared_preferences_foundation:
     :path: Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin
-  speech_to_text:
-    :path: Flutter/ephemeral/.symlinks/plugins/speech_to_text/darwin
   url_launcher_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos
 
@@ -1493,8 +1481,6 @@ SPEC CHECKSUMS:
   abseil: a05cc83bf02079535e17169a73c5be5ba47f714b
   BoringSSL-GRPC: dded2a44897e45f28f08ae87a55ee4bcd19bc508
   cloud_firestore: c4b153f1a3eefe42401233198b0bf83d29fe86ff
-  CwlCatchException: 7acc161b299a6de7f0a46a6ed741eae2c8b4d75a
-  CwlCatchExceptionSupport: 54ccab8d8c78907b57f99717fb19d4cc3bce02dc
   file_selector_macos: 9e9e068e90ebee155097d00e89ae91edb2374db7
   Firebase: 14f11e91129d246a8a6166b4c1c2ea61b56806ec
   firebase_auth: 889d00265b2789b54ad2bd7cefb62d9d4aec024a
@@ -1523,7 +1509,6 @@ SPEC CHECKSUMS:
   path_provider_foundation: bb55f6dbba17d0dccd6737fe6f7f34fbd0376880
   share_plus: 510bf0af1a42cd602274b4629920c9649c52f4cc
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
-  speech_to_text: 3b313d98516d3d0406cea424782ec25470c59d19
   url_launcher_macos: f87a979182d112f911de6820aefddaf56ee9fbfd
 
 PODFILE CHECKSUM: 54d867c82ac51cbd61b565781b9fada492027009

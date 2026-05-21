@@ -81,26 +81,34 @@ class ThemeProvider with ChangeNotifier {
         ),
       );
 
-  // ── Dark Theme (tidak terlalu gelap — menggunakan nuansa abu-biru gelap) ──────
+  // ── Dark Theme (premium dark with subtle gradients) ──────
   static ThemeData get darkTheme => ThemeData(
         brightness: Brightness.dark,
         useMaterial3: true,
         fontFamily: 'Inter',
         colorScheme: const ColorScheme.dark(
-          primary: Color(0xFF4A90D9),
-          secondary: Color(0xFF60A5FA),
-          surface: Color(0xFF1E2836),     // Abu-biru gelap (bukan hitam pekat)
-          surfaceContainerHighest: Color(0xFF253347),
+          primary: Color(0xFF4A90D9), // Royal Blue accent
+          secondary: Color(0xFF60A5FA), // Light blue accent
+          surface: Color(0xFF1E2836), // Card surface
+          background: Color(0xFF0F111A), // Deep navy background for scaffold
+          surfaceContainerHighest: Color(0xFF253347), // Elevated surfaces
           onPrimary: Colors.white,
           onSurface: Color(0xFFE8EDF2),
+          onBackground: Color(0xFFE8EDF2),
         ),
-        scaffoldBackgroundColor: const Color(0xFF18222E), // Biru-gelap lembut
+        // Scaffold background with subtle gradient
+        scaffoldBackgroundColor: const Color(0xFF0F111A),
+        // Card color uses surface color, add slight elevation for depth
         cardColor: const Color(0xFF1E2836),
         appBarTheme: const AppBarTheme(
           centerTitle: true,
-          backgroundColor: Color(0xFF1A2A3F),
+          backgroundColor: Color(0xFF0F111A),
           foregroundColor: Color(0xFFE8EDF2),
           elevation: 0,
+          // Add a subtle bottom border gradient for visual interest
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(bottom: Radius.circular(12)),
+          ),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
