@@ -28,6 +28,7 @@ class _ChatScreenState extends State<ChatScreen> {
   late String currentUserId;
   final Map<String, String> _userNames = {};
   final Map<String, String> _userRoles = {};
+  final Map<String, String> _userPhotos = {};
 
   @override
   void initState() {
@@ -54,6 +55,8 @@ class _ChatScreenState extends State<ChatScreen> {
           setState(() {
             _userNames[id] = data['name'] ?? 'Pengguna';
             _userRoles[id] = data['role'] ?? '';
+            _userPhotos[id] =
+                data['photoUrl'] ?? data['profileUrl'] ?? data['avatar'] ?? '';
           });
         }
       } catch (e) {
@@ -98,26 +101,172 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final currentUser = authProvider.user;
+
+    String? targetUserId;
+    String defaultName = 'SBM IT Support';
+
+    if (currentUser?.role == 'student' ||
+        currentUser?.role == 'staff' ||
+        currentUser?.uid == widget.ticket.requesterId) {
+      targetUserId = widget.ticket.technicianId;
+    } else {
+      targetUserId = widget.ticket.requesterId;
+    }
+
+    String contactName = defaultName;
+    if (targetUserId != null && _userNames.containsKey(targetUserId)) {
+      contactName = _userNames[targetUserId]!;
+    }
+
+    String contactRoleLabel = 'Online';
+    if (targetUserId != null && _userRoles.containsKey(targetUserId)) {
+      final role = _userRoles[targetUserId]!;
+      if (role == 'technician')
+        contactRoleLabel = 'Teknisi';
+      else if (role == 'admin')
+        contactRoleLabel = 'Admin';
+      else if (role == 'student')
+        contactRoleLabel = 'Mahasiswa';
+      else if (role == 'staff')
+        contactRoleLabel = 'Dosen / Staff';
+    }
+
+    String contactPhoto = '';
+    if (targetUserId != null && _userPhotos.containsKey(targetUserId)) {
+      contactPhoto = _userPhotos[targetUserId]!;
+    }
+
     return Scaffold(
       backgroundColor: c.background,
-      appBar: buildSbmAppBar(
-        context: context,
-        showBackButton: true,
-        onBackPressed: () => Navigator.pop(context),
-        titleText: 'Chat Tiket #${widget.ticket.ticketId.substring(0, 5)}',
-        extraActions: [
+      appBar: AppBar(
+        backgroundColor: c.appBarBg,
+        elevation: 1,
+        shadowColor: c.appBarShadow,
+        titleSpacing: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: c.primary),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Row(
+          children: [
+            CircleAvatar(
+              radius: 18,
+              backgroundColor: c.primaryLight,
+              backgroundImage: contactPhoto.isNotEmpty
+                  ? NetworkImage(contactPhoto)
+                  : null,
+              child: contactPhoto.isEmpty
+                  ? (contactName == 'SBM IT Support'
+                        ? Icon(
+                            Icons.support_agent_rounded,
+                            color: c.primary,
+                            size: 22,
+                          )
+                        : Text(
+                            contactName.isNotEmpty
+                                ? contactName[0].toUpperCase()
+                                : '?',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: c.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ))
+                  : null,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    contactName,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: c.appBarFg,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    contactRoleLabel,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: c.appBarFg.withValues(alpha: 0.7),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
           IconButton(
-            icon: Icon(Icons.info_outline_rounded, color: c.appBarFg),
+            icon: Icon(Icons.videocam, color: c.primary),
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Row(
+                    children: [
+                      Icon(
+                        Icons.videocam_off_rounded,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                      SizedBox(width: 10),
+                      Text('Video Call — Coming Soon! '),
+                    ],
+                  ),
+                  backgroundColor: c.primary,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  margin: const EdgeInsets.all(16),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.call, color: c.primary),
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Row(
+                    children: [
+                      Icon(
+                        Icons.phone_disabled_rounded,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                      SizedBox(width: 10),
+                      Text('Voice Call — Coming Soon! '),
+                    ],
+                  ),
+                  backgroundColor: c.primary,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  margin: const EdgeInsets.all(16),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.info_outline_rounded, color: c.primary),
             tooltip: 'Detail Tiket',
             onPressed: () {
-              final user = Provider.of<AuthProvider>(
-                context,
-                listen: false,
-              ).user;
-              if (user?.role == 'student' ||
-                  user?.role == 'staff' ||
-                  (user?.role == 'technician' &&
-                      user?.uid == widget.ticket.requesterId)) {
+              if (currentUser?.role == 'student' ||
+                  currentUser?.role == 'staff' ||
+                  (currentUser?.role == 'technician' &&
+                      currentUser?.uid == widget.ticket.requesterId)) {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -125,7 +274,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         RequesterTicketDetailScreen(ticket: widget.ticket),
                   ),
                 );
-              } else if (user?.role == 'admin') {
+              } else if (currentUser?.role == 'admin') {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -245,6 +394,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final c = AppColors.of(context);
     final senderName = _userNames[message.senderId] ?? '...';
     final senderRole = _userRoles[message.senderId] ?? '';
+    final senderPhoto = _userPhotos[message.senderId] ?? '';
     final roleLabel = senderRole == 'technician'
         ? 'Teknisi'
         : (senderRole == 'admin' ? 'Admin' : '');
@@ -353,14 +503,19 @@ class _ChatScreenState extends State<ChatScreen> {
             CircleAvatar(
               radius: 16,
               backgroundColor: c.primaryLight,
-              child: Text(
-                senderName.isNotEmpty ? senderName[0].toUpperCase() : '?',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: c.primary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              backgroundImage: senderPhoto.isNotEmpty
+                  ? NetworkImage(senderPhoto)
+                  : null,
+              child: senderPhoto.isEmpty
+                  ? Text(
+                      senderName.isNotEmpty ? senderName[0].toUpperCase() : '?',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: c.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )
+                  : null,
             ),
           ],
         ],

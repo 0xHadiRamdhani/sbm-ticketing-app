@@ -115,9 +115,11 @@ class TicketCard extends StatelessWidget {
           : Future.value(null),
       builder: (context, snapshot) {
         String contactName = defaultName;
+        String? photoUrl;
         if (snapshot.hasData && snapshot.data != null && snapshot.data!.exists) {
           final data = snapshot.data!.data() as Map<String, dynamic>;
           contactName = data['name'] ?? 'Pengguna';
+          photoUrl = data['photoUrl'] ?? data['profileUrl'] ?? data['avatar'];
         } else if (targetUserId != null && targetUserId.isNotEmpty) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             contactName = 'Memuat...';
@@ -159,16 +161,21 @@ class TicketCard extends StatelessWidget {
                     CircleAvatar(
                       radius: 25,
                       backgroundColor: c.primaryLight,
-                      child: contactName == 'SBM IT Support'
-                          ? Icon(Icons.support_agent_rounded, color: c.primary, size: 28)
-                          : Text(
-                              contactName.isNotEmpty ? contactName[0].toUpperCase() : '?',
-                              style: TextStyle(
-                                fontSize: 20,
-                                color: c.primary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                      backgroundImage: photoUrl != null && photoUrl.isNotEmpty
+                          ? NetworkImage(photoUrl)
+                          : null,
+                      child: photoUrl == null || photoUrl.isEmpty
+                          ? (contactName == 'SBM IT Support'
+                              ? Icon(Icons.support_agent_rounded, color: c.primary, size: 28)
+                              : Text(
+                                  contactName.isNotEmpty ? contactName[0].toUpperCase() : '?',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    color: c.primary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ))
+                          : null,
                     ),
                     const SizedBox(width: 14),
                     

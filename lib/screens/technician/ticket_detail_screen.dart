@@ -210,21 +210,21 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ChatScreen(ticket: widget.ticket),
-            ),
-          );
-        },
-        backgroundColor: c.primary,
-        child: const Icon(
-          Icons.chat_bubble_outline_rounded,
-          color: Colors.white,
-        ),
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () {
+      //     Navigator.push(
+      //       context,
+      //       MaterialPageRoute(
+      //         builder: (context) => ChatScreen(ticket: widget.ticket),
+      //       ),
+      //     );
+      //   },
+      //   backgroundColor: c.primary,
+      //   child: const Icon(
+      //     Icons.chat_bubble_outline_rounded,
+      //     color: Colors.white,
+      //   ),
+      // ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         child: Column(
@@ -241,7 +241,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Kembali ke Kotak Masuk',
+                    'Kembali ke inbox',
                     style: TextStyle(
                       color: c.textSecondary,
                       fontSize: 13,
