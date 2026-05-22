@@ -146,7 +146,7 @@ class _ChatScreenState extends State<ChatScreen> {
         shadowColor: c.appBarShadow,
         titleSpacing: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: c.primary),
+          icon: Icon(Icons.arrow_back_ios_new, color: c.primary),
           onPressed: () => Navigator.pop(context),
         ),
         title: Row(
