@@ -109,7 +109,7 @@ class TicketCard extends StatelessWidget {
       targetUserId = ticket.requesterId; // Show requester to technician/admin
     }
 
-    return FutureBuilder<DocumentSnapshot>(
+    return FutureBuilder<DocumentSnapshot?>(
       future: targetUserId != null && targetUserId.isNotEmpty
           ? FirebaseFirestore.instance.collection('users').doc(targetUserId).get()
           : Future.value(null),
