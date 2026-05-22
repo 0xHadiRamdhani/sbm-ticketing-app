@@ -240,7 +240,7 @@ class _TechnicianDashboardState extends State<TechnicianDashboard> {
                               },
                               color: c.primary,
                               child: ListView.builder(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                padding: const EdgeInsets.symmetric(vertical: 8),
                                 itemCount: displayedTickets.length,
                                 itemBuilder: (_, i) {
                                   final ticket = displayedTickets[i];

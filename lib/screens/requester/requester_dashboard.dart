@@ -247,8 +247,7 @@ class _RequesterDashboardState extends State<RequesterDashboard> {
                   },
                   color: const Color(0xFF1A3A5C),
                   child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
                     itemCount: tickets.length,
                     itemBuilder: (_, i) {
                       final ticket = tickets[i];

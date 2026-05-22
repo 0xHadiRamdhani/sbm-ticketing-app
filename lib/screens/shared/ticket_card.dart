@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import '../technician/ticket_detail_screen.dart';
 import '../requester/requester_ticket_detail_screen.dart';
 import '../admin/admin_ticket_detail_screen.dart';
+import '../chat_screen.dart';
 
 // ─── Category Icons ───────────────────────────────────────────────────────────
 IconData categoryIcon(String category) {
@@ -61,7 +62,6 @@ String timeAgo(DateTime dt) {
   return 'Update ${diff.inDays} hari lalu';
 }
 
-// ─── Ticket Card ──────────────────────────────────────────────────────────────
 class TicketCard extends StatelessWidget {
   final TicketModel ticket;
   final bool isSelectionMode;
@@ -76,201 +76,197 @@ class TicketCard extends StatelessWidget {
     this.onSelect,
   });
 
+  String _formatChatTime(DateTime dt) {
+    final now = DateTime.now();
+    final diff = now.difference(dt);
+    if (diff.inDays == 0 && now.day == dt.day) {
+      return "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
+    } else if (diff.inDays == 1 || (diff.inDays == 0 && now.day != dt.day)) {
+      return 'Kemarin';
+    } else {
+      return "${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year.toString().substring(2)}";
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
-    final shortId =
-        '#TKT-${ticket.ticketId.substring(0, 4).toUpperCase()}-${ticket.ticketId.substring(4, 8).toUpperCase()}';
+    final isDark = c.isDark;
+    final shortId = '#TKT-${ticket.ticketId.substring(0, 4).toUpperCase()}';
 
-    return GestureDetector(
-      onTap: isSelectionMode 
-          ? () => onSelect?.call(!isSelected)
-          : () {
-        final user = Provider.of<AuthProvider>(context, listen: false).user;
-        if (user?.role == 'student' || user?.role == 'staff' || (user?.role == 'technician' && user?.uid == ticket.requesterId)) {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => RequesterTicketDetailScreen(ticket: ticket)));
-        } else if (user?.role == 'admin') {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => AdminTicketDetailScreen(ticket: ticket)));
-        } else {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => TicketDetailScreen(ticket: ticket)));
+    // WhatsApp tick color
+    final tickColor = ticket.status == 'Resolved' ? const Color(0xFF53BDEB) : c.textMuted;
+    
+    final currentUser = Provider.of<AuthProvider>(context, listen: false).user;
+    
+    // Determine whose profile to show
+    String? targetUserId;
+    String defaultName = 'SBM IT Support';
+    
+    if (currentUser?.role == 'student' || currentUser?.role == 'staff' || currentUser?.uid == ticket.requesterId) {
+      targetUserId = ticket.technicianId; // Show technician to requester
+    } else {
+      targetUserId = ticket.requesterId; // Show requester to technician/admin
+    }
+
+    return FutureBuilder<DocumentSnapshot>(
+      future: targetUserId != null && targetUserId.isNotEmpty
+          ? FirebaseFirestore.instance.collection('users').doc(targetUserId).get()
+          : Future.value(null),
+      builder: (context, snapshot) {
+        String contactName = defaultName;
+        if (snapshot.hasData && snapshot.data != null && snapshot.data!.exists) {
+          final data = snapshot.data!.data() as Map<String, dynamic>;
+          contactName = data['name'] ?? 'Pengguna';
+        } else if (targetUserId != null && targetUserId.isNotEmpty) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            contactName = 'Memuat...';
+          } else {
+            contactName = 'Pengguna';
+          }
         }
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 14),
-        decoration: BoxDecoration(
-          color: c.surface,
-          // Apply subtle gradient in dark mode for premium look
-          gradient: c.isDark ? const LinearGradient(colors: [Color(0xFF1E2836), Color(0xFF253347)]) : null,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(c.isDark ? 0.3 : 0.07),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            // ── Header ────────────────────────────────────────────────────
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: c.cardHeader,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-              ),
-              child: Row(
-                children: [
-                  Text(
-                    shortId,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: c.primary,
+
+        return InkWell(
+          onTap: isSelectionMode 
+              ? () => onSelect?.call(!isSelected)
+              : () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => ChatScreen(ticket: ticket)));
+          },
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: isSelected ? (isDark ? Colors.white10 : Colors.black.withOpacity(0.05)) : Colors.transparent,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    if (isSelectionMode) ...[
+                      SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: Checkbox(
+                          value: isSelected,
+                          onChanged: onSelect,
+                          activeColor: const Color(0xFF00A884),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                    ],
+                    // Avatar
+                    CircleAvatar(
+                      radius: 25,
+                      backgroundColor: c.primaryLight,
+                      child: contactName == 'SBM IT Support'
+                          ? Icon(Icons.support_agent_rounded, color: c.primary, size: 28)
+                          : Text(
+                              contactName.isNotEmpty ? contactName[0].toUpperCase() : '?',
+                              style: TextStyle(
+                                fontSize: 20,
+                                color: c.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                     ),
-                  ),
-                  if (isSelectionMode) ...[
-                    const SizedBox(width: 12),
-                    SizedBox(
-                      height: 24,
-                      width: 24,
-                      child: Checkbox(
-                        value: isSelected,
-                        onChanged: onSelect,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                        activeColor: c.primary,
+                    const SizedBox(width: 14),
+                    
+                    // Name and Message
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              // Contact Name
+                              Expanded(
+                                child: Text(
+                                  contactName,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: c.textPrimary,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              // Time
+                              Text(
+                                _formatChatTime(ticket.createdAt),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: ticket.status == 'New' ? const Color(0xFF00A884) : c.textMuted,
+                                  fontWeight: ticket.status == 'New' ? FontWeight.bold : FontWeight.normal,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              // Checkmarks
+                              Icon(
+                                ticket.status == 'Resolved' ? Icons.done_all : Icons.check,
+                                size: 16,
+                                color: tickColor,
+                              ),
+                              const SizedBox(width: 4),
+                              // Message preview
+                              Expanded(
+                                child: Text(
+                                  ticket.description,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: c.textSecondary,
+                                  ),
+                                ),
+                              ),
+                              // Unread badge or status label
+                              if (ticket.status != 'Resolved' && ticket.status != 'Closed') ...[
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: statusDotColor(ticket.status),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Text(
+                                    statusLabel(ticket.status),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
                       ),
                     ),
                   ],
-                  const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: statusDotColor(ticket.status).withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 7,
-                          height: 7,
-                          decoration: BoxDecoration(
-                            color: statusDotColor(ticket.status),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 5),
-                        Text(
-                          statusLabel(ticket.status),
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: statusDotColor(ticket.status),
-                            letterSpacing: 0.3,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-
-            // ── Content ───────────────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(14, 14, 14, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: c.accentLight,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(categoryIcon(ticket.category),
-                            size: 22, color: c.accent),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              ticket.category.toUpperCase(),
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                color: c.textLabel,
-                                letterSpacing: 0.8,
-                              ),
-                            ),
-                            const SizedBox(height: 3),
-                            Text(
-                              ticket.description.length > 40
-                                  ? '${ticket.description.substring(0, 40)}...'
-                                  : ticket.description,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: c.textPrimary,
-                                height: 1.3,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  if (ticket.location != null && ticket.location!.isNotEmpty)
-                    TicketInfoRow(icon: Icons.location_on_outlined, text: ticket.location!),
-                  RequesterInfoRow(requesterId: ticket.requesterId),
-                ],
+              Padding(
+                padding: const EdgeInsets.only(left: 80, right: 16),
+                child: Divider(
+                  height: 1,
+                  thickness: 0.5,
+                  color: isDark ? Colors.white10 : Colors.black12,
+                ),
               ),
-            ),
-
-            // ── Footer ────────────────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              child: Row(
-                children: [
-                  Text(
-                    timeAgo(ticket.createdAt),
-                    style: TextStyle(fontSize: 12, color: c.textMuted),
-                  ),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: () {
-                      final user = Provider.of<AuthProvider>(context, listen: false).user;
-                      if (user?.role == 'student' || user?.role == 'staff' || (user?.role == 'technician' && user?.uid == ticket.requesterId)) {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => RequesterTicketDetailScreen(ticket: ticket)));
-                      } else if (user?.role == 'admin') {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => AdminTicketDetailScreen(ticket: ticket)));
-                      } else {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => TicketDetailScreen(ticket: ticket)));
-                      }
-                    },
-                    child: Text(
-                      'Detail',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: c.accent,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+            ],
+          ),
+        );
+      }
     );
   }
 }

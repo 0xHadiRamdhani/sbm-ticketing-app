@@ -103,14 +103,16 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
     final tp = Provider.of<TicketProvider>(context, listen: false);
     final user = Provider.of<AuthProvider>(context, listen: false).user;
 
-    bool hasBefore = _photoBefore != null || widget.ticket.photoBeforeUrl != null;
+    bool hasBefore =
+        _photoBefore != null || widget.ticket.photoBeforeUrl != null;
     bool hasAfter = _photoAfter != null || widget.ticket.photoAfterUrl != null;
 
     if (_selectedStatus == 'Resolved' && (!hasBefore || !hasAfter)) {
       AppNotifications.showNotification(
         context,
         title: 'Foto Wajib',
-        message: 'Harap unggah foto sebelum dan sesudah perbaikan untuk status Resolved.',
+        message:
+            'Harap unggah foto sebelum dan sesudah perbaikan untuk status Resolved.',
         isError: true,
       );
       return;
@@ -273,10 +275,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                 const SizedBox(width: 12),
                 Text(
                   shortId,
-                  style: TextStyle(
-                    color: c.textMuted,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: c.textMuted, fontSize: 14),
                 ),
               ],
             ),
@@ -342,7 +341,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                               ' WIB',
                         ),
                         const SizedBox(height: 20),
-                         Container(
+                        Container(
                           width: double.infinity,
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -391,21 +390,33 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            
+
             // Catatan Internal Section (Read-only for Technician)
             StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('tickets').doc(widget.ticket.ticketId).collection('internal_notes').orderBy('timestamp', descending: true).snapshots(),
+              stream: FirebaseFirestore.instance
+                  .collection('tickets')
+                  .doc(widget.ticket.ticketId)
+                  .collection('internal_notes')
+                  .orderBy('timestamp', descending: true)
+                  .snapshots(),
               builder: (context, snapshot) {
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) return const SizedBox.shrink();
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty)
+                  return const SizedBox.shrink();
                 final notes = snapshot.data!.docs;
-                
+
                 return Container(
                   width: double.infinity,
                   margin: const EdgeInsets.only(bottom: 20),
                   decoration: BoxDecoration(
-                    color: c.isDark ? const Color(0xFF2A2015) : const Color(0xFFFFF7ED),
+                    color: c.isDark
+                        ? const Color(0xFF2A2015)
+                        : const Color(0xFFFFF7ED),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: c.isDark ? const Color(0xFF4C3015) : const Color(0xFFFED7AA)),
+                    border: Border.all(
+                      color: c.isDark
+                          ? const Color(0xFF4C3015)
+                          : const Color(0xFFFED7AA),
+                    ),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -414,52 +425,84 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                         padding: const EdgeInsets.all(16),
                         child: Row(
                           children: [
-                            Icon(Icons.lock_outline, size: 18, color: c.isDark ? const Color(0xFFFB923C) : const Color(0xFFC2410C)),
+                            Icon(
+                              Icons.lock_outline,
+                              size: 18,
+                              color: c.isDark
+                                  ? const Color(0xFFFB923C)
+                                  : const Color(0xFFC2410C),
+                            ),
                             const SizedBox(width: 8),
                             Text(
                               'Catatan Internal Admin',
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
-                                color: c.isDark ? const Color(0xFFFB923C) : const Color(0xFFC2410C),
+                                color: c.isDark
+                                    ? const Color(0xFFFB923C)
+                                    : const Color(0xFFC2410C),
                               ),
                             ),
                           ],
                         ),
                       ),
-                      Divider(height: 1, color: c.isDark ? const Color(0xFF4C3015) : const Color(0xFFFED7AA)),
+                      Divider(
+                        height: 1,
+                        color: c.isDark
+                            ? const Color(0xFF4C3015)
+                            : const Color(0xFFFED7AA),
+                      ),
                       ListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: notes.length,
                         itemBuilder: (context, index) {
-                          final data = notes[index].data() as Map<String, dynamic>;
-                          final time = data['timestamp'] != null ? (data['timestamp'] as Timestamp).toDate() : null;
+                          final data =
+                              notes[index].data() as Map<String, dynamic>;
+                          final time = data['timestamp'] != null
+                              ? (data['timestamp'] as Timestamp).toDate()
+                              : null;
                           return Container(
                             padding: const EdgeInsets.all(16),
-                            decoration: index != notes.length - 1 
-                              ? BoxDecoration(border: Border(bottom: BorderSide(color: c.isDark ? const Color(0xFF4C3015) : const Color(0xFFFED7AA), width: 0.5)))
-                              : null,
+                            decoration: index != notes.length - 1
+                                ? BoxDecoration(
+                                    border: Border(
+                                      bottom: BorderSide(
+                                        color: c.isDark
+                                            ? const Color(0xFF4C3015)
+                                            : const Color(0xFFFED7AA),
+                                        width: 0.5,
+                                      ),
+                                    ),
+                                  )
+                                : null,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
                                       data['author_name'] ?? 'Admin',
                                       style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
-                                        color: c.isDark ? const Color(0xFFFDBA74) : const Color(0xFF9A3412),
+                                        color: c.isDark
+                                            ? const Color(0xFFFDBA74)
+                                            : const Color(0xFF9A3412),
                                       ),
                                     ),
                                     if (time != null)
                                       Text(
-                                        DateFormat('dd MMM, HH:mm').format(time),
+                                        DateFormat(
+                                          'dd MMM, HH:mm',
+                                        ).format(time),
                                         style: TextStyle(
                                           fontSize: 10,
-                                          color: c.isDark ? const Color(0xFFFB923C) : const Color(0xFFC2410C),
+                                          color: c.isDark
+                                              ? const Color(0xFFFB923C)
+                                              : const Color(0xFFC2410C),
                                         ),
                                       ),
                                   ],
@@ -469,7 +512,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                                   data['note'] ?? '-',
                                   style: TextStyle(
                                     fontSize: 13,
-                                    color: c.isDark ? const Color(0xFFFED7AA) : const Color(0xFF431407),
+                                    color: c.isDark
+                                        ? const Color(0xFFFED7AA)
+                                        : const Color(0xFF431407),
                                     height: 1.4,
                                   ),
                                 ),
@@ -509,10 +554,26 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                     spacing: 12,
                     runSpacing: 12,
                     children: [
-                      _buildStatusChip('Assigned', Icons.assignment_ind, isResolved),
-                      _buildStatusChip('In Progress', Icons.build_outlined, isResolved),
-                      _buildStatusChip('Pending', Icons.access_time, isResolved),
-                      _buildStatusChip('Resolved', Icons.check_circle_outline, isResolved),
+                      _buildStatusChip(
+                        'Assigned',
+                        Icons.assignment_ind,
+                        isResolved,
+                      ),
+                      _buildStatusChip(
+                        'In Progress',
+                        Icons.build_outlined,
+                        isResolved,
+                      ),
+                      _buildStatusChip(
+                        'Pending',
+                        Icons.access_time,
+                        isResolved,
+                      ),
+                      _buildStatusChip(
+                        'Resolved',
+                        Icons.check_circle_outline,
+                        isResolved,
+                      ),
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -530,7 +591,10 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                     controller: _noteController,
                     maxLines: 4,
                     enabled: !isResolved,
-                    style: TextStyle(fontSize: 13, color: isResolved ? c.textMuted : c.textPrimary),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: isResolved ? c.textMuted : c.textPrimary,
+                    ),
                     decoration: InputDecoration(
                       hintText:
                           'Masukkan detail tindakan yang telah dilakukan...',
@@ -569,7 +633,11 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                   const SizedBox(height: 12),
                   _buildPhotoUploadBtn('Unggah Foto Sebelum', true, isResolved),
                   const SizedBox(height: 12),
-                  _buildPhotoUploadBtn('Unggah Foto Sesudah', false, isResolved),
+                  _buildPhotoUploadBtn(
+                    'Unggah Foto Sesudah',
+                    false,
+                    isResolved,
+                  ),
                   const SizedBox(height: 12),
                   Text(
                     'Format didukung: JPG, PNG (Maks 5MB per foto)',
@@ -650,10 +718,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                 ),
               ),
               const SizedBox(height: 2),
-              Text(
-                value,
-                style: TextStyle(fontSize: 14, color: c.textPrimary),
-              ),
+              Text(value, style: TextStyle(fontSize: 14, color: c.textPrimary)),
             ],
           ),
         ),
@@ -691,7 +756,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? _statusColor(title) : (isDisabled ? c.divider : c.surface),
+          color: isSelected
+              ? _statusColor(title)
+              : (isDisabled ? c.divider : c.surface),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isSelected
@@ -705,7 +772,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             Icon(
               icon,
               size: 16,
-              color: isSelected ? Colors.white : (isDisabled ? c.textMuted : c.textSecondary),
+              color: isSelected
+                  ? Colors.white
+                  : (isDisabled ? c.textMuted : c.textSecondary),
             ),
             const SizedBox(width: 8),
             Text(
@@ -713,7 +782,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: isSelected ? Colors.white : (isDisabled ? c.textMuted : c.textSecondary),
+                color: isSelected
+                    ? Colors.white
+                    : (isDisabled ? c.textMuted : c.textSecondary),
               ),
             ),
           ],
@@ -750,16 +821,20 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               right: 8,
               top: 8,
               child: GestureDetector(
-                onTap: isDisabled ? null : () => setState(() {
-                  if (isBefore)
-                    _photoBefore = null;
-                  else
-                    _photoAfter = null;
-                }),
+                onTap: isDisabled
+                    ? null
+                    : () => setState(() {
+                        if (isBefore)
+                          _photoBefore = null;
+                        else
+                          _photoAfter = null;
+                      }),
                 child: Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: isDisabled ? Colors.grey.withOpacity(0.3) : Colors.black54,
+                    color: isDisabled
+                        ? Colors.grey.withOpacity(0.3)
+                        : Colors.black54,
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.close, color: Colors.white, size: 16),
@@ -770,9 +845,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
         ),
       );
     }
-    
+
     if (isDisabled) {
-       return Container(
+      return Container(
         width: double.infinity,
         height: 100,
         decoration: BoxDecoration(
@@ -783,9 +858,16 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.image_not_supported_outlined, color: c.textMuted, size: 28),
+            Icon(
+              Icons.image_not_supported_outlined,
+              color: c.textMuted,
+              size: 28,
+            ),
             const SizedBox(height: 8),
-            Text('Foto tidak tersedia', style: TextStyle(color: c.textMuted, fontSize: 13)),
+            Text(
+              'Foto tidak tersedia',
+              style: TextStyle(color: c.textMuted, fontSize: 13),
+            ),
           ],
         ),
       );
@@ -799,19 +881,12 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
         decoration: BoxDecoration(
           color: c.surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: c.border,
-            style: BorderStyle.solid,
-          ),
+          border: Border.all(color: c.border, style: BorderStyle.solid),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.camera_alt_outlined,
-              color: c.textSecondary,
-              size: 28,
-            ),
+            Icon(Icons.camera_alt_outlined, color: c.textSecondary, size: 28),
             const SizedBox(height: 8),
             Text(
               label,

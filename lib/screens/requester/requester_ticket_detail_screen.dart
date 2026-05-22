@@ -35,7 +35,8 @@ class _RequesterTicketDetailScreenState
     final confirm = await AppNotifications.showConfirmDialog(
       context,
       title: 'Batalkan Tiket',
-      message: 'Apakah Anda yakin masalah sudah terselesaikan dan ingin membatalkan tiket ini?',
+      message:
+          'Apakah Anda yakin masalah sudah terselesaikan dan ingin membatalkan tiket ini?',
       confirmLabel: 'Batalkan',
       cancelLabel: 'Tutup',
       isDestructive: true,
@@ -110,18 +111,21 @@ class _RequesterTicketDetailScreenState
     return Scaffold(
       backgroundColor: c.background,
       appBar: buildSbmAppBar(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ChatScreen(ticket: widget.ticket),
-            ),
-          );
-        },
-        backgroundColor: c.primary,
-        child: const Icon(Icons.chat_bubble_outline_rounded, color: Colors.white),
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () {
+      //     Navigator.push(
+      //       context,
+      //       MaterialPageRoute(
+      //         builder: (context) => ChatScreen(ticket: widget.ticket),
+      //       ),
+      //     );
+      //   },
+      //   backgroundColor: c.primary,
+      //   child: const Icon(
+      //     Icons.chat_bubble_outline_rounded,
+      //     color: Colors.white,
+      //   ),
+      // ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         child: Column(
@@ -211,16 +215,14 @@ class _RequesterTicketDetailScreenState
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: c.isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
+                    color: c.isDark
+                        ? const Color(0xFF1E293B)
+                        : const Color(0xFFE2E8F0),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
                     children: [
-                      Icon(
-                        Icons.business,
-                        size: 12,
-                        color: c.textSecondary,
-                      ),
+                      Icon(Icons.business, size: 12, color: c.textSecondary),
                       const SizedBox(width: 4),
                       Text(
                         widget.ticket.category,
@@ -236,10 +238,7 @@ class _RequesterTicketDetailScreenState
                 const SizedBox(width: 10),
                 Text(
                   '•   ${_formatDate(widget.ticket.createdAt)}',
-                  style: TextStyle(
-                    color: c.textSecondary,
-                    fontSize: 13,
-                  ),
+                  style: TextStyle(color: c.textSecondary, fontSize: 13),
                 ),
               ],
             ),
@@ -317,8 +316,6 @@ class _RequesterTicketDetailScreenState
             ),
             const SizedBox(height: 16),
 
-
-
             // Card 3: Status Perjalanan
             _buildCardWrapper(
               c: c,
@@ -346,7 +343,10 @@ class _RequesterTicketDetailScreenState
                           padding: const EdgeInsets.symmetric(vertical: 20),
                           child: Text(
                             'Gagal memuat riwayat: ${snapshot.error}',
-                            style: const TextStyle(color: Colors.red, fontSize: 13),
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 13,
+                            ),
                           ),
                         );
                       }
@@ -358,12 +358,16 @@ class _RequesterTicketDetailScreenState
                           ),
                         );
                       }
-                      
+
                       final history = snapshot.data!.docs.toList();
                       // Sort locally to avoid index requirement
                       history.sort((a, b) {
-                        final tsA = (a.data() as Map<String, dynamic>)['timestamp'] as Timestamp?;
-                        final tsB = (b.data() as Map<String, dynamic>)['timestamp'] as Timestamp?;
+                        final tsA =
+                            (a.data() as Map<String, dynamic>)['timestamp']
+                                as Timestamp?;
+                        final tsB =
+                            (b.data() as Map<String, dynamic>)['timestamp']
+                                as Timestamp?;
                         if (tsA == null || tsB == null) return 0;
                         return tsA.compareTo(tsB);
                       });
@@ -380,17 +384,22 @@ class _RequesterTicketDetailScreenState
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: history.length,
                         itemBuilder: (context, index) {
-                          final data = history[index].data() as Map<String, dynamic>;
+                          final data =
+                              history[index].data() as Map<String, dynamic>;
                           final label = data['label'] ?? data['status'];
-                          final time = data['timestamp'] != null 
-                              ? (data['timestamp'] as Timestamp).toDate() 
+                          final time = data['timestamp'] != null
+                              ? (data['timestamp'] as Timestamp).toDate()
                               : null;
-                          
+
                           return _buildTimelineItem(
                             label,
-                            time != null ? DateFormat('dd MMM, HH:mm').format(time) : 'Proses...',
+                            time != null
+                                ? DateFormat('dd MMM, HH:mm').format(time)
+                                : 'Proses...',
                             true, // Mark as completed since it's in history
-                            index == history.length - 1, // isCurrent if it's the last one
+                            index ==
+                                history.length -
+                                    1, // isCurrent if it's the last one
                             index == history.length - 1, // isLast
                             c,
                           );
@@ -404,7 +413,8 @@ class _RequesterTicketDetailScreenState
             const SizedBox(height: 16),
 
             // Card Catatan Teknisi
-            if (widget.ticket.note != null && widget.ticket.note!.isNotEmpty) ...[
+            if (widget.ticket.note != null &&
+                widget.ticket.note!.isNotEmpty) ...[
               _buildCardWrapper(
                 c: c,
                 child: Column(
@@ -443,13 +453,21 @@ class _RequesterTicketDetailScreenState
             ],
 
             // Card Bukti Perbaikan (Before & After)
-            if (widget.ticket.photoBeforeUrl != null || widget.ticket.photoAfterUrl != null) ...[
+            if (widget.ticket.photoBeforeUrl != null ||
+                widget.ticket.photoAfterUrl != null) ...[
               _buildCardWrapper(
                 c: c,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Bukti Perbaikan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary)),
+                    Text(
+                      'Bukti Perbaikan',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: c.textPrimary,
+                      ),
+                    ),
                     const SizedBox(height: 16),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -459,7 +477,14 @@ class _RequesterTicketDetailScreenState
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Sebelum', style: TextStyle(fontSize: 13, color: c.textSecondary, fontWeight: FontWeight.w600)),
+                                Text(
+                                  'Sebelum',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: c.textSecondary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                                 const SizedBox(height: 8),
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
@@ -468,23 +493,39 @@ class _RequesterTicketDetailScreenState
                                     height: 120,
                                     width: double.infinity,
                                     fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) => Container(
-                                      height: 120, color: c.surfaceElevated,
-                                      child: Center(child: Icon(Icons.broken_image_outlined, color: c.textMuted)),
-                                    ),
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            Container(
+                                              height: 120,
+                                              color: c.surfaceElevated,
+                                              child: Center(
+                                                child: Icon(
+                                                  Icons.broken_image_outlined,
+                                                  color: c.textMuted,
+                                                ),
+                                              ),
+                                            ),
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                        if (widget.ticket.photoBeforeUrl != null && widget.ticket.photoAfterUrl != null)
+                        if (widget.ticket.photoBeforeUrl != null &&
+                            widget.ticket.photoAfterUrl != null)
                           const SizedBox(width: 12),
                         if (widget.ticket.photoAfterUrl != null)
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Sesudah', style: TextStyle(fontSize: 13, color: c.textSecondary, fontWeight: FontWeight.w600)),
+                                Text(
+                                  'Sesudah',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: c.textSecondary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                                 const SizedBox(height: 8),
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
@@ -493,10 +534,18 @@ class _RequesterTicketDetailScreenState
                                     height: 120,
                                     width: double.infinity,
                                     fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) => Container(
-                                      height: 120, color: c.surfaceElevated,
-                                      child: Center(child: Icon(Icons.broken_image_outlined, color: c.textMuted)),
-                                    ),
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            Container(
+                                              height: 120,
+                                              color: c.surfaceElevated,
+                                              child: Center(
+                                                child: Icon(
+                                                  Icons.broken_image_outlined,
+                                                  color: c.textMuted,
+                                                ),
+                                              ),
+                                            ),
                                   ),
                                 ),
                               ],
@@ -516,9 +565,15 @@ class _RequesterTicketDetailScreenState
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: c.isDark ? const Color(0xFF2E1919) : const Color(0xFFFEF2F2),
+                  color: c.isDark
+                      ? const Color(0xFF2E1919)
+                      : const Color(0xFFFEF2F2),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: c.isDark ? const Color(0xFF4D1D1D) : const Color(0xFFFECACA)),
+                  border: Border.all(
+                    color: c.isDark
+                        ? const Color(0xFF4D1D1D)
+                        : const Color(0xFFFECACA),
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -528,7 +583,9 @@ class _RequesterTicketDetailScreenState
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: c.isDark ? const Color(0xFFFCA5A5) : const Color(0xFFB91C1C),
+                        color: c.isDark
+                            ? const Color(0xFFFCA5A5)
+                            : const Color(0xFFB91C1C),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -536,7 +593,9 @@ class _RequesterTicketDetailScreenState
                       'Jika masalah sudah terselesaikan sendiri, Anda dapat membatalkan tiket ini.',
                       style: TextStyle(
                         fontSize: 13,
-                        color: c.isDark ? const Color(0xFFFCA5A5).withOpacity(0.8) : const Color(0xFF7F1D1D),
+                        color: c.isDark
+                            ? const Color(0xFFFCA5A5).withOpacity(0.8)
+                            : const Color(0xFF7F1D1D),
                         height: 1.4,
                       ),
                     ),
@@ -546,8 +605,14 @@ class _RequesterTicketDetailScreenState
                       child: OutlinedButton.icon(
                         onPressed: _isCancelling ? null : _cancelTicket,
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: c.isDark ? const Color(0xFFFCA5A5) : const Color(0xFFB91C1C),
-                          side: BorderSide(color: c.isDark ? const Color(0xFF4D1D1D) : const Color(0xFFF87171)),
+                          foregroundColor: c.isDark
+                              ? const Color(0xFFFCA5A5)
+                              : const Color(0xFFB91C1C),
+                          side: BorderSide(
+                            color: c.isDark
+                                ? const Color(0xFF4D1D1D)
+                                : const Color(0xFFF87171),
+                          ),
                           backgroundColor: c.surface,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
@@ -590,7 +655,9 @@ class _RequesterTicketDetailScreenState
         border: Border.all(color: c.border),
         boxShadow: [
           BoxShadow(
-            color: c.isDark ? Colors.transparent : Colors.black.withOpacity(0.02),
+            color: c.isDark
+                ? Colors.transparent
+                : Colors.black.withOpacity(0.02),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -622,14 +689,16 @@ class _RequesterTicketDetailScreenState
                   color: isCompleted ? circleColor : c.surface,
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: isCompleted || isCurrent
-                        ? circleColor
-                        : c.border,
+                    color: isCompleted || isCurrent ? circleColor : c.border,
                     width: 2,
                   ),
                 ),
                 child: isCompleted
-                    ? Icon(Icons.check, size: 14, color: c.isDark ? Colors.black : Colors.white)
+                    ? Icon(
+                        Icons.check,
+                        size: 14,
+                        color: c.isDark ? Colors.black : Colors.white,
+                      )
                     : isCurrent
                     ? Center(
                         child: Container(
@@ -647,9 +716,7 @@ class _RequesterTicketDetailScreenState
                 Expanded(
                   child: Container(
                     width: 2,
-                    color: isCompleted
-                        ? circleColor
-                        : c.border,
+                    color: isCompleted ? circleColor : c.border,
                   ),
                 ),
             ],
@@ -689,9 +756,13 @@ class _RequesterTicketDetailScreenState
       ),
     );
   }
+
   Widget _buildTechnicianRow(String technicianId, AppColors c) {
     return FutureBuilder<DocumentSnapshot>(
-      future: FirebaseFirestore.instance.collection('users').doc(technicianId).get(),
+      future: FirebaseFirestore.instance
+          .collection('users')
+          .doc(technicianId)
+          .get(),
       builder: (_, snap) {
         String name = 'Memuat...';
         String? photoUrl;
@@ -716,14 +787,32 @@ class _RequesterTicketDetailScreenState
                   color: c.primaryLight,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.engineering_outlined, size: 20, color: c.primary),
+                child: Icon(
+                  Icons.engineering_outlined,
+                  size: 20,
+                  color: c.primary,
+                ),
               ),
             const SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Teknisi Penanggung Jawab', style: TextStyle(fontSize: 11, color: c.textSecondary, fontWeight: FontWeight.bold)),
-                Text(name, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textPrimary)),
+                Text(
+                  'Teknisi Penanggung Jawab',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: c.textSecondary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  name,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: c.textPrimary,
+                  ),
+                ),
               ],
             ),
           ],

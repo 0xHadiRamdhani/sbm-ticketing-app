@@ -9,6 +9,9 @@ import '../providers/auth_provider.dart';
 import '../utils/app_colors.dart';
 import 'shared/ticket_card.dart';
 import '../utils/app_notifications.dart';
+import 'technician/ticket_detail_screen.dart';
+import 'requester/requester_ticket_detail_screen.dart';
+import 'admin/admin_ticket_detail_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   final TicketModel ticket;
@@ -42,7 +45,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
     for (var id in ids) {
       try {
-        final doc = await FirebaseFirestore.instance.collection('users').doc(id).get();
+        final doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(id)
+            .get();
         if (doc.exists) {
           final data = doc.data()!;
           setState(() {
@@ -99,6 +105,45 @@ class _ChatScreenState extends State<ChatScreen> {
         showBackButton: true,
         onBackPressed: () => Navigator.pop(context),
         titleText: 'Chat Tiket #${widget.ticket.ticketId.substring(0, 5)}',
+        extraActions: [
+          IconButton(
+            icon: Icon(Icons.info_outline_rounded, color: c.appBarFg),
+            tooltip: 'Detail Tiket',
+            onPressed: () {
+              final user = Provider.of<AuthProvider>(
+                context,
+                listen: false,
+              ).user;
+              if (user?.role == 'student' ||
+                  user?.role == 'staff' ||
+                  (user?.role == 'technician' &&
+                      user?.uid == widget.ticket.requesterId)) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        RequesterTicketDetailScreen(ticket: widget.ticket),
+                  ),
+                );
+              } else if (user?.role == 'admin') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        AdminTicketDetailScreen(ticket: widget.ticket),
+                  ),
+                );
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => TicketDetailScreen(ticket: widget.ticket),
+                  ),
+                );
+              }
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -136,15 +181,24 @@ class _ChatScreenState extends State<ChatScreen> {
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final message = messages[index];
-                    
+
                     if (message.senderId == 'system') {
                       return Container(
                         margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                         decoration: BoxDecoration(
-                          color: c.isDark ? const Color(0xFF2E2315) : const Color(0xFFFFFBEB),
+                          color: c.isDark
+                              ? const Color(0xFF2E2315)
+                              : const Color(0xFFFFFBEB),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: c.isDark ? const Color(0xFF4D3715) : const Color(0xFFFDE68A)),
+                          border: Border.all(
+                            color: c.isDark
+                                ? const Color(0xFF4D3715)
+                                : const Color(0xFFFDE68A),
+                          ),
                         ),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,7 +206,9 @@ class _ChatScreenState extends State<ChatScreen> {
                             Icon(
                               Icons.info_outline,
                               size: 18,
-                              color: c.isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706),
+                              color: c.isDark
+                                  ? const Color(0xFFFBBF24)
+                                  : const Color(0xFFD97706),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -160,7 +216,9 @@ class _ChatScreenState extends State<ChatScreen> {
                                 message.text,
                                 style: TextStyle(
                                   fontSize: 13,
-                                  color: c.isDark ? const Color(0xFFFDE68A) : const Color(0xFF92400E),
+                                  color: c.isDark
+                                      ? const Color(0xFFFDE68A)
+                                      : const Color(0xFF92400E),
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -187,12 +245,16 @@ class _ChatScreenState extends State<ChatScreen> {
     final c = AppColors.of(context);
     final senderName = _userNames[message.senderId] ?? '...';
     final senderRole = _userRoles[message.senderId] ?? '';
-    final roleLabel = senderRole == 'technician' ? 'Teknisi' : (senderRole == 'admin' ? 'Admin' : '');
-    
+    final roleLabel = senderRole == 'technician'
+        ? 'Teknisi'
+        : (senderRole == 'admin' ? 'Admin' : '');
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
-        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isMe
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isMe) ...[
@@ -201,44 +263,67 @@ class _ChatScreenState extends State<ChatScreen> {
               backgroundColor: c.primaryLight,
               child: Text(
                 senderName.isNotEmpty ? senderName[0].toUpperCase() : '?',
-                style: TextStyle(fontSize: 12, color: c.primary, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: c.primary,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             const SizedBox(width: 8),
           ],
           Flexible(
             child: Column(
-              crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              crossAxisAlignment: isMe
+                  ? CrossAxisAlignment.end
+                  : CrossAxisAlignment.start,
               children: [
                 if (!isMe)
                   Padding(
                     padding: const EdgeInsets.only(left: 4, bottom: 4),
                     child: Text(
-                      roleLabel.isNotEmpty ? '$senderName ($roleLabel)' : senderName,
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: c.textSecondary),
+                      roleLabel.isNotEmpty
+                          ? '$senderName ($roleLabel)'
+                          : senderName,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: c.textSecondary,
+                      ),
                     ),
                   ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: isMe ? c.primary : c.surface,
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(16),
                       topRight: const Radius.circular(16),
-                      bottomLeft: isMe ? const Radius.circular(16) : Radius.zero,
-                      bottomRight: isMe ? Radius.zero : const Radius.circular(16),
+                      bottomLeft: isMe
+                          ? const Radius.circular(16)
+                          : Radius.zero,
+                      bottomRight: isMe
+                          ? Radius.zero
+                          : const Radius.circular(16),
                     ),
                     border: isMe ? null : Border.all(color: c.border),
                     boxShadow: [
                       BoxShadow(
-                        color: c.isDark ? Colors.transparent : Colors.black.withValues(alpha: 0.05),
+                        color: c.isDark
+                            ? Colors.transparent
+                            : Colors.black.withValues(alpha: 0.05),
                         blurRadius: 5,
                         offset: const Offset(0, 2),
                       ),
                     ],
                   ),
                   child: Column(
-                    crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                    crossAxisAlignment: isMe
+                        ? CrossAxisAlignment.end
+                        : CrossAxisAlignment.start,
                     children: [
                       Text(
                         message.text,
@@ -251,7 +336,9 @@ class _ChatScreenState extends State<ChatScreen> {
                       Text(
                         DateFormat('HH:mm').format(message.timestamp),
                         style: TextStyle(
-                          color: isMe ? Colors.white.withValues(alpha: 0.7) : c.textMuted,
+                          color: isMe
+                              ? Colors.white.withValues(alpha: 0.7)
+                              : c.textMuted,
                           fontSize: 10,
                         ),
                       ),
@@ -268,7 +355,11 @@ class _ChatScreenState extends State<ChatScreen> {
               backgroundColor: c.primaryLight,
               child: Text(
                 senderName.isNotEmpty ? senderName[0].toUpperCase() : '?',
-                style: TextStyle(fontSize: 12, color: c.primary, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: c.primary,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],

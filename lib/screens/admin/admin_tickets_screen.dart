@@ -372,7 +372,7 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
                               },
                               color: AppColors.of(context).primary,
                               child: ListView.builder(
-                                padding: const EdgeInsets.all(16),
+                                padding: const EdgeInsets.symmetric(vertical: 8),
                                 itemCount: filteredTickets.length,
                                 itemBuilder: (context, index) {
                                   final ticket = filteredTickets[index];
