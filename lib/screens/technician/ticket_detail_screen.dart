@@ -9,6 +9,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/ticket_provider.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_notifications.dart';
+import '../../utils/premium_route.dart';
 import '../chat_screen.dart';
 import '../shared/ticket_card.dart';
 
@@ -214,8 +215,8 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => ChatScreen(ticket: widget.ticket),
+            PremiumPageRoute(
+              child: ChatScreen(ticket: widget.ticket),
             ),
           );
         },

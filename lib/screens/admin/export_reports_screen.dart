@@ -25,10 +25,22 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
   bool _isMonthlyActive = false;
 
   final List<String> _availableColumns = [
-    'ID Tiket', 'Tanggal', 'Kategori', 'Prioritas', 'Status', 'Lokasi', 'Deskripsi'
+    'ID Tiket',
+    'Tanggal',
+    'Kategori',
+    'Prioritas',
+    'Status',
+    'Lokasi',
+    'Deskripsi',
   ];
   final Set<String> _selectedColumns = {
-    'ID Tiket', 'Tanggal', 'Kategori', 'Prioritas', 'Status', 'Lokasi', 'Deskripsi'
+    'ID Tiket',
+    'Tanggal',
+    'Kategori',
+    'Prioritas',
+    'Status',
+    'Lokasi',
+    'Deskripsi',
   };
 
   @override
@@ -49,57 +61,63 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildSectionCard(
-                    'Konfigurasi Ekspor',
-                    [
-                      _buildLabel('Format File'),
-                      _buildDropdown(['Excel (.xlsx)', 'CSV (.csv)', 'PDF Document (.pdf)'], _selectedFormat, (val) => setState(() => _selectedFormat = val!)),
-                      const SizedBox(height: 20),
-                      _buildLabel('Rentang Tanggal'),
-                      _buildDateSelector(),
-                      const SizedBox(height: 20),
-                      _buildLabel('Kolom yang Disertakan'),
-                      _buildColumnChips(),
-                    ],
-                  ),
+                  _buildSectionCard('Konfigurasi Ekspor', [
+                    _buildLabel('Format File'),
+                    _buildDropdown(
+                      ['Excel (.xlsx)', 'CSV (.csv)', 'PDF Document (.pdf)'],
+                      _selectedFormat,
+                      (val) => setState(() => _selectedFormat = val!),
+                    ),
+                    const SizedBox(height: 20),
+                    _buildLabel('Rentang Tanggal'),
+                    _buildDateSelector(),
+                    const SizedBox(height: 20),
+                    _buildLabel('Kolom yang Disertakan'),
+                    _buildColumnChips(),
+                  ]),
                   const SizedBox(height: 24),
-                  _buildSectionCard(
-                    'Laporan Terjadwal',
-                    [
-                      const Text(
-                        'Dapatkan laporan otomatis yang dikirimkan ke email Anda setiap periode tertentu.',
-                        style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildScheduledItem(
-                        'Laporan Mingguan', 
-                        'Setiap Senin, 08:00 WIB', 
-                        _isWeeklyActive,
-                        (val) => setState(() {
-                          _isWeeklyActive = val;
-                          _showScheduledInfo('Laporan Mingguan');
-                        })
-                      ),
-                      _buildScheduledItem(
-                        'Ringkasan SLA Bulanan', 
-                        'Tanggal 1, 00:00 WIB', 
-                        _isMonthlyActive,
-                        (val) => setState(() {
-                          _isMonthlyActive = val;
-                          _showScheduledInfo('Ringkasan SLA Bulanan');
-                        })
-                      ),
-                    ],
-                  ),
+                  _buildSectionCard('Laporan Terjadwal', [
+                    const Text(
+                      'Dapatkan laporan otomatis yang dikirimkan ke email Anda setiap periode tertentu.',
+                      style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildScheduledItem(
+                      'Laporan Mingguan',
+                      'Setiap Senin, 08:00 WIB',
+                      _isWeeklyActive,
+                      (val) => setState(() {
+                        _isWeeklyActive = val;
+                        _showScheduledInfo('Laporan Mingguan');
+                      }),
+                    ),
+                    _buildScheduledItem(
+                      'Ringkasan SLA Bulanan',
+                      'Tanggal 1, 00:00 WIB',
+                      _isMonthlyActive,
+                      (val) => setState(() {
+                        _isMonthlyActive = val;
+                        _showScheduledInfo('Ringkasan SLA Bulanan');
+                      }),
+                    ),
+                  ]),
                   const SizedBox(height: 32),
                   ElevatedButton(
                     onPressed: _handleExport,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1A3A5C),
                       minimumSize: const Size(double.infinity, 54),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
-                    child: const Text('Generate & Download Laporan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    child: const Text(
+                      'Generate & Download Laporan',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 40),
                 ],
@@ -123,17 +141,41 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
-          const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Divider(height: 1, color: Color(0xFFF1F5F9))),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF0F172A),
+            ),
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Divider(height: 1, color: Color(0xFFF1F5F9)),
+          ),
           ...children,
         ],
       ),
     );
   }
 
-  Widget _buildLabel(String text) => Padding(padding: const EdgeInsets.only(bottom: 8), child: Text(text, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF64748B))));
+  Widget _buildLabel(String text) => Padding(
+    padding: const EdgeInsets.only(bottom: 8),
+    child: Text(
+      text,
+      style: const TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.bold,
+        color: Color(0xFF64748B),
+      ),
+    ),
+  );
 
-  Widget _buildDropdown(List<String> items, String current, ValueChanged<String?> onChanged) {
+  Widget _buildDropdown(
+    List<String> items,
+    String current,
+    ValueChanged<String?> onChanged,
+  ) {
     return IosGlassDropdown<String>(
       value: current,
       items: items,
@@ -145,18 +187,32 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
   Widget _buildDateSelector() {
     return InkWell(
       onTap: () async {
-        final picked = await showDateRangePicker(context: context, firstDate: DateTime(2020), lastDate: DateTime.now());
+        final picked = await showDateRangePicker(
+          context: context,
+          firstDate: DateTime(2020),
+          lastDate: DateTime.now(),
+        );
         if (picked != null) setState(() => _selectedDateRange = picked);
       },
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: const Color(0xFFF7F9FC), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFE2E8F0))),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF7F9FC),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+        ),
         child: Row(
           children: [
-            const Icon(Icons.calendar_today_outlined, size: 18, color: Color(0xFF1A3A5C)),
+            const Icon(
+              Icons.calendar_today_outlined,
+              size: 18,
+              color: Color(0xFF1A3A5C),
+            ),
             const SizedBox(width: 12),
             Text(
-              _selectedDateRange == null ? 'Pilih Rentang Tanggal' : '${_selectedDateRange!.start.day}/${_selectedDateRange!.start.month} - ${_selectedDateRange!.end.day}/${_selectedDateRange!.end.month}',
+              _selectedDateRange == null
+                  ? 'Pilih Rentang Tanggal'
+                  : '${_selectedDateRange!.start.day}/${_selectedDateRange!.start.month} - ${_selectedDateRange!.end.day}/${_selectedDateRange!.end.month}',
               style: const TextStyle(fontSize: 14),
             ),
             const Spacer(),
@@ -172,72 +228,113 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
       spacing: 8,
       children: _availableColumns.map((label) {
         final isSelected = _selectedColumns.contains(label);
-        return FilterChip(
-          label: Text(label, style: const TextStyle(fontSize: 11)),
-          selected: isSelected,
-          onSelected: (selected) {
-            setState(() {
-              if (selected) {
-                _selectedColumns.add(label);
-              } else {
-                if (_selectedColumns.length > 1) {
-                  _selectedColumns.remove(label);
-                } else {
-                  AppNotifications.showNotification(
-                    context,
-                    title: 'Perhatian',
-                    message: 'Minimal satu kolom harus dipilih.',
-                    isError: true,
-                  );
-                }
-              }
-            });
-          },
-          selectedColor: const Color(0xFF1A3A5C).withOpacity(0.1),
-          checkmarkColor: const Color(0xFF1A3A5C),
-          labelStyle: TextStyle(
-            color: isSelected ? const Color(0xFF1A3A5C) : const Color(0xFF64748B), 
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal
+        return Theme(
+          data: Theme.of(context).copyWith(
+            splashColor: Colors.black.withOpacity(0.05),
+            highlightColor: Colors.transparent,
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+              primary: Colors.black,
+              secondary: Colors.black,
+            ),
           ),
-          backgroundColor: const Color(0xFFF1F5F9),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          child: FilterChip(
+            label: Text(label, style: const TextStyle(fontSize: 11)),
+            selected: isSelected,
+            onSelected: (selected) {
+              setState(() {
+                if (selected) {
+                  _selectedColumns.add(label);
+                } else {
+                  if (_selectedColumns.length > 1) {
+                    _selectedColumns.remove(label);
+                  } else {
+                    AppNotifications.showNotification(
+                      context,
+                      title: 'Perhatian',
+                      message: 'Minimal satu kolom harus dipilih.',
+                      isError: true,
+                    );
+                  }
+                }
+              });
+            },
+            selectedColor: Colors.black.withOpacity(0.1),
+            checkmarkColor: Colors.black,
+            labelStyle: TextStyle(
+              color: isSelected ? Colors.black : const Color(0xFF64748B),
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
+            backgroundColor: const Color(0xFFF1F5F9),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
         );
       }).toList(),
     );
   }
 
-  Widget _buildScheduledItem(String title, String subtitle, bool isActive, ValueChanged<bool> onChanged) {
+  Widget _buildScheduledItem(
+    String title,
+    String subtitle,
+    bool isActive,
+    ValueChanged<bool> onChanged,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF7F9FC), 
+        color: const Color(0xFFF7F9FC),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: isActive ? const Color(0xFF1A3A5C).withOpacity(0.1) : Colors.transparent),
+        border: Border.all(
+          color: isActive
+              ? const Color(0xFF1A3A5C).withOpacity(0.1)
+              : Colors.transparent,
+        ),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8), 
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: isActive ? const Color(0xFF1A3A5C).withOpacity(0.1) : Colors.white, 
-              shape: BoxShape.circle
-            ), 
-            child: Icon(Icons.mail_outline, size: 16, color: isActive ? const Color(0xFF1A3A5C) : const Color(0xFF94A3B8))
+              color: isActive
+                  ? const Color(0xFF1A3A5C).withOpacity(0.1)
+                  : Colors.white,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.mail_outline,
+              size: 16,
+              color: isActive
+                  ? const Color(0xFF1A3A5C)
+                  : const Color(0xFF94A3B8),
+            ),
           ),
           const SizedBox(width: 12),
           Column(
-            crossAxisAlignment: CrossAxisAlignment.start, 
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: isActive ? const Color(0xFF0F172A) : const Color(0xFF94A3B8))), 
-              Text(subtitle, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)))
-            ]
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: isActive
+                      ? const Color(0xFF0F172A)
+                      : const Color(0xFF94A3B8),
+                ),
+              ),
+              Text(
+                subtitle,
+                style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+              ),
+            ],
           ),
           const Spacer(),
           Switch.adaptive(
-            value: isActive, 
-            onChanged: onChanged, 
-            activeColor: const Color(0xFF1A3A5C)
+            value: isActive,
+            onChanged: onChanged,
+            activeColor: const Color(0xFF1A3A5C),
           ),
         ],
       ),
@@ -248,7 +345,8 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
     AppNotifications.showNotification(
       context,
       title: 'Laporan Otomatis',
-      message: 'Fitur $type otomatis memerlukan Cloud Functions. Status berhasil diperbarui secara lokal.',
+      message:
+          'Fitur $type otomatis memerlukan Cloud Functions. Status berhasil diperbarui secara lokal.',
       isError: false,
     );
   }
@@ -265,7 +363,11 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
             SizedBox(height: 12),
             CupertinoActivityIndicator(radius: 14),
             SizedBox(height: 12),
-            Text('Sedang mengambil dan memproses data tiket SBM ITB...', textAlign: TextAlign.center, style: TextStyle(fontSize: 13)),
+            Text(
+              'Sedang mengambil dan memproses data tiket SBM ITB...',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13),
+            ),
           ],
         ),
       ),
@@ -273,19 +375,41 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
 
     try {
       // 1. Fetch Data
-      Query query = FirebaseFirestore.instance.collection('tickets').orderBy('created_at', descending: true);
-      
+      Query query = FirebaseFirestore.instance
+          .collection('tickets')
+          .orderBy('created_at', descending: true);
+
       if (_selectedDateRange != null) {
         // Use normalized dates for filtering
-        DateTime start = DateTime(_selectedDateRange!.start.year, _selectedDateRange!.start.month, _selectedDateRange!.start.day);
-        DateTime end = DateTime(_selectedDateRange!.end.year, _selectedDateRange!.end.month, _selectedDateRange!.end.day, 23, 59, 59);
-        
-        query = query.where('created_at', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
-                     .where('created_at', isLessThanOrEqualTo: Timestamp.fromDate(end));
+        DateTime start = DateTime(
+          _selectedDateRange!.start.year,
+          _selectedDateRange!.start.month,
+          _selectedDateRange!.start.day,
+        );
+        DateTime end = DateTime(
+          _selectedDateRange!.end.year,
+          _selectedDateRange!.end.month,
+          _selectedDateRange!.end.day,
+          23,
+          59,
+          59,
+        );
+
+        query = query
+            .where(
+              'created_at',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(start),
+            )
+            .where('created_at', isLessThanOrEqualTo: Timestamp.fromDate(end));
       }
 
       final snapshot = await query.get();
-      final tickets = snapshot.docs.map((doc) => TicketModel.fromMap(doc.data() as Map<String, dynamic>, doc.id)).toList();
+      final tickets = snapshot.docs
+          .map(
+            (doc) =>
+                TicketModel.fromMap(doc.data() as Map<String, dynamic>, doc.id),
+          )
+          .toList();
 
       if (tickets.isEmpty) {
         if (!mounted) return;
@@ -300,7 +424,8 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
       }
 
       String filePath = '';
-      String fileName = 'Laporan_Tiket_SBM_${DateFormat('yyyyMMdd').format(DateTime.now())}';
+      String fileName =
+          'Laporan_Tiket_SBM_${DateFormat('yyyyMMdd').format(DateTime.now())}';
 
       if (_selectedFormat.contains('Excel')) {
         // 2. Generate Excel
@@ -316,9 +441,13 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
         );
 
         // Header row
-        List<String> headers = _availableColumns.where((col) => _selectedColumns.contains(col)).toList();
+        List<String> headers = _availableColumns
+            .where((col) => _selectedColumns.contains(col))
+            .toList();
         for (var i = 0; i < headers.length; i++) {
-          var cell = sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
+          var cell = sheetObject.cell(
+            CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0),
+          );
           cell.value = TextCellValue(headers[i]);
           cell.cellStyle = headerStyle;
         }
@@ -328,27 +457,90 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
           var t = tickets[i];
           int rowIndex = i + 1;
           int colIndex = 0;
-          
+
           if (_selectedColumns.contains('ID Tiket')) {
-            sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: colIndex++, rowIndex: rowIndex)).value = TextCellValue(t.ticketId.substring(0, 8).toUpperCase());
+            sheetObject
+                .cell(
+                  CellIndex.indexByColumnRow(
+                    columnIndex: colIndex++,
+                    rowIndex: rowIndex,
+                  ),
+                )
+                .value = TextCellValue(
+              t.ticketId.substring(0, 8).toUpperCase(),
+            );
           }
           if (_selectedColumns.contains('Tanggal')) {
-            sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: colIndex++, rowIndex: rowIndex)).value = TextCellValue(DateFormat('dd/MM/yyyy HH:mm').format(t.createdAt));
+            sheetObject
+                .cell(
+                  CellIndex.indexByColumnRow(
+                    columnIndex: colIndex++,
+                    rowIndex: rowIndex,
+                  ),
+                )
+                .value = TextCellValue(
+              DateFormat('dd/MM/yyyy HH:mm').format(t.createdAt),
+            );
           }
           if (_selectedColumns.contains('Kategori')) {
-            sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: colIndex++, rowIndex: rowIndex)).value = TextCellValue(t.category);
+            sheetObject
+                .cell(
+                  CellIndex.indexByColumnRow(
+                    columnIndex: colIndex++,
+                    rowIndex: rowIndex,
+                  ),
+                )
+                .value = TextCellValue(
+              t.category,
+            );
           }
           if (_selectedColumns.contains('Prioritas')) {
-            sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: colIndex++, rowIndex: rowIndex)).value = TextCellValue(t.priority);
+            sheetObject
+                .cell(
+                  CellIndex.indexByColumnRow(
+                    columnIndex: colIndex++,
+                    rowIndex: rowIndex,
+                  ),
+                )
+                .value = TextCellValue(
+              t.priority,
+            );
           }
           if (_selectedColumns.contains('Status')) {
-            sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: colIndex++, rowIndex: rowIndex)).value = TextCellValue(t.status);
+            sheetObject
+                .cell(
+                  CellIndex.indexByColumnRow(
+                    columnIndex: colIndex++,
+                    rowIndex: rowIndex,
+                  ),
+                )
+                .value = TextCellValue(
+              t.status,
+            );
           }
           if (_selectedColumns.contains('Lokasi')) {
-            sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: colIndex++, rowIndex: rowIndex)).value = TextCellValue(t.location ?? '-');
+            sheetObject
+                .cell(
+                  CellIndex.indexByColumnRow(
+                    columnIndex: colIndex++,
+                    rowIndex: rowIndex,
+                  ),
+                )
+                .value = TextCellValue(
+              t.location ?? '-',
+            );
           }
           if (_selectedColumns.contains('Deskripsi')) {
-            sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: colIndex++, rowIndex: rowIndex)).value = TextCellValue(t.description);
+            sheetObject
+                .cell(
+                  CellIndex.indexByColumnRow(
+                    columnIndex: colIndex++,
+                    rowIndex: rowIndex,
+                  ),
+                )
+                .value = TextCellValue(
+              t.description,
+            );
           }
         }
 
@@ -361,24 +553,31 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
         } else {
           throw Exception('Gagal mengencode file Excel');
         }
-
       } else if (_selectedFormat.contains('CSV')) {
         // 3. Generate CSV
         StringBuffer csvContent = StringBuffer();
-        
-        List<String> headers = _availableColumns.where((col) => _selectedColumns.contains(col)).toList();
+
+        List<String> headers = _availableColumns
+            .where((col) => _selectedColumns.contains(col))
+            .toList();
         csvContent.writeln(headers.join(','));
-        
+
         for (var t in tickets) {
           List<String> rowData = [];
-          if (_selectedColumns.contains('ID Tiket')) rowData.add(t.ticketId.substring(0, 8).toUpperCase());
-          if (_selectedColumns.contains('Tanggal')) rowData.add(DateFormat('dd/MM/yyyy HH:mm').format(t.createdAt));
+          if (_selectedColumns.contains('ID Tiket'))
+            rowData.add(t.ticketId.substring(0, 8).toUpperCase());
+          if (_selectedColumns.contains('Tanggal'))
+            rowData.add(DateFormat('dd/MM/yyyy HH:mm').format(t.createdAt));
           if (_selectedColumns.contains('Kategori')) rowData.add(t.category);
           if (_selectedColumns.contains('Prioritas')) rowData.add(t.priority);
           if (_selectedColumns.contains('Status')) rowData.add(t.status);
-          if (_selectedColumns.contains('Lokasi')) rowData.add(t.location ?? "-");
+          if (_selectedColumns.contains('Lokasi'))
+            rowData.add(t.location ?? "-");
           if (_selectedColumns.contains('Deskripsi')) {
-            String safeDesc = t.description.replaceAll('\n', ' ').replaceAll(',', ';').replaceAll('"', '""');
+            String safeDesc = t.description
+                .replaceAll('\n', ' ')
+                .replaceAll(',', ';')
+                .replaceAll('"', '""');
             rowData.add('"$safeDesc"');
           }
           csvContent.writeln(rowData.join(','));
@@ -405,7 +604,6 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
 
       // 4. Share File
       await Share.shareXFiles([XFile(filePath)], text: 'Laporan Tiket SBM ITB');
-
     } catch (e, stack) {
       debugPrint('Export Error: $e');
       debugPrint(stack.toString());

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/premium_route.dart';
 import '../settings_screen.dart';
 import '../shared/ticket_card.dart';
 import '../../utils/app_colors.dart';
@@ -21,7 +22,7 @@ class AdminDashboard extends StatelessWidget {
         onSettingsTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => SettingsScreen()),
+            PremiumPageRoute(child: SettingsScreen()),
           );
         },
       ),

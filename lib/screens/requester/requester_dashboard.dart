@@ -6,6 +6,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/ticket_provider.dart';
 import '../../services/notification_service.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/premium_route.dart';
 import '../settings_screen.dart';
 import '../shared/ticket_card.dart';
 import '../shared/impersonation_banner.dart';
@@ -51,7 +52,7 @@ class _RequesterDashboardState extends State<RequesterDashboard> {
               String statusIndo = _statusLabelIndo(t.status);
               NotificationService().showNotification(
                 id: t.ticketId.hashCode,
-                title: 'Pembaruan Status Tiket',
+                title: 'Pembaluan Status Tiket',
                 body: 'Tiket ${t.category} Anda sekarang berstatus "$statusIndo".',
               );
             } 
@@ -111,13 +112,13 @@ class _RequesterDashboardState extends State<RequesterDashboard> {
       appBar: buildSbmAppBar(
         onSettingsTap: () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => SettingsScreen()),
+          PremiumPageRoute(child: SettingsScreen()),
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => CreateTicketScreen()),
+          PremiumPageRoute(child: CreateTicketScreen()),
         ),
         backgroundColor: const Color(0xFF1A3A5C),
         icon: const Icon(Icons.add_rounded, color: Colors.white),

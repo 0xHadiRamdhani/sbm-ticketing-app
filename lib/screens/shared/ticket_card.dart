@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../models/ticket_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/premium_route.dart';
 import 'package:provider/provider.dart';
 import '../technician/ticket_detail_screen.dart';
 import '../requester/requester_ticket_detail_screen.dart';
@@ -194,23 +195,22 @@ class TicketCard extends StatelessWidget {
                           currentUser?.uid == ticket.requesterId)) {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            RequesterTicketDetailScreen(ticket: ticket),
+                      PremiumPageRoute(
+                        child: RequesterTicketDetailScreen(ticket: ticket),
                       ),
                     );
                   } else if (currentUser?.role == 'admin') {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) => AdminTicketDetailScreen(ticket: ticket),
+                      PremiumPageRoute(
+                        child: AdminTicketDetailScreen(ticket: ticket),
                       ),
                     );
                   } else {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) => TicketDetailScreen(ticket: ticket),
+                      PremiumPageRoute(
+                        child: TicketDetailScreen(ticket: ticket),
                       ),
                     );
                   }

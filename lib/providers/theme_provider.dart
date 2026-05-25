@@ -24,6 +24,14 @@ class ThemeProvider with ChangeNotifier {
     await prefs.setBool(_themeKey, value);
   }
 
+  static const _premiumPageTransitions = PageTransitionsTheme(
+    builders: {
+      TargetPlatform.android: _PremiumPageTransitionsBuilder(),
+      TargetPlatform.iOS: _PremiumPageTransitionsBuilder(),
+      TargetPlatform.macOS: _PremiumPageTransitionsBuilder(),
+    },
+  );
+
   // ── Light Theme ─────────────────────────────────────────────────────────────
   static ThemeData get lightTheme => ThemeData(
         brightness: Brightness.light,
@@ -73,6 +81,7 @@ class ThemeProvider with ChangeNotifier {
           ),
         ),
         dividerColor: const Color(0xFFF3F4F6),
+        pageTransitionsTheme: _premiumPageTransitions,
         switchTheme: SwitchThemeData(
           thumbColor: WidgetStateProperty.resolveWith((states) =>
               states.contains(WidgetState.selected) ? Colors.white : Colors.white),
@@ -140,6 +149,7 @@ class ThemeProvider with ChangeNotifier {
           labelStyle: const TextStyle(color: Color(0xFF8FAFC7)),
         ),
         dividerColor: const Color(0xFF2E3F52),
+        pageTransitionsTheme: _premiumPageTransitions,
         switchTheme: SwitchThemeData(
           thumbColor: WidgetStateProperty.resolveWith((states) =>
               states.contains(WidgetState.selected) ? Colors.white : const Color(0xFF8FAFC7)),
@@ -159,4 +169,34 @@ class ThemeProvider with ChangeNotifier {
           titleMedium: TextStyle(color: Color(0xFFE8EDF2), fontWeight: FontWeight.w600),
         ),
       );
+}
+
+// ── Custom Page Transitions Builder ─────────────────────────────────────────
+class _PremiumPageTransitionsBuilder extends PageTransitionsBuilder {
+  const _PremiumPageTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    final slide = Tween<Offset>(
+      begin: const Offset(0.06, 0.0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: animation,
+      curve: Curves.easeOutCubic,
+    ));
+    final fade = CurvedAnimation(
+      parent: animation,
+      curve: Curves.easeOutCubic,
+    );
+    return SlideTransition(
+      position: slide,
+      child: FadeTransition(opacity: fade, child: child),
+    );
+  }
 }

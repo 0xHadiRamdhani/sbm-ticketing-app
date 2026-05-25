@@ -711,7 +711,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   const SizedBox(height: 4),
                   const Text(
-                    'Versi 2.0.1 (Build 42)',
+                    'Versi 2.1.1 (Build 44)',
                     style: TextStyle(fontSize: 12, color: Color(0xFF9CA3AF)),
                   ),
                 ],

@@ -7,6 +7,7 @@ import 'providers/theme_provider.dart';
 import 'providers/ticket_provider.dart';
 import 'providers/language_provider.dart';
 import 'screens/dashboard_wrapper.dart';
+import 'screens/splash_screen.dart';
 import 'services/notification_service.dart';
 
 void main() async {
@@ -113,7 +114,7 @@ class TicketingApp extends StatelessWidget {
           theme: ThemeProvider.lightTheme,
           darkTheme: ThemeProvider.darkTheme,
           themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-          home: DashboardWrapper(),
+          home: const SplashScreen(),
         );
       },
     );
