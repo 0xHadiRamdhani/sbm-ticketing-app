@@ -18,7 +18,9 @@ class TicketService {
   }) {
     Query query = _firestore.collection('tickets');
 
-    if (role == 'student' || role == 'staff' || role == 'technician_as_requester') {
+    if (role == 'student' ||
+        role == 'staff' ||
+        role == 'technician_as_requester') {
       query = query
           .where('requester_id', isEqualTo: uid)
           .orderBy('created_at', descending: true);
@@ -33,7 +35,14 @@ class TicketService {
         return TicketModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
       }).toList();
 
-      // Technician base filter: Only see 'Assigned' or 'In Progress' tickets assigned to them, 
+      // Sort in-memory: tickets with last_message_at first, then fallback to created_at
+      tickets.sort((a, b) {
+        final aTime = a.lastMessageAt ?? a.createdAt;
+        final bTime = b.lastMessageAt ?? b.createdAt;
+        return bTime.compareTo(aTime);
+      });
+
+      // Technician base filter: Only see 'Assigned' or 'In Progress' tickets assigned to them,
       // or 'New' tickets if they are expected to pick them up (if that's the logic).
       // Here we allow them to see 'New' tickets OR tickets assigned to them.
       if (role == 'technician') {
@@ -116,12 +125,22 @@ class TicketService {
     try {
       final bytes = await File(imageFile.path).readAsBytes();
       final base64Image = base64Encode(bytes);
-      final response = await http.post(
-        Uri.parse('https://api.imgbb.com/1/upload'),
-        body: {'key': '639f57d0cc80d6da8ddb0c1927ea1a8a', 'image': base64Image},
-      ).timeout(const Duration(seconds: 45), onTimeout: () {
-        throw Exception('Koneksi unggah foto lampiran tiket habis (Timeout).');
-      });
+      final response = await http
+          .post(
+            Uri.parse('https://api.imgbb.com/1/upload'),
+            body: {
+              'key': '639f57d0cc80d6da8ddb0c1927ea1a8a',
+              'image': base64Image,
+            },
+          )
+          .timeout(
+            const Duration(seconds: 45),
+            onTimeout: () {
+              throw Exception(
+                'Koneksi unggah foto lampiran tiket habis (Timeout).',
+              );
+            },
+          );
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
         return responseData['data']['url'];
@@ -183,7 +202,11 @@ class TicketService {
 
     if (newStatus == 'Resolved') {
       updateData['resolved_at'] = FieldValue.serverTimestamp();
-    } else if (newStatus == 'In Progress' && (oldStatus == 'New' || oldStatus == 'Assigned' || oldStatus == 'Re-opened' || oldStatus == 'Pending')) {
+    } else if (newStatus == 'In Progress' &&
+        (oldStatus == 'New' ||
+            oldStatus == 'Assigned' ||
+            oldStatus == 'Re-opened' ||
+            oldStatus == 'Pending')) {
       updateData['in_progress_at'] = FieldValue.serverTimestamp();
     }
 
@@ -240,13 +263,22 @@ class TicketService {
     });
   }
 
-  Future<void> addInternalNote(String ticketId, String note, String adminId, String adminName) async {
-    await _firestore.collection('tickets').doc(ticketId).collection('internal_notes').add({
-      'note': note,
-      'author_id': adminId,
-      'author_name': adminName,
-      'timestamp': FieldValue.serverTimestamp(),
-    });
+  Future<void> addInternalNote(
+    String ticketId,
+    String note,
+    String adminId,
+    String adminName,
+  ) async {
+    await _firestore
+        .collection('tickets')
+        .doc(ticketId)
+        .collection('internal_notes')
+        .add({
+          'note': note,
+          'author_id': adminId,
+          'author_name': adminName,
+          'timestamp': FieldValue.serverTimestamp(),
+        });
   }
 
   String _getStatusLabel(String status) {

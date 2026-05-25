@@ -13,14 +13,18 @@ class ChatService {
         .orderBy('timestamp', descending: true)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs
-          .map((doc) => MessageModel.fromMap(doc.data(), doc.id))
-          .toList();
-    });
+          return snapshot.docs
+              .map((doc) => MessageModel.fromMap(doc.data(), doc.id))
+              .toList();
+        });
   }
 
   // Mengirim pesan baru
-  Future<void> sendMessage(String ticketId, String senderId, String text) async {
+  Future<void> sendMessage(
+    String ticketId,
+    String senderId,
+    String text,
+  ) async {
     if (text.trim().isEmpty) return;
 
     final newMessage = MessageModel(
@@ -30,10 +34,21 @@ class ChatService {
       timestamp: DateTime.now(),
     );
 
+    final serverTimestamp = FieldValue.serverTimestamp();
+
+    // Simpan pesan ke sub-koleksi
     await _firestore
         .collection('tickets')
         .doc(ticketId)
         .collection('messages')
         .add(newMessage.toMap());
+
+    // Update tiket induk agar dashboard bisa sort & tampilkan preview terbaru
+    // Pakai Timestamp.now() agar langsung tersedia (tidak menunggu server round-trip)
+    await _firestore.collection('tickets').doc(ticketId).update({
+      'last_message_at': Timestamp.now(),
+      'last_message_preview': text.length > 60 ? '${text.substring(0, 60)}...' : text,
+      'last_message_sender': senderId,
+    });
   }
 }

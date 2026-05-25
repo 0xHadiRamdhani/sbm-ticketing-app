@@ -202,13 +202,22 @@ class TicketCard extends StatelessWidget {
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              // Time
+                              // Time - use last message time if available
                               Text(
-                                _formatChatTime(ticket.createdAt),
+                                _formatChatTime(ticket.lastMessageAt ?? ticket.createdAt),
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: ticket.status == 'New' ? const Color(0xFF00A884) : c.textMuted,
-                                  fontWeight: ticket.status == 'New' ? FontWeight.bold : FontWeight.normal,
+                                  // Hijau & bold hanya jika ada pesan dari orang lain (penerima)
+                                  color: (ticket.lastMessageAt != null &&
+                                          ticket.lastMessageSender != null &&
+                                          ticket.lastMessageSender != currentUser?.uid)
+                                      ? const Color(0xFF00A884)
+                                      : c.textMuted,
+                                  fontWeight: (ticket.lastMessageAt != null &&
+                                          ticket.lastMessageSender != null &&
+                                          ticket.lastMessageSender != currentUser?.uid)
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
                                 ),
                               ),
                             ],
@@ -223,34 +232,39 @@ class TicketCard extends StatelessWidget {
                                 color: tickColor,
                               ),
                               const SizedBox(width: 4),
-                              // Message preview
+                              // Message preview - show last message if available
                               Expanded(
                                 child: Text(
-                                  ticket.description,
+                                  ticket.lastMessagePreview ?? ticket.description,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color: c.textSecondary,
+                                    // Bold hanya jika ada pesan dari orang lain (penerima)
+                                    color: (ticket.lastMessageAt != null &&
+                                            ticket.lastMessageSender != null &&
+                                            ticket.lastMessageSender != currentUser?.uid)
+                                        ? c.textPrimary
+                                        : c.textSecondary,
+                                    fontWeight: (ticket.lastMessageAt != null &&
+                                            ticket.lastMessageSender != null &&
+                                            ticket.lastMessageSender != currentUser?.uid)
+                                        ? FontWeight.w600
+                                        : FontWeight.normal,
                                   ),
                                 ),
                               ),
-                              // Unread badge or status label
-                              if (ticket.status != 'Resolved' && ticket.status != 'Closed') ...[
-                                const SizedBox(width: 8),
+                              // Titik hijau hanya untuk penerima (bukan pengirim pesan terakhir)
+                              if (ticket.lastMessageAt != null &&
+                                  ticket.lastMessageSender != null &&
+                                   ticket.lastMessageSender != currentUser?.uid) ...[
+                                  const SizedBox(width: 8),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: statusDotColor(ticket.status),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Text(
-                                    statusLabel(ticket.status),
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                  width: 10,
+                                  height: 10,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFF00A884),
+                                    shape: BoxShape.circle,
                                   ),
                                 ),
                               ],

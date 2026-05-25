@@ -5,7 +5,8 @@ class TicketModel {
   final DateTime createdAt;
   final String category; // 'Laptop', 'Printer', 'Jaringan', 'Proyektor'
   final String description;
-  final String status; // 'New', 'Assigned', 'In Progress', 'Pending', 'Resolved', 'Closed', 'Re-opened'
+  final String
+  status; // 'New', 'Assigned', 'In Progress', 'Pending', 'Resolved', 'Closed', 'Re-opened'
   final String priority; // 'Low', 'Medium', 'High'
   final String requesterId;
   final String? technicianId;
@@ -17,6 +18,9 @@ class TicketModel {
   final String? photoAfterUrl;
   final DateTime? resolvedAt;
   final DateTime? inProgressAt;
+  final DateTime? lastMessageAt;
+  final String? lastMessagePreview;
+  final String? lastMessageSender;
 
   TicketModel({
     required this.ticketId,
@@ -35,6 +39,9 @@ class TicketModel {
     this.photoAfterUrl,
     this.resolvedAt,
     this.inProgressAt,
+    this.lastMessageAt,
+    this.lastMessagePreview,
+    this.lastMessageSender,
   });
 
   factory TicketModel.fromMap(Map<String, dynamic> data, String documentId) {
@@ -49,18 +56,23 @@ class TicketModel {
       technicianId: data['technician_id'],
       imageUrl: data['image_url'],
       location: data['location'],
-      resolvedImageUrls: data['resolved_image_urls'] != null 
-          ? List<String>.from(data['resolved_image_urls']) 
+      resolvedImageUrls: data['resolved_image_urls'] != null
+          ? List<String>.from(data['resolved_image_urls'])
           : null,
       note: data['note'],
       photoBeforeUrl: data['photo_before_url'],
       photoAfterUrl: data['photo_after_url'],
-      resolvedAt: data['resolved_at'] != null 
-          ? (data['resolved_at'] as Timestamp).toDate() 
+      resolvedAt: data['resolved_at'] != null
+          ? (data['resolved_at'] as Timestamp).toDate()
           : null,
-      inProgressAt: data['in_progress_at'] != null 
-          ? (data['in_progress_at'] as Timestamp).toDate() 
+      inProgressAt: data['in_progress_at'] != null
+          ? (data['in_progress_at'] as Timestamp).toDate()
           : null,
+      lastMessageAt: data['last_message_at'] != null
+          ? (data['last_message_at'] as Timestamp).toDate()
+          : null,
+      lastMessagePreview: data['last_message_preview'],
+      lastMessageSender: data['last_message_sender'],
     );
   }
 
@@ -80,7 +92,8 @@ class TicketModel {
       if (photoBeforeUrl != null) 'photo_before_url': photoBeforeUrl,
       if (photoAfterUrl != null) 'photo_after_url': photoAfterUrl,
       if (resolvedAt != null) 'resolved_at': Timestamp.fromDate(resolvedAt!),
-      if (inProgressAt != null) 'in_progress_at': Timestamp.fromDate(inProgressAt!),
+      if (inProgressAt != null)
+        'in_progress_at': Timestamp.fromDate(inProgressAt!),
     };
   }
 }

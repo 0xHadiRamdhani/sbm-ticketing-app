@@ -13,6 +13,7 @@ import 'technician/ticket_detail_screen.dart';
 import 'requester/requester_ticket_detail_screen.dart';
 import 'admin/admin_ticket_detail_screen.dart';
 
+
 class ChatScreen extends StatefulWidget {
   final TicketModel ticket;
 
@@ -206,60 +207,6 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.videocam, color: c.primary),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Row(
-                    children: [
-                      Icon(
-                        Icons.videocam_off_rounded,
-                        color: Colors.white,
-                        size: 18,
-                      ),
-                      SizedBox(width: 10),
-                      Text('Video Call — Coming Soon! '),
-                    ],
-                  ),
-                  backgroundColor: c.primary,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  margin: const EdgeInsets.all(16),
-                  duration: const Duration(seconds: 2),
-                ),
-              );
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.call, color: c.primary),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Row(
-                    children: [
-                      Icon(
-                        Icons.phone_disabled_rounded,
-                        color: Colors.white,
-                        size: 18,
-                      ),
-                      SizedBox(width: 10),
-                      Text('Voice Call — Coming Soon! '),
-                    ],
-                  ),
-                  backgroundColor: c.primary,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  margin: const EdgeInsets.all(16),
-                  duration: const Duration(seconds: 2),
-                ),
-              );
-            },
-          ),
-          IconButton(
             icon: Icon(Icons.info_outline_rounded, color: c.primary),
             tooltip: 'Detail Tiket',
             onPressed: () {
@@ -376,6 +323,8 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                       );
                     }
+
+
 
                     final isMe = message.senderId == currentUserId;
                     return _buildMessageBubble(message, isMe);
@@ -573,4 +522,5 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
     );
   }
+
 }

@@ -233,6 +233,13 @@ class _RequesterDashboardState extends State<RequesterDashboard> {
                   }).toList();
                 }
 
+                // 3. Sort: tiket dengan pesan terbaru di atas
+                tickets = List.from(tickets)..sort((a, b) {
+                  final aTime = a.lastMessageAt ?? a.createdAt;
+                  final bTime = b.lastMessageAt ?? b.createdAt;
+                  return bTime.compareTo(aTime);
+                });
+
                 if (tickets.isEmpty) {
                   return const DashboardEmptyState(
                       icon: Icons.inbox_outlined,

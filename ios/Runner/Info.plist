@@ -49,9 +49,8 @@
 	<array>
 		<string>https</string>
 	</array>
-
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Aplikasi memerlukan izin mikrofon untuk fitur dikte suara (voice note) dalam obrolan.</string>
+	<string>Aplikasi memerlukan izin mikrofon untuk fitur dikte suara.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>Aplikasi memerlukan izin pengenalan suara untuk mengubah ucapan Anda menjadi teks pesan.</string>
 </dict>
