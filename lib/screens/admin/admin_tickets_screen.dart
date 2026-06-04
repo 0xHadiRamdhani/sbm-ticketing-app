@@ -50,6 +50,14 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<TicketProvider>(context, listen: false).checkAndEscalateTickets();
+    });
+  }
+
+  @override
   void dispose() {
     _searchCtrl.dispose();
     super.dispose();

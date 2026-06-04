@@ -13,6 +13,10 @@ class TicketProvider with ChangeNotifier {
     return _ticketService.getTickets(role: role, uid: uid, status: status);
   }
 
+  Future<void> checkAndEscalateTickets() async {
+    await _ticketService.checkAndEscalateTickets();
+  }
+
   Future<void> submitTicket({
     required String requesterId,
     required String category,

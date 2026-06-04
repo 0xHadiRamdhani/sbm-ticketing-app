@@ -128,6 +128,56 @@ class TicketCard extends StatelessWidget {
     }
   }
 
+  Widget _buildSlaBadge(TicketModel t) {
+    if (t.status == 'Resolved' || t.status == 'Closed' || t.targetResolutionAt == null) {
+      return const SizedBox();
+    }
+    
+    final now = DateTime.now();
+    final target = t.targetResolutionAt!;
+    final totalDuration = target.difference(t.createdAt);
+    final elapsed = now.difference(t.createdAt);
+    
+    Color badgeColor = const Color(0xFF10B981); // Green
+    String label = '';
+    
+    if (elapsed >= totalDuration || t.escalationLevel == 2) {
+      badgeColor = const Color(0xFFEF4444); // Red
+      label = 'SLA Breached';
+    } else if (elapsed.inMilliseconds >= totalDuration.inMilliseconds * 0.8 || t.escalationLevel == 1) {
+      badgeColor = const Color(0xFFF59E0B); // Yellow
+      final remaining = target.difference(now);
+      label = '${remaining.inHours}j ${remaining.inMinutes % 60}m';
+    } else {
+      final remaining = target.difference(now);
+      label = '${remaining.inHours}j ${remaining.inMinutes % 60}m';
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: badgeColor.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: badgeColor.withOpacity(0.3), width: 0.5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.timer_outlined, size: 10, color: badgeColor),
+          const SizedBox(width: 3),
+          Text(
+            label,
+            style: TextStyle(
+              color: badgeColor,
+              fontSize: 9,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
@@ -230,30 +280,70 @@ class TicketCard extends StatelessWidget {
                       const SizedBox(width: 16),
                     ],
                     // Avatar
-                    CircleAvatar(
-                      radius: 25,
-                      backgroundColor: c.primaryLight,
-                      backgroundImage: photoUrl != null && photoUrl.isNotEmpty
-                          ? NetworkImage(photoUrl)
-                          : null,
-                      child: photoUrl == null || photoUrl.isEmpty
-                          ? (contactName == 'SBM IT Support'
-                                ? Icon(
-                                    Icons.support_agent_rounded,
-                                    color: c.primary,
-                                    size: 28,
-                                  )
-                                : Text(
-                                    contactName.isNotEmpty
-                                        ? contactName[0].toUpperCase()
-                                        : '?',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      color: c.primary,
-                                      fontWeight: FontWeight.bold,
+                    Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: c.primaryLight,
+                        shape: BoxShape.circle,
+                      ),
+                      clipBehavior: Clip.hardEdge,
+                      child: (photoUrl != null && photoUrl.isNotEmpty)
+                          ? Image.network(
+                              photoUrl,
+                              fit: BoxFit.cover,
+                              loadingBuilder: (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return Container(
+                                  color: Colors.grey.withOpacity(0.3), // Skeleton placeholder
+                                  child: const Center(
+                                    child: SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
                                     ),
-                                  ))
-                          : null,
+                                  ),
+                                );
+                              },
+                              errorBuilder: (context, error, stackTrace) {
+                                return Center(
+                                  child: contactName == 'SBM IT Support'
+                                      ? Icon(
+                                          Icons.support_agent_rounded,
+                                          color: c.primary,
+                                          size: 28,
+                                        )
+                                      : Text(
+                                          contactName.isNotEmpty
+                                              ? contactName[0].toUpperCase()
+                                              : '?',
+                                          style: TextStyle(
+                                            fontSize: 20,
+                                            color: c.primary,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                );
+                              },
+                            )
+                          : Center(
+                              child: contactName == 'SBM IT Support'
+                                  ? Icon(
+                                      Icons.support_agent_rounded,
+                                      color: c.primary,
+                                      size: 28,
+                                    )
+                                  : Text(
+                                      contactName.isNotEmpty
+                                          ? contactName[0].toUpperCase()
+                                          : '?',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        color: c.primary,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                            ),
                     ),
                     const SizedBox(width: 14),
 
@@ -427,6 +517,10 @@ class TicketCard extends StatelessWidget {
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
+                                ],
+                                if (ticket.targetResolutionAt != null && ticket.status != 'Resolved' && ticket.status != 'Closed') ...[
+                                  const SizedBox(width: 10),
+                                  _buildSlaBadge(ticket),
                                 ],
                               ],
                             ),

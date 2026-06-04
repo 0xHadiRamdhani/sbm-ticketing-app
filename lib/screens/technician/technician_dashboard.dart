@@ -31,7 +31,10 @@ class _TechnicianDashboardState extends State<TechnicianDashboard> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _startNotifListener());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _startNotifListener();
+      Provider.of<TicketProvider>(context, listen: false).checkAndEscalateTickets();
+    });
   }
 
   void _startNotifListener() {

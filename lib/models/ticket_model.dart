@@ -21,6 +21,10 @@ class TicketModel {
   final DateTime? lastMessageAt;
   final String? lastMessagePreview;
   final String? lastMessageSender;
+  
+  // SLA & Escalation
+  final DateTime? targetResolutionAt;
+  final int escalationLevel; // 0: Normal, 1: Warning (80% SLA), 2: Breached (100% SLA)
 
   TicketModel({
     required this.ticketId,
@@ -42,6 +46,8 @@ class TicketModel {
     this.lastMessageAt,
     this.lastMessagePreview,
     this.lastMessageSender,
+    this.targetResolutionAt,
+    this.escalationLevel = 0,
   });
 
   factory TicketModel.fromMap(Map<String, dynamic> data, String documentId) {
@@ -73,6 +79,10 @@ class TicketModel {
           : null,
       lastMessagePreview: data['last_message_preview'],
       lastMessageSender: data['last_message_sender'],
+      targetResolutionAt: data['target_resolution_at'] != null
+          ? (data['target_resolution_at'] as Timestamp).toDate()
+          : null,
+      escalationLevel: data['escalation_level'] ?? 0,
     );
   }
 
@@ -94,6 +104,9 @@ class TicketModel {
       if (resolvedAt != null) 'resolved_at': Timestamp.fromDate(resolvedAt!),
       if (inProgressAt != null)
         'in_progress_at': Timestamp.fromDate(inProgressAt!),
+      if (targetResolutionAt != null)
+        'target_resolution_at': Timestamp.fromDate(targetResolutionAt!),
+      'escalation_level': escalationLevel,
     };
   }
 }

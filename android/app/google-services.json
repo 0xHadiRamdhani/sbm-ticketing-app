@@ -12,7 +12,12 @@
           "package_name": "com.ticketing.sbm"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "469061446199-i51elfdhk08fjhkr3olnb3apfrs2meqj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCFILh1_qoRtr1KhIAkZTMNvYYxb1jRFvg"
@@ -20,7 +25,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "469061446199-i51elfdhk08fjhkr3olnb3apfrs2meqj.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "469061446199-m1qsgi2kteds61lrtgukgm9kj9seclb4.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.ticketing.sbm"
+              }
+            }
+          ]
         }
       }
     }

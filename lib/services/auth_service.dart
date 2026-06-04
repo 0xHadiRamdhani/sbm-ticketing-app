@@ -111,7 +111,7 @@ class AuthService {
   Future<UserModel?> signInAsGuest() async {
     try {
       UserCredential credential = await _auth.signInAnonymously();
-      
+
       UserModel guestUser = UserModel(
         uid: credential.user!.uid,
         name: 'Tamu (Guest)',

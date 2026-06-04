@@ -6,6 +6,11 @@ class UserModel {
   final String department;
   final String phoneNumber; // nomor telepon (opsional, diisi saat login via OTP)
   final String? photoUrl; // url foto profil
+  
+  // Smart Routing & Auto-Assign
+  final List<String> skills;
+  final bool isAvailable;
+  final int activeTicketsCount;
 
   UserModel({
     required this.uid,
@@ -15,6 +20,9 @@ class UserModel {
     required this.department,
     this.phoneNumber = '',
     this.photoUrl,
+    this.skills = const [],
+    this.isAvailable = true,
+    this.activeTicketsCount = 0,
   });
 
   factory UserModel.fromMap(Map<String, dynamic> data, String documentId) {
@@ -26,6 +34,9 @@ class UserModel {
       department: data['department'] ?? '',
       phoneNumber: data['phoneNumber'] ?? '',
       photoUrl: data['photoUrl'],
+      skills: data['skills'] != null ? List<String>.from(data['skills']) : [],
+      isAvailable: data['isAvailable'] ?? true,
+      activeTicketsCount: data['activeTicketsCount'] ?? 0,
     );
   }
 
@@ -37,6 +48,9 @@ class UserModel {
       'department': department,
       'phoneNumber': phoneNumber,
       'photoUrl': photoUrl,
+      'skills': skills,
+      'isAvailable': isAvailable,
+      'activeTicketsCount': activeTicketsCount,
     };
   }
 }

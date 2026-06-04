@@ -995,6 +995,39 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
         width: double.infinity,
         height: 140,
         fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Container(
+            width: double.infinity,
+            height: 140,
+            color: Colors.grey.withOpacity(0.15),
+            child: const Center(
+              child: SizedBox(
+                width: 30,
+                height: 30,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            width: double.infinity,
+            height: 140,
+            color: Colors.grey.withOpacity(0.1),
+            child: const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.broken_image_outlined, color: Colors.grey, size: 40),
+                SizedBox(height: 8),
+                Text(
+                  'Gagal memuat gambar',
+                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

@@ -262,6 +262,21 @@ class _RequesterTicketDetailScreenState
                         width: double.infinity,
                         height: 180,
                         fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Container(
+                            width: double.infinity,
+                            height: 180,
+                            color: Colors.grey.withOpacity(0.15),
+                            child: const Center(
+                              child: SizedBox(
+                                width: 30,
+                                height: 30,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                            ),
+                          );
+                        },
                         errorBuilder: (context, error, stackTrace) {
                           return Container(
                             width: double.infinity,
@@ -479,6 +494,21 @@ class _RequesterTicketDetailScreenState
                                     height: 120,
                                     width: double.infinity,
                                     fit: BoxFit.cover,
+                                    loadingBuilder: (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return Container(
+                                        height: 120,
+                                        width: double.infinity,
+                                        color: Colors.grey.withOpacity(0.15),
+                                        child: const Center(
+                                          child: SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                            child: CircularProgressIndicator(strokeWidth: 2),
+                                          ),
+                                        ),
+                                      );
+                                    },
                                     errorBuilder:
                                         (context, error, stackTrace) =>
                                             Container(
@@ -520,6 +550,21 @@ class _RequesterTicketDetailScreenState
                                     height: 120,
                                     width: double.infinity,
                                     fit: BoxFit.cover,
+                                    loadingBuilder: (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return Container(
+                                        height: 120,
+                                        width: double.infinity,
+                                        color: Colors.grey.withOpacity(0.15),
+                                        child: const Center(
+                                          child: SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                            child: CircularProgressIndicator(strokeWidth: 2),
+                                          ),
+                                        ),
+                                      );
+                                    },
                                     errorBuilder:
                                         (context, error, stackTrace) =>
                                             Container(
@@ -760,10 +805,43 @@ class _RequesterTicketDetailScreenState
         return Row(
           children: [
             if (photoUrl != null && photoUrl.isNotEmpty)
-              CircleAvatar(
-                radius: 20,
-                backgroundImage: NetworkImage(photoUrl),
-                backgroundColor: c.primaryLight,
+              ClipOval(
+                child: Image.network(
+                  photoUrl,
+                  width: 40,
+                  height: 40,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Container(
+                      width: 40,
+                      height: 40,
+                      color: Colors.grey.withOpacity(0.3),
+                      child: const Center(
+                        child: SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: c.primaryLight,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.engineering_outlined,
+                        size: 20,
+                        color: c.primary,
+                      ),
+                    );
+                  },
+                ),
               )
             else
               Container(

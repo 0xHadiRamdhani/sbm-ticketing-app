@@ -371,15 +371,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           color: Colors.white.withOpacity(0.5),
                           width: 2,
                         ),
-                        image: (user?.photoUrl?.isNotEmpty == true)
-                            ? DecorationImage(
-                                image: NetworkImage(user!.photoUrl!),
-                                fit: BoxFit.cover,
-                              )
-                            : null,
                       ),
-                      child: (user?.photoUrl?.isEmpty ?? true)
-                          ? Center(
+                      clipBehavior: Clip.hardEdge,
+                      child: (user?.photoUrl?.isNotEmpty == true)
+                          ? Image.network(
+                              user!.photoUrl!,
+                              fit: BoxFit.cover,
+                              loadingBuilder: (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return Container(
+                                  color: Colors.grey.withOpacity(0.3),
+                                  child: const Center(
+                                    child: SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                              errorBuilder: (context, error, stackTrace) {
+                                return Center(
+                                  child: Text(
+                                    user.name.isNotEmpty
+                                        ? user.name[0].toUpperCase()
+                                        : '?',
+                                    style: const TextStyle(
+                                      fontSize: 26,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                );
+                              },
+                            )
+                          : Center(
                               child: Text(
                                 user?.name.isNotEmpty == true
                                     ? user!.name[0].toUpperCase()
@@ -390,8 +419,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   color: Colors.white,
                                 ),
                               ),
-                            )
-                          : null,
+                            ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(

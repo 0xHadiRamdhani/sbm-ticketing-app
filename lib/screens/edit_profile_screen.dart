@@ -193,12 +193,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     decoration: BoxDecoration(
                       color: c.surfaceElevated,
                       shape: BoxShape.circle,
-                      image: imageProvider != null
-                          ? DecorationImage(
-                              image: imageProvider,
-                              fit: BoxFit.cover,
-                            )
-                          : null,
                       border: Border.all(color: c.surface, width: 4),
                       boxShadow: [
                         BoxShadow(
@@ -208,8 +202,38 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ),
                       ],
                     ),
-                    child: imageProvider == null
-                        ? Center(
+                    clipBehavior: Clip.hardEdge,
+                    child: imageProvider != null
+                        ? Image(
+                            image: imageProvider,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Container(
+                                color: Colors.grey.withOpacity(0.3),
+                                child: const Center(
+                                  child: SizedBox(
+                                    width: 32,
+                                    height: 32,
+                                    child: CircularProgressIndicator(strokeWidth: 3),
+                                  ),
+                                ),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return Center(
+                                child: Text(
+                                  user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
+                                  style: TextStyle(
+                                    fontSize: 40,
+                                    fontWeight: FontWeight.bold,
+                                    color: c.textMuted,
+                                  ),
+                                ),
+                              );
+                            },
+                          )
+                        : Center(
                             child: Text(
                               user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
                               style: TextStyle(
@@ -218,8 +242,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 color: c.textMuted,
                               ),
                             ),
-                          )
-                        : null,
+                          ),
                   ),
                   GestureDetector(
                     onTap: _pickImage,

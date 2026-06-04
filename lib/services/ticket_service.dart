@@ -98,17 +98,73 @@ class TicketService {
       }
     }
 
+    DateTime now = DateTime.now();
+    
+    // 1. SLA Management: Calculate Target Resolution Time based on priority
+    DateTime targetResolution = now;
+    if (priority.toLowerCase() == 'urgent') {
+      targetResolution = now.add(const Duration(hours: 2));
+    } else if (priority.toLowerCase() == 'high') {
+      targetResolution = now.add(const Duration(hours: 6));
+    } else if (priority.toLowerCase() == 'medium') {
+      targetResolution = now.add(const Duration(hours: 24));
+    } else {
+      targetResolution = now.add(const Duration(hours: 72));
+    }
+
+    // 2. Auto-Assign & Smart Routing
+    String requiredSkill = 'general';
+    final catLow = category.toLowerCase();
+    if (catLow.contains('jaringan') || catLow.contains('wifi') || catLow.contains('internet')) {
+      requiredSkill = 'network';
+    } else if (catLow.contains('laptop') || catLow.contains('komputer') || catLow.contains('it')) {
+      requiredSkill = 'it_support';
+    } else if (catLow.contains('proyektor') || catLow.contains('audio')) {
+      requiredSkill = 'av_support';
+    }
+
+    String? assignedTechnicianId;
+    try {
+      final techsSnapshot = await _firestore
+          .collection('users')
+          .where('role', isEqualTo: 'technician')
+          .where('isAvailable', isEqualTo: true)
+          .where('skills', arrayContains: requiredSkill)
+          .get();
+
+      if (techsSnapshot.docs.isNotEmpty) {
+        // Load balancing: sort by activeTicketsCount
+        var techs = techsSnapshot.docs.toList();
+        techs.sort((a, b) {
+          int countA = (a.data()['activeTicketsCount'] ?? 0) as int;
+          int countB = (b.data()['activeTicketsCount'] ?? 0) as int;
+          return countA.compareTo(countB);
+        });
+
+        assignedTechnicianId = techs.first.id;
+        
+        // Update technician's active count
+        await _firestore.collection('users').doc(assignedTechnicianId).update({
+          'activeTicketsCount': FieldValue.increment(1),
+        });
+      }
+    } catch (e) {
+      print('Auto-assign error: $e');
+    }
+
     TicketModel newTicket = TicketModel(
-      ticketId:
-          '', // ticketId dikosongkan karena dibuat oleh firestore doc ref nantinya
-      createdAt: DateTime.now(),
+      ticketId: '',
+      createdAt: now,
       category: category,
       description: description,
-      status: 'New',
+      status: assignedTechnicianId != null ? 'Assigned' : 'New',
       priority: priority,
       requesterId: requesterId,
+      technicianId: assignedTechnicianId,
       imageUrl: imageUrl,
       location: location,
+      targetResolutionAt: targetResolution,
+      escalationLevel: 0,
     );
 
     final docRef = await _firestore
@@ -117,8 +173,8 @@ class TicketService {
 
     // Record initial status history
     await docRef.collection('status_history').add({
-      'status': 'New',
-      'label': 'Baru',
+      'status': assignedTechnicianId != null ? 'Assigned' : 'New',
+      'label': assignedTechnicianId != null ? 'Ditugaskan (Auto-Routing)' : 'Baru',
       'timestamp': FieldValue.serverTimestamp(),
     });
   }
@@ -303,6 +359,69 @@ class TicketService {
         return 'Diajukan'; // Legacy
       default:
         return status;
+    }
+  }
+
+  // 3. Auto-Escalation: Check SLA breaches and warn/escalate
+  Future<void> checkAndEscalateTickets() async {
+    try {
+      final now = DateTime.now();
+      
+      // Karena keterbatasan Firestore (tidak bisa whereNotIn jika banyak data tanpa index yang rumit),
+      // kita ambil data tiket yang bukan Closed/Resolved.
+      // Dalam produksi, lebih baik menggunakan Cloud Functions (cron job).
+      final ticketsSnapshot = await _firestore.collection('tickets').get();
+
+      for (var doc in ticketsSnapshot.docs) {
+        final data = doc.data();
+        final status = data['status'] as String?;
+        if (status == 'Resolved' || status == 'Closed') continue;
+        if (data['target_resolution_at'] == null) continue;
+        
+        final targetDate = (data['target_resolution_at'] as Timestamp).toDate();
+        final escalationLevel = data['escalation_level'] ?? 0;
+        final createdAt = (data['created_at'] as Timestamp).toDate();
+
+        final totalDuration = targetDate.difference(createdAt);
+        final elapsed = now.difference(createdAt);
+        
+        // Cek Level 2: Breached (Melewati batas SLA 100%)
+        if (elapsed >= totalDuration && escalationLevel < 2) {
+          await doc.reference.update({
+            'escalation_level': 2,
+            'priority': 'Urgent',
+          });
+
+          // Logika: Alihkan tiket ke Supervisor/Koordinator. 
+          // Jika kita tidak memetakan spesifik siapa supervisornya di sini, minimal prioritas & level diupdate.
+          
+          await doc.reference.collection('messages').add({
+            'sender_id': 'system',
+            'text': '⚠️ [SLA-Breached] Tiket telah melewati batas waktu penyelesaian. Tiket ini telah dieskalasi ke Supervisor dan prioritas dinaikkan menjadi Urgent.',
+            'timestamp': FieldValue.serverTimestamp(),
+          });
+          
+          await _firestore.collection('tickets').doc(doc.id).collection('status_history').add({
+            'status': status, // Status tetap, hanya dicatat pelanggaran SLA
+            'label': 'SLA Breached',
+            'timestamp': FieldValue.serverTimestamp(),
+          });
+        } 
+        // Cek Level 1: Warning (Melewati batas SLA 80%)
+        else if (elapsed.inMilliseconds >= totalDuration.inMilliseconds * 0.8 && escalationLevel < 1) {
+          await doc.reference.update({
+            'escalation_level': 1,
+          });
+
+          await doc.reference.collection('messages').add({
+            'sender_id': 'system',
+            'text': '⚠️ Peringatan: Waktu penanganan tiket sudah mencapai 80% dari batas SLA. Harap segera diselesaikan.',
+            'timestamp': FieldValue.serverTimestamp(),
+          });
+        }
+      }
+    } catch (e) {
+      print('Auto-escalation error: $e');
     }
   }
 }

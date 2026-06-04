@@ -12,7 +12,6 @@ import 'technician/ticket_detail_screen.dart';
 import 'requester/requester_ticket_detail_screen.dart';
 import 'admin/admin_ticket_detail_screen.dart';
 
-
 class ChatScreen extends StatefulWidget {
   final TicketModel ticket;
 
@@ -151,30 +150,70 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
         title: Row(
           children: [
-            CircleAvatar(
-              radius: 18,
-              backgroundColor: c.primaryLight,
-              backgroundImage: contactPhoto.isNotEmpty
-                  ? NetworkImage(contactPhoto)
-                  : null,
-              child: contactPhoto.isEmpty
-                  ? (contactName == 'SBM IT Support'
-                        ? Icon(
-                            Icons.support_agent_rounded,
-                            color: c.primary,
-                            size: 22,
-                          )
-                        : Text(
-                            contactName.isNotEmpty
-                                ? contactName[0].toUpperCase()
-                                : '?',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: c.primary,
-                              fontWeight: FontWeight.bold,
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: c.primaryLight,
+                shape: BoxShape.circle,
+              ),
+              clipBehavior: Clip.hardEdge,
+              child: contactPhoto.isNotEmpty
+                  ? Image.network(
+                      contactPhoto,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Container(
+                          color: Colors.grey.withOpacity(0.3),
+                          child: const Center(
+                            child: SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
                             ),
-                          ))
-                  : null,
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return Center(
+                          child: contactName == 'SBM IT Support'
+                              ? Icon(
+                                  Icons.support_agent_rounded,
+                                  color: c.primary,
+                                  size: 22,
+                                )
+                              : Text(
+                                  contactName.isNotEmpty
+                                      ? contactName[0].toUpperCase()
+                                      : '?',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: c.primary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                        );
+                      },
+                    )
+                  : Center(
+                      child: contactName == 'SBM IT Support'
+                          ? Icon(
+                              Icons.support_agent_rounded,
+                              color: c.primary,
+                              size: 22,
+                            )
+                          : Text(
+                              contactName.isNotEmpty
+                                  ? contactName[0].toUpperCase()
+                                  : '?',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: c.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                    ),
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -205,59 +244,97 @@ class _ChatScreenState extends State<ChatScreen> {
           ],
         ),
         actions: [
-          IconButton(
-            icon: Icon(Icons.videocam, color: c.primary),
+          // IconButton(
+          //   icon: Icon(Icons.videocam, color: c.primary),
+          //   onPressed: () {
+          //     ScaffoldMessenger.of(context).showSnackBar(
+          //       SnackBar(
+          //         content: const Row(
+          //           children: [
+          //             Icon(
+          //               Icons.videocam_off_rounded,
+          //               color: Colors.white,
+          //               size: 18,
+          //             ),
+          //             SizedBox(width: 10),
+          //             Text('Video Call — Coming Soon! '),
+          //           ],
+          //         ),
+          //         backgroundColor: c.primary,
+          //         behavior: SnackBarBehavior.floating,
+          //         shape: RoundedRectangleBorder(
+          //           borderRadius: BorderRadius.circular(12),
+          //         ),
+          //         margin: const EdgeInsets.all(16),
+          //         duration: const Duration(seconds: 2),
+          //       ),
+          //     );
+          //   },
+          // ),
+          // IconButton(
+          //   icon: Icon(Icons.call, color: c.primary),
+          //   onPressed: () {
+          //     ScaffoldMessenger.of(context).showSnackBar(
+          //       SnackBar(
+          //         content: const Row(
+          //           children: [
+          //             Icon(
+          //               Icons.phone_disabled_rounded,
+          //               color: Colors.white,
+          //               size: 18,
+          //             ),
+          //             SizedBox(width: 10),
+          //             Text('Voice Call — Coming Soon! '),
+          //           ],
+          //         ),
+          //         backgroundColor: c.primary,
+          //         behavior: SnackBarBehavior.floating,
+          //         shape: RoundedRectangleBorder(
+          //           borderRadius: BorderRadius.circular(12),
+          //         ),
+          //         margin: const EdgeInsets.all(16),
+          //         duration: const Duration(seconds: 2),
+          //       ),
+          //     );
+          //   },
+          // ),
+          TextButton(
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Row(
-                    children: [
-                      Icon(
-                        Icons.videocam_off_rounded,
-                        color: Colors.white,
-                        size: 18,
-                      ),
-                      SizedBox(width: 10),
-                      Text('Video Call — Coming Soon! '),
-                    ],
+              if (currentUser?.role == 'student' ||
+                  currentUser?.role == 'staff' ||
+                  (currentUser?.role == 'technician' &&
+                      currentUser?.uid == widget.ticket.requesterId)) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        RequesterTicketDetailScreen(ticket: widget.ticket),
                   ),
-                  backgroundColor: c.primary,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                );
+              } else if (currentUser?.role == 'admin') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        AdminTicketDetailScreen(ticket: widget.ticket),
                   ),
-                  margin: const EdgeInsets.all(16),
-                  duration: const Duration(seconds: 2),
-                ),
-              );
+                );
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => TicketDetailScreen(ticket: widget.ticket),
+                  ),
+                );
+              }
             },
-          ),
-          IconButton(
-            icon: Icon(Icons.call, color: c.primary),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Row(
-                    children: [
-                      Icon(
-                        Icons.phone_disabled_rounded,
-                        color: Colors.white,
-                        size: 18,
-                      ),
-                      SizedBox(width: 10),
-                      Text('Voice Call — Coming Soon! '),
-                    ],
-                  ),
-                  backgroundColor: c.primary,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  margin: const EdgeInsets.all(16),
-                  duration: const Duration(seconds: 2),
-                ),
-              );
-            },
+            style: ButtonStyle(
+              overlayColor: WidgetStatePropertyAll(Colors.transparent),
+            ),
+            child: Text(
+              'Lihat Detail Tiket',
+              style: TextStyle(fontSize: 12, color: c.primary),
+            ),
           ),
           IconButton(
             icon: Icon(Icons.info_outline_rounded, color: c.primary),
@@ -376,8 +453,6 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                       );
                     }
-
-
 
                     final isMe = message.senderId == currentUserId;
                     return _buildMessageBubble(message, isMe);
@@ -502,22 +577,58 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           if (isMe) ...[
             const SizedBox(width: 8),
-            CircleAvatar(
-              radius: 16,
-              backgroundColor: c.primaryLight,
-              backgroundImage: senderPhoto.isNotEmpty
-                  ? NetworkImage(senderPhoto)
-                  : null,
-              child: senderPhoto.isEmpty
-                  ? Text(
-                      senderName.isNotEmpty ? senderName[0].toUpperCase() : '?',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: c.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: c.primaryLight,
+                shape: BoxShape.circle,
+              ),
+              clipBehavior: Clip.hardEdge,
+              child: senderPhoto.isNotEmpty
+                  ? Image.network(
+                      senderPhoto,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Container(
+                          color: Colors.grey.withOpacity(0.3),
+                          child: const Center(
+                            child: SizedBox(
+                              width: 12,
+                              height: 12,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return Center(
+                          child: Text(
+                            senderName.isNotEmpty
+                                ? senderName[0].toUpperCase()
+                                : '?',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: c.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        );
+                      },
                     )
-                  : null,
+                  : Center(
+                      child: Text(
+                        senderName.isNotEmpty
+                            ? senderName[0].toUpperCase()
+                            : '?',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: c.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
             ),
           ],
         ],
@@ -575,5 +686,4 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
     );
   }
-
 }
