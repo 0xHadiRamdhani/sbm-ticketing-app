@@ -725,6 +725,15 @@ class _SbmAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
+    final auth = Provider.of<AuthProvider>(context);
+    final userRole = auth.user?.role?.toLowerCase();
+    String defaultTitle = 'SBM ITB Support';
+    if (userRole == 'technician') {
+      defaultTitle = 'SBM ITB Technician';
+    } else if (userRole == 'admin') {
+      defaultTitle = 'SBM ITB Admin';
+    }
+
     return AppBar(
       backgroundColor: c.appBarBg,
       elevation: 0.5,
@@ -762,7 +771,7 @@ class _SbmAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
           const SizedBox(width: 10),
           Text(
-            titleText ?? 'SBM ITB Support',
+            titleText ?? defaultTitle,
             style: TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.bold,
