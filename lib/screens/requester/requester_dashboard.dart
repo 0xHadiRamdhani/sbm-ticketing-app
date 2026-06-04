@@ -137,7 +137,8 @@ class _RequesterDashboardState extends State<RequesterDashboard> {
               children: [
                 TextField(
                   controller: _searchCtrl,
-                  onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
+                  onSubmitted: (v) => setState(() => _searchQuery = v.toLowerCase()),
+                  textInputAction: TextInputAction.search,
                   style: TextStyle(color: c.textPrimary),
                   decoration: InputDecoration(
                     hintText: 'Cari tiket berdasarkan kategori atau lokasi...',

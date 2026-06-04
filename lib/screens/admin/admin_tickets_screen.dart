@@ -67,8 +67,9 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
             children: [
               TextField(
                 controller: _searchCtrl,
-                onChanged: (v) =>
+                onSubmitted: (v) =>
                     setState(() => _searchQuery = v.toLowerCase()),
+                textInputAction: TextInputAction.search,
                 decoration: InputDecoration(
                   hintText: 'Cari ID Tiket, Kategori, atau Pelapor...',
                   hintStyle: TextStyle(

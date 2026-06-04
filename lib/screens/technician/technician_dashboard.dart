@@ -161,7 +161,8 @@ class _TechnicianDashboardState extends State<TechnicianDashboard> {
                         children: [
                           TextField(
                             controller: _searchCtrl,
-                            onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
+                            onSubmitted: (v) => setState(() => _searchQuery = v.toLowerCase()),
+                            textInputAction: TextInputAction.search,
                             style: TextStyle(color: c.textPrimary),
                             decoration: InputDecoration(
                               hintText: 'Cari ID Tiket, Lokasi, atau Pelapor...',

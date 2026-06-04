@@ -98,7 +98,8 @@ class _ActiveDevicesScreenState extends State<ActiveDevicesScreen> {
             color: c.surface,
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
             child: TextField(
-              onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
+              onSubmitted: (v) => setState(() => _searchQuery = v.toLowerCase()),
+              textInputAction: TextInputAction.search,
               decoration: InputDecoration(
                 hintText: 'Cari nama pengguna...',
                 hintStyle: TextStyle(color: c.textMuted, fontSize: 13),
