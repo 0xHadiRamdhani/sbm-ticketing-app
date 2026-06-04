@@ -10,7 +10,7 @@ import '../../providers/ticket_provider.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_notifications.dart';
 import '../../utils/premium_route.dart';
-import '../chat_screen.dart';
+
 import '../shared/ticket_card.dart';
 
 class TicketDetailScreen extends StatefulWidget {
@@ -210,21 +210,6 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               ],
             ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            PremiumPageRoute(
-              child: ChatScreen(ticket: widget.ticket),
-            ),
-          );
-        },
-        backgroundColor: c.primary,
-        child: const Icon(
-          Icons.chat_bubble_outline_rounded,
-          color: Colors.white,
-        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),

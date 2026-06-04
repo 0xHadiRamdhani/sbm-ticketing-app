@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../../models/ticket_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/ticket_provider.dart';
-import '../chat_screen.dart';
+
 import '../shared/ticket_card.dart';
 import '../../services/audit_service.dart';
 import '../../services/ticket_service.dart';
@@ -136,11 +136,7 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ChatScreen(ticket: widget.ticket))),
-        backgroundColor: c.primary,
-        child: const Icon(Icons.chat_bubble_outline_rounded, color: Colors.white),
-      ),
+
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         child: Column(

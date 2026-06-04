@@ -63,6 +63,15 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  Future<void> signInAsGuest() async {
+    _setLoading(true);
+    try {
+      _user = await _authService.signInAsGuest();
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   Future<void> register(
     String email,
     String password,

@@ -6,7 +6,7 @@ import '../../models/ticket_model.dart';
 import '../../models/message_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/ticket_provider.dart';
-import '../chat_screen.dart';
+
 import '../../services/chat_service.dart';
 import '../shared/ticket_card.dart';
 import '../../utils/app_notifications.dart';
@@ -111,21 +111,7 @@ class _RequesterTicketDetailScreenState
     return Scaffold(
       backgroundColor: c.background,
       appBar: buildSbmAppBar(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ChatScreen(ticket: widget.ticket),
-            ),
-          );
-        },
-        backgroundColor: c.primary,
-        child: const Icon(
-          Icons.chat_bubble_outline_rounded,
-          color: Colors.white,
-        ),
-      ),
+
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         child: Column(

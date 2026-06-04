@@ -20,6 +20,8 @@ class TicketService {
 
     if (role == 'student' ||
         role == 'staff' ||
+        role == 'guest' ||
+        role == 'requester' ||
         role == 'technician_as_requester') {
       query = query
           .where('requester_id', isEqualTo: uid)

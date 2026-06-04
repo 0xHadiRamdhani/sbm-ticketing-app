@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import '../technician/ticket_detail_screen.dart';
 import '../requester/requester_ticket_detail_screen.dart';
 import '../admin/admin_ticket_detail_screen.dart';
+import '../chat_screen.dart';
 
 // ─── Category Icons ───────────────────────────────────────────────────────────
 IconData categoryIcon(String category) {
@@ -189,31 +190,12 @@ class TicketCard extends StatelessWidget {
           onTap: isSelectionMode
               ? () => onSelect?.call(!isSelected)
               : () {
-                  if (currentUser?.role == 'student' ||
-                      currentUser?.role == 'staff' ||
-                      (currentUser?.role == 'technician' &&
-                          currentUser?.uid == ticket.requesterId)) {
-                    Navigator.push(
-                      context,
-                      PremiumPageRoute(
-                        child: RequesterTicketDetailScreen(ticket: ticket),
-                      ),
-                    );
-                  } else if (currentUser?.role == 'admin') {
-                    Navigator.push(
-                      context,
-                      PremiumPageRoute(
-                        child: AdminTicketDetailScreen(ticket: ticket),
-                      ),
-                    );
-                  } else {
-                    Navigator.push(
-                      context,
-                      PremiumPageRoute(
-                        child: TicketDetailScreen(ticket: ticket),
-                      ),
-                    );
-                  }
+                  Navigator.push(
+                    context,
+                    PremiumPageRoute(
+                      child: ChatScreen(ticket: ticket),
+                    ),
+                  );
                 },
           child: Column(
             children: [

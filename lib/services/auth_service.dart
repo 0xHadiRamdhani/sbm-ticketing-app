@@ -107,6 +107,30 @@ class AuthService {
     }
   }
 
+  // Login as Guest (Anonymous)
+  Future<UserModel?> signInAsGuest() async {
+    try {
+      UserCredential credential = await _auth.signInAnonymously();
+      
+      UserModel guestUser = UserModel(
+        uid: credential.user!.uid,
+        name: 'Tamu (Guest)',
+        email: 'guest_${credential.user!.uid.substring(0, 5)}@guest.local',
+        role: 'guest',
+        department: 'Umum',
+      );
+
+      await _firestore
+          .collection('users')
+          .doc(guestUser.uid)
+          .set(guestUser.toMap());
+
+      return guestUser;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   // --- PHONE AUTH ---
 
   /// Kirim OTP ke nomor telepon. Panggil [onCodeSent] jika berhasil.

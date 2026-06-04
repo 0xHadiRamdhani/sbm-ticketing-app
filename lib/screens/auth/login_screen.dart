@@ -73,7 +73,8 @@ class _LoginScreenState extends State<LoginScreen>
       AppNotifications.showAlertDialog(
         context,
         title: 'Biometrik Belum Aktif',
-        message: 'Untuk keamanan Anda, silakan masuk menggunakan email & kata sandi terlebih dahulu, lalu aktifkan login biometrik di menu Pengaturan.',
+        message:
+            'Untuk keamanan Anda, silakan masuk menggunakan email & kata sandi terlebih dahulu, lalu aktifkan login biometrik di menu Pengaturan.',
         buttonLabel: 'Mengerti',
       );
       return;
@@ -487,8 +488,7 @@ class _LoginScreenState extends State<LoginScreen>
                       );
                     },
                   ),
-                  // Tombol Biometrik (hanya muncul saat mode Login & biometrik didukung perangkat)
-                  if (_isLogin && _deviceSupportsBiometric) ...[
+                  if (_isLogin) ...[
                     const SizedBox(height: 16),
                     Row(
                       children: [
@@ -504,16 +504,79 @@ class _LoginScreenState extends State<LoginScreen>
                       ],
                     ),
                     const SizedBox(height: 16),
+                    if (_deviceSupportsBiometric) ...[
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: _tryBiometricLogin,
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            side: BorderSide(
+                              color: c.isDark
+                                  ? c.border
+                                  : const Color(0xFFE2E8F0),
+                              width: 1.5,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            backgroundColor: c.isDark
+                                ? c.searchBar
+                                : const Color(0xFFF8FAFC),
+                            foregroundColor: c.isDark
+                                ? Colors.white
+                                : const Color(0xFF1A3A5C),
+                          ),
+                          icon: Icon(
+                            Icons.fingerprint_rounded,
+                            color: c.isDark
+                                ? c.primary
+                                : const Color(0xFF1A3A5C),
+                            size: 26,
+                          ),
+                          label: Text(
+                            'Masuk dengan Sidik Jari / Face ID',
+                            style: TextStyle(
+                              color: c.isDark
+                                  ? Colors.white
+                                  : const Color(0xFF1A3A5C),
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton.icon(
-                        onPressed: _tryBiometricLogin,
+                        onPressed: () async {
+                          final authProvider = Provider.of<AuthProvider>(
+                            context,
+                            listen: false,
+                          );
+                          try {
+                            await authProvider.signInAsGuest();
+                          } catch (e) {
+                            if (!mounted) return;
+                            String msg = e.toString();
+                            if (msg.contains(']'))
+                              msg = msg.split(']').last.trim();
+                            _showSnackBar(
+                              'Gagal masuk sebagai tamu: $msg',
+                              isError: true,
+                            );
+                          }
+                        },
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           side: BorderSide(
                             color: c.isDark
-                                ? c.border
-                                : const Color(0xFFE2E8F0),
+                                ? c.primary.withValues(alpha: 0.5)
+                                : const Color(
+                                    0xFF1A3A5C,
+                                  ).withValues(alpha: 0.5),
                             width: 1.5,
                           ),
                           shape: RoundedRectangleBorder(
@@ -522,23 +585,20 @@ class _LoginScreenState extends State<LoginScreen>
                           backgroundColor: c.isDark
                               ? c.searchBar
                               : const Color(0xFFF8FAFC),
-                          foregroundColor: c.isDark
-                              ? Colors.white
-                              : const Color(0xFF1A3A5C),
                         ),
                         icon: Icon(
-                          Icons.fingerprint_rounded,
+                          Icons.person_search_rounded,
                           color: c.isDark ? c.primary : const Color(0xFF1A3A5C),
-                          size: 26,
+                          size: 22,
                         ),
                         label: Text(
-                          'Masuk dengan Sidik Jari / Face ID',
+                          'Lanjutkan sebagai Tamu',
                           style: TextStyle(
                             color: c.isDark
                                 ? Colors.white
                                 : const Color(0xFF1A3A5C),
                             fontWeight: FontWeight.w600,
-                            fontSize: 14,
+                            fontSize: 14.5,
                           ),
                         ),
                       ),
@@ -549,35 +609,41 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           ),
         ),
+        _buildFooterTextButton(),
         const SizedBox(height: 24),
+      ],
+    );
+  }
 
-        TextButton(
-          onPressed: _toggleMode,
-          style: TextButton.styleFrom(splashFactory: NoSplash.splashFactory),
-          child: RichText(
-            text: TextSpan(
-              style: TextStyle(
-                fontSize: 14.5,
-                color: c.textSecondary,
-                fontFamily: 'Inter',
-              ),
-              children: [
-                TextSpan(
-                  text: _isLogin ? 'Belum punya akun? ' : 'Sudah punya akun? ',
-                ),
-                TextSpan(
-                  text: _isLogin ? 'Daftar sekarang' : 'Masuk di sini',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: c.isDark ? c.primary : const Color(0xFF1A3A5C),
-                  ),
-                ),
-              ],
+  Widget _buildFooterTextButton() {
+    final c = AppColors.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextButton(
+        onPressed: _toggleMode,
+        style: TextButton.styleFrom(splashFactory: NoSplash.splashFactory),
+        child: RichText(
+          text: TextSpan(
+            style: TextStyle(
+              fontSize: 14.5,
+              color: c.textSecondary,
+              fontFamily: 'Inter',
             ),
+            children: [
+              TextSpan(
+                text: _isLogin ? 'Belum punya akun? ' : 'Sudah punya akun? ',
+              ),
+              TextSpan(
+                text: _isLogin ? 'Daftar sekarang' : 'Masuk di sini',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: c.isDark ? c.primary : const Color(0xFF1A3A5C),
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 12),
-      ],
+      ),
     );
   }
 
