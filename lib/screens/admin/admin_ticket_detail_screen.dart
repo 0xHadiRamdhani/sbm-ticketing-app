@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -14,14 +15,15 @@ import '../../utils/app_colors.dart';
 
 class AdminTicketDetailScreen extends StatefulWidget {
   final TicketModel ticket;
-  const AdminTicketDetailScreen({Key? key, required this.ticket}) : super(key: key);
+  const AdminTicketDetailScreen({Key? key, required this.ticket})
+    : super(key: key);
 
   @override
-  State<AdminTicketDetailScreen> createState() => _AdminTicketDetailScreenState();
+  State<AdminTicketDetailScreen> createState() =>
+      _AdminTicketDetailScreenState();
 }
 
 class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
-  
   Future<void> _updateTicketDate() async {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
@@ -44,18 +46,25 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
 
       if (pickedTime != null) {
         final newDateTime = DateTime(
-          pickedDate.year, pickedDate.month, pickedDate.day,
-          pickedTime.hour, pickedTime.minute,
+          pickedDate.year,
+          pickedDate.month,
+          pickedDate.day,
+          pickedTime.hour,
+          pickedTime.minute,
         );
-        
+
         try {
-          await context.read<TicketProvider>().updateTicketDate(widget.ticket.ticketId, newDateTime);
-          
+          await context.read<TicketProvider>().updateTicketDate(
+            widget.ticket.ticketId,
+            newDateTime,
+          );
+
           // Audit Log
           await AuditService().logAction(
             actionType: 'UPDATE_TICKET_DATE',
             targetId: widget.ticket.ticketId,
-            description: 'Mengubah tanggal tiket dari ${widget.ticket.createdAt} ke $newDateTime',
+            description:
+                'Mengubah tanggal tiket dari ${widget.ticket.createdAt} ke $newDateTime',
           );
 
           if (mounted) {
@@ -91,7 +100,7 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
     );
     if (confirm == true && mounted) {
       await context.read<TicketProvider>().deleteTicket(widget.ticket.ticketId);
-      
+
       // Audit Log
       await AuditService().logAction(
         actionType: 'DELETE_TICKET',
@@ -106,8 +115,9 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
-    final shortId = '#TKT-${widget.ticket.ticketId.substring(0, 4).toUpperCase()}-${widget.ticket.ticketId.substring(4, 8).toUpperCase()}';
-    
+    final shortId =
+        '#TKT-${widget.ticket.ticketId.substring(0, 4).toUpperCase()}-${widget.ticket.ticketId.substring(4, 8).toUpperCase()}';
+
     // Parse title and description
     String displayTitle = widget.ticket.category;
     String displayDesc = widget.ticket.description;
@@ -123,16 +133,120 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
       backgroundColor: c.background,
       appBar: buildSbmAppBar(
         extraActions: [
-          PopupMenuButton<String>(
-            icon: Icon(Icons.more_vert, color: c.textSecondary),
-            onSelected: (val) {
-              if (val == 'date') _updateTicketDate();
-              if (val == 'delete') _deleteTicket();
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(value: 'date', child: Text('Ubah Tanggal Tiket', style: TextStyle(color: c.textPrimary))),
-              const PopupMenuItem(value: 'delete', child: Text('Hapus Tiket', style: TextStyle(color: Colors.red))),
-            ],
+          Container(
+            margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+            decoration: BoxDecoration(
+              color: c.isDark
+                  ? Colors.white.withOpacity(0.05)
+                  : Colors.white.withOpacity(0.4),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: c.isDark
+                    ? Colors.white.withOpacity(0.1)
+                    : Colors.white.withOpacity(0.6),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(c.isDark ? 0.3 : 0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Theme(
+                  data: Theme.of(context).copyWith(
+                    popupMenuTheme: PopupMenuThemeData(
+                      color: c.isDark
+                          ? const Color(0xFF1E293B).withOpacity(0.85)
+                          : Colors.white.withOpacity(0.9),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: BorderSide(
+                          color: c.isDark
+                              ? Colors.white.withOpacity(0.1)
+                              : Colors.white,
+                          width: 1,
+                        ),
+                      ),
+                      elevation: 8,
+                      shadowColor: Colors.black26,
+                    ),
+                  ),
+                  child: PopupMenuButton<String>(
+                    icon: Icon(Icons.more_vert, color: c.textPrimary, size: 20),
+                    offset: const Offset(0, 45),
+                    padding: EdgeInsets.zero,
+                    onSelected: (val) {
+                      if (val == 'date') _updateTicketDate();
+                      if (val == 'delete') _deleteTicket();
+                    },
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        value: 'date',
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: c.primary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(
+                                Icons.calendar_today_rounded,
+                                size: 16,
+                                color: c.primary,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Ubah Tanggal',
+                              style: TextStyle(
+                                color: c.textPrimary,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Colors.redAccent.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(
+                                Icons.delete_outline_rounded,
+                                size: 16,
+                                color: Colors.redAccent,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            const Text(
+                              'Hapus Tiket',
+                              style: TextStyle(
+                                color: Colors.redAccent,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -146,9 +260,20 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
               onTap: () => Navigator.pop(context),
               child: Row(
                 children: [
-                  Icon(Icons.arrow_back_ios_new, color: c.textSecondary, size: 18),
+                  Icon(
+                    Icons.arrow_back_ios_new,
+                    color: c.textSecondary,
+                    size: 18,
+                  ),
                   const SizedBox(width: 8),
-                  Text('Kembali ke Kotak Masuk', style: TextStyle(color: c.textSecondary, fontSize: 13, fontWeight: FontWeight.w500)),
+                  Text(
+                    'Kembali ke Kotak Masuk',
+                    style: TextStyle(
+                      color: c.textSecondary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -157,12 +282,22 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
               children: [
                 _buildStatusChip(widget.ticket.status),
                 const SizedBox(width: 12),
-                Text(shortId, style: TextStyle(color: c.textSecondary, fontSize: 14)),
+                Text(
+                  shortId,
+                  style: TextStyle(color: c.textSecondary, fontSize: 14),
+                ),
               ],
             ),
             const SizedBox(height: 12),
-            Text(displayTitle, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: c.textPrimary)),
-            
+            Text(
+              displayTitle,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: c.textPrimary,
+              ),
+            ),
+
             const SizedBox(height: 16),
             _buildSLATimer(),
 
@@ -170,13 +305,31 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
 
             // Detail Laporan Card
             _buildSection('Detail Laporan', [
-              _buildInfoRow(Icons.location_on_outlined, 'Lokasi', widget.ticket.location ?? 'Tidak ada lokasi', c),
+              _buildInfoRow(
+                Icons.location_on_outlined,
+                'Lokasi',
+                widget.ticket.location ?? 'Tidak ada lokasi',
+                c,
+              ),
               const SizedBox(height: 16),
-              _buildInfoRow(Icons.category_outlined, 'Kategori', widget.ticket.category, c),
+              _buildInfoRow(
+                Icons.category_outlined,
+                'Kategori',
+                widget.ticket.category,
+                c,
+              ),
               const SizedBox(height: 16),
               _buildRequesterRow(widget.ticket.requesterId, c),
               const SizedBox(height: 16),
-              _buildInfoRow(Icons.access_time, 'Waktu Laporan', DateFormat('dd MMM yyyy, HH:mm').format(widget.ticket.createdAt) + ' WIB', c),
+              _buildInfoRow(
+                Icons.access_time,
+                'Waktu Laporan',
+                DateFormat(
+                      'dd MMM yyyy, HH:mm',
+                    ).format(widget.ticket.createdAt) +
+                    ' WIB',
+                c,
+              ),
               const SizedBox(height: 16),
               if (widget.ticket.technicianId != null)
                 _buildTechnicianRow(widget.ticket.technicianId!, c),
@@ -197,28 +350,56 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
             const SizedBox(height: 20),
 
             // Informasi Perbaikan
-            if (widget.ticket.note != null || widget.ticket.photoAfterUrl != null)
+            if (widget.ticket.note != null ||
+                widget.ticket.photoAfterUrl != null)
               _buildSection('Informasi Perbaikan', [
-                Text('Catatan Teknisi', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textPrimary)),
+                Text(
+                  'Catatan Teknisi',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: c.textPrimary,
+                  ),
+                ),
                 const SizedBox(height: 12),
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: c.surfaceElevated, borderRadius: BorderRadius.circular(8)),
-                  child: Text(widget.ticket.note ?? 'Tidak ada catatan.', style: TextStyle(fontSize: 13, color: c.textSecondary)),
+                  decoration: BoxDecoration(
+                    color: c.surfaceElevated,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    widget.ticket.note ?? 'Tidak ada catatan.',
+                    style: TextStyle(fontSize: 13, color: c.textSecondary),
+                  ),
                 ),
-                if (widget.ticket.photoBeforeUrl != null || widget.ticket.photoAfterUrl != null) ...[
+                if (widget.ticket.photoBeforeUrl != null ||
+                    widget.ticket.photoAfterUrl != null) ...[
                   const SizedBox(height: 24),
-                  Text('Bukti Foto Perbaikan', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textPrimary)),
+                  Text(
+                    'Bukti Foto Perbaikan',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: c.textPrimary,
+                    ),
+                  ),
                   const SizedBox(height: 12),
                   if (widget.ticket.photoBeforeUrl != null) ...[
-                    Text('Foto Sebelum:', style: TextStyle(fontSize: 11, color: c.textSecondary)),
+                    Text(
+                      'Foto Sebelum:',
+                      style: TextStyle(fontSize: 11, color: c.textSecondary),
+                    ),
                     const SizedBox(height: 4),
                     _buildImage(widget.ticket.photoBeforeUrl!),
                     const SizedBox(height: 12),
                   ],
                   if (widget.ticket.photoAfterUrl != null) ...[
-                    Text('Foto Sesudah:', style: TextStyle(fontSize: 11, color: c.textSecondary)),
+                    Text(
+                      'Foto Sesudah:',
+                      style: TextStyle(fontSize: 11, color: c.textSecondary),
+                    ),
                     const SizedBox(height: 4),
                     _buildImage(widget.ticket.photoAfterUrl!),
                   ],
@@ -242,9 +423,25 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(padding: const EdgeInsets.all(20), child: Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary))),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: c.textPrimary,
+              ),
+            ),
+          ),
           Divider(height: 1, color: c.border),
-          Padding(padding: const EdgeInsets.all(20), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: children)),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: children,
+            ),
+          ),
         ],
       ),
     );
@@ -261,12 +458,26 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(padding: const EdgeInsets.all(20), child: Text('Riwayat Status', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary))),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Text(
+              'Riwayat Status',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: c.textPrimary,
+              ),
+            ),
+          ),
           Divider(height: 1, color: c.border),
           Padding(
             padding: const EdgeInsets.all(20),
             child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('tickets').doc(widget.ticket.ticketId).collection('status_history').snapshots(),
+              stream: FirebaseFirestore.instance
+                  .collection('tickets')
+                  .doc(widget.ticket.ticketId)
+                  .collection('status_history')
+                  .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   return Padding(
@@ -277,19 +488,28 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
                     ),
                   );
                 }
-                if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-                
+                if (!snapshot.hasData)
+                  return const Center(child: CircularProgressIndicator());
+
                 final history = snapshot.data!.docs.toList();
                 // Sort locally to avoid index requirement
                 history.sort((a, b) {
-                  final tsA = (a.data() as Map<String, dynamic>)['timestamp'] as Timestamp?;
-                  final tsB = (b.data() as Map<String, dynamic>)['timestamp'] as Timestamp?;
+                  final tsA =
+                      (a.data() as Map<String, dynamic>)['timestamp']
+                          as Timestamp?;
+                  final tsB =
+                      (b.data() as Map<String, dynamic>)['timestamp']
+                          as Timestamp?;
                   if (tsA == null || tsB == null) return 0;
                   return tsA.compareTo(tsB);
                 });
- 
-                if (history.isEmpty) return Text('Tidak ada riwayat status.', style: TextStyle(fontSize: 13, color: c.textMuted));
- 
+
+                if (history.isEmpty)
+                  return Text(
+                    'Tidak ada riwayat status.',
+                    style: TextStyle(fontSize: 13, color: c.textMuted),
+                  );
+
                 return ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -297,11 +517,15 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
                   itemBuilder: (context, index) {
                     final data = history[index].data() as Map<String, dynamic>;
                     final label = data['label'] ?? data['status'];
-                    final time = data['timestamp'] != null ? (data['timestamp'] as Timestamp).toDate() : null;
-                    
+                    final time = data['timestamp'] != null
+                        ? (data['timestamp'] as Timestamp).toDate()
+                        : null;
+
                     return _buildTimelineItem(
                       label,
-                      time != null ? DateFormat('dd MMM, HH:mm').format(time) : '-',
+                      time != null
+                          ? DateFormat('dd MMM, HH:mm').format(time)
+                          : '-',
                       index == history.length - 1, // isCurrent (latest)
                       index == history.length - 1, // isLast
                       c,
@@ -316,7 +540,13 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
     );
   }
 
-  Widget _buildTimelineItem(String label, String time, bool isCurrent, bool isLast, AppColors c) {
+  Widget _buildTimelineItem(
+    String label,
+    String time,
+    bool isCurrent,
+    bool isLast,
+    AppColors c,
+  ) {
     final circleColor = c.textPrimary;
     return IntrinsicHeight(
       child: Row(
@@ -330,13 +560,14 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
                 decoration: BoxDecoration(
                   color: isCurrent ? circleColor : c.surface,
                   shape: BoxShape.circle,
-                  border: Border.all(
-                    color: circleColor,
-                    width: 2,
-                  ),
+                  border: Border.all(color: circleColor, width: 2),
                 ),
                 child: isCurrent
-                    ? Icon(Icons.check, size: 14, color: c.isDark ? Colors.black : Colors.white)
+                    ? Icon(
+                        Icons.check,
+                        size: 14,
+                        color: c.isDark ? Colors.black : Colors.white,
+                      )
                     : Center(
                         child: Container(
                           width: 8,
@@ -349,12 +580,7 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
                       ),
               ),
               if (!isLast)
-                Expanded(
-                  child: Container(
-                    width: 2,
-                    color: circleColor,
-                  ),
-                ),
+                Expanded(child: Container(width: 2, color: circleColor)),
             ],
           ),
           const SizedBox(width: 16),
@@ -375,10 +601,7 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
                   const SizedBox(height: 4),
                   Text(
                     time,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: c.textSecondary,
-                    ),
+                    style: TextStyle(fontSize: 12, color: c.textSecondary),
                   ),
                 ],
               ),
@@ -391,12 +614,22 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
 
   Widget _buildInternalNotesSection(AppColors c) {
     final TextEditingController _noteController = TextEditingController();
-    
-    final bgNotes = c.isDark ? const Color(0xFF2E2315) : const Color(0xFFFFF7ED);
-    final borderNotes = c.isDark ? const Color(0xFF4D3715) : const Color(0xFFFED7AA);
-    final textOrange = c.isDark ? const Color(0xFFFBBF24) : const Color(0xFFC2410C);
-    final textAuthor = c.isDark ? const Color(0xFFFDE68A) : const Color(0xFF9A3412);
-    final textContent = c.isDark ? const Color(0xFFFFFBEB) : const Color(0xFF431407);
+
+    final bgNotes = c.isDark
+        ? const Color(0xFF2E2315)
+        : const Color(0xFFFFF7ED);
+    final borderNotes = c.isDark
+        ? const Color(0xFF4D3715)
+        : const Color(0xFFFED7AA);
+    final textOrange = c.isDark
+        ? const Color(0xFFFBBF24)
+        : const Color(0xFFC2410C);
+    final textAuthor = c.isDark
+        ? const Color(0xFFFDE68A)
+        : const Color(0xFF9A3412);
+    final textContent = c.isDark
+        ? const Color(0xFFFFFBEB)
+        : const Color(0xFF431407);
 
     return Container(
       width: double.infinity,
@@ -414,19 +647,38 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
               children: [
                 Icon(Icons.lock_outline, size: 18, color: textOrange),
                 const SizedBox(width: 8),
-                Text('Catatan Internal', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textOrange)),
+                Text(
+                  'Catatan Internal',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: textOrange,
+                  ),
+                ),
                 const Spacer(),
-                Text('Hanya Staff', style: TextStyle(fontSize: 10, color: textOrange, fontWeight: FontWeight.bold)),
+                Text(
+                  'Hanya Staff',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: textOrange,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
           ),
           Divider(height: 1, color: borderNotes),
           StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance.collection('tickets').doc(widget.ticket.ticketId).collection('internal_notes').orderBy('timestamp', descending: true).snapshots(),
+            stream: FirebaseFirestore.instance
+                .collection('tickets')
+                .doc(widget.ticket.ticketId)
+                .collection('internal_notes')
+                .orderBy('timestamp', descending: true)
+                .snapshots(),
             builder: (context, snapshot) {
               if (!snapshot.hasData) return const SizedBox();
               final notes = snapshot.data!.docs;
-              
+
               return ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -434,23 +686,44 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
                 itemBuilder: (context, index) {
                   final data = notes[index].data() as Map<String, dynamic>;
                   return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    decoration: BoxDecoration(border: Border(bottom: BorderSide(color: borderNotes, width: 0.5))),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(color: borderNotes, width: 0.5),
+                      ),
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(data['author_name'] ?? 'Admin', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: textAuthor)),
                             Text(
-                              data['timestamp'] != null ? DateFormat('dd MMM, HH:mm').format((data['timestamp'] as Timestamp).toDate()) : '-',
+                              data['author_name'] ?? 'Admin',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: textAuthor,
+                              ),
+                            ),
+                            Text(
+                              data['timestamp'] != null
+                                  ? DateFormat('dd MMM, HH:mm').format(
+                                      (data['timestamp'] as Timestamp).toDate(),
+                                    )
+                                  : '-',
                               style: TextStyle(fontSize: 10, color: textOrange),
                             ),
                           ],
                         ),
                         const SizedBox(height: 4),
-                        Text(data['note'] ?? '', style: TextStyle(fontSize: 13, color: textContent)),
+                        Text(
+                          data['note'] ?? '',
+                          style: TextStyle(fontSize: 13, color: textContent),
+                        ),
                       ],
                     ),
                   );
@@ -467,11 +740,22 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
                     controller: _noteController,
                     decoration: InputDecoration(
                       hintText: 'Tambah catatan internal...',
-                      hintStyle: TextStyle(fontSize: 13, color: textOrange.withOpacity(0.6)),
+                      hintStyle: TextStyle(
+                        fontSize: 13,
+                        color: textOrange.withOpacity(0.6),
+                      ),
                       filled: true,
-                      fillColor: c.isDark ? const Color(0xFF251A0F) : Colors.white,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      fillColor: c.isDark
+                          ? const Color(0xFF251A0F)
+                          : Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
                     ),
                     style: TextStyle(fontSize: 13, color: c.textPrimary),
                   ),
@@ -537,14 +821,22 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
               const SizedBox(width: 8),
               Text(
                 isOverdue ? 'SLA Terlewati' : 'Target Penyelesaian (SLA)',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: statusColor),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: statusColor,
+                ),
               ),
               const Spacer(),
               Text(
-                isOverdue 
-                  ? 'Terlambat ${remaining.abs().inHours} jam' 
-                  : '${remaining.inHours}j ${remaining.inMinutes % 60}m tersisa',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: statusColor),
+                isOverdue
+                    ? 'Terlambat ${remaining.abs().inHours} jam'
+                    : '${remaining.inHours}j ${remaining.inMinutes % 60}m tersisa',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: statusColor,
+                ),
               ),
             ],
           ),
@@ -552,7 +844,11 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
-              value: isOverdue ? 1.0 : (now.difference(widget.ticket.createdAt).inMinutes / (targetHours * 60)).clamp(0.0, 1.0),
+              value: isOverdue
+                  ? 1.0
+                  : (now.difference(widget.ticket.createdAt).inMinutes /
+                            (targetHours * 60))
+                        .clamp(0.0, 1.0),
               backgroundColor: statusColor.withOpacity(0.1),
               valueColor: AlwaysStoppedAnimation<Color>(statusColor),
               minHeight: 6,
@@ -578,7 +874,14 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: TextStyle(fontSize: 12, color: c.textSecondary, fontWeight: FontWeight.w600)),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: c.textSecondary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
               const SizedBox(height: 2),
               Text(value, style: TextStyle(fontSize: 14, color: c.textPrimary)),
             ],
@@ -592,13 +895,26 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: c.surfaceElevated, borderRadius: BorderRadius.circular(8)),
+      decoration: BoxDecoration(
+        color: c.surfaceElevated,
+        borderRadius: BorderRadius.circular(8),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Deskripsi Kendala', style: TextStyle(fontSize: 12, color: c.textSecondary, fontWeight: FontWeight.w600)),
+          Text(
+            'Deskripsi Kendala',
+            style: TextStyle(
+              fontSize: 12,
+              color: c.textSecondary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           const SizedBox(height: 8),
-          Text('"$desc"', style: TextStyle(fontSize: 13, color: c.textPrimary, height: 1.5)),
+          Text(
+            '"$desc"',
+            style: TextStyle(fontSize: 13, color: c.textPrimary, height: 1.5),
+          ),
           if (widget.ticket.imageUrl != null) ...[
             const SizedBox(height: 12),
             _buildImage(widget.ticket.imageUrl!),
@@ -610,14 +926,19 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
 
   Widget _buildRequesterRow(String requesterId, AppColors c) {
     return FutureBuilder<DocumentSnapshot>(
-      future: FirebaseFirestore.instance.collection('users').doc(requesterId).get(),
+      future: FirebaseFirestore.instance
+          .collection('users')
+          .doc(requesterId)
+          .get(),
       builder: (_, snap) {
         String display = 'Memuat...';
         if (snap.hasData && snap.data!.exists) {
           final d = snap.data!.data() as Map<String, dynamic>;
           final name = d['name'] ?? '-';
           final role = d['role'] ?? '';
-          String roleLabel = role == 'student' ? 'Mahasiswa' : (role == 'staff' ? 'Dosen/Staff' : role);
+          String roleLabel = role == 'student'
+              ? 'Mahasiswa'
+              : (role == 'staff' ? 'Dosen/Staff' : role);
           display = '$name ($roleLabel)';
         }
         return _buildInfoRow(Icons.person_outline, 'Pelapor', display, c);
@@ -627,14 +948,22 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
 
   Widget _buildTechnicianRow(String technicianId, AppColors c) {
     return FutureBuilder<DocumentSnapshot>(
-      future: FirebaseFirestore.instance.collection('users').doc(technicianId).get(),
+      future: FirebaseFirestore.instance
+          .collection('users')
+          .doc(technicianId)
+          .get(),
       builder: (_, snap) {
         String name = 'Memuat...';
         if (snap.hasData && snap.data!.exists) {
           final d = snap.data!.data() as Map<String, dynamic>;
           name = d['name'] ?? 'Teknisi';
         }
-        return _buildInfoRow(Icons.engineering_outlined, 'Teknisi Penanggung Jawab', name, c);
+        return _buildInfoRow(
+          Icons.engineering_outlined,
+          'Teknisi Penanggung Jawab',
+          name,
+          c,
+        );
       },
     );
   }
@@ -643,12 +972,30 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
     Color color = statusDotColor(status);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(20)),
-      child: Text(statusLabel(status), style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        statusLabel(status),
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
     );
   }
 
   Widget _buildImage(String url) {
-    return ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.network(url, width: double.infinity, height: 140, fit: BoxFit.cover));
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Image.network(
+        url,
+        width: double.infinity,
+        height: 140,
+        fit: BoxFit.cover,
+      ),
+    );
   }
 }
