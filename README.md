@@ -43,19 +43,19 @@ Berikut adalah beberapa tampilan utama dari aplikasi helpdesk:
 ### Halaman Masuk (Login Screen)
 Halaman masuk dengan autentikasi email, kata sandi, dan integrasi Google Sign-In yang modern dan minimalis.
 <p align="center">
-  <img src="assets/login_screen.png" width="320" style="border-radius: 12px; margin: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);"/>
+  <img src="assets/screen_login.png" width="320" style="border-radius: 12px; margin: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);"/>
 </p>
 
 ### Halaman Utama Pengaju (Requester Dashboard)
 Halaman utama bagi pelapor untuk memantau status tiket, mencari riwayat keluhan, dan membuat tiket baru dengan cepat.
 <p align="center">
-  <img src="assets/requester_dashboard.png" width="320" style="border-radius: 12px; margin: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);"/>
+  <img src="assets/screen_dashboard.png" width="320" style="border-radius: 12px; margin: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);"/>
 </p>
 
 ### Halaman Utama Teknisi (Technician Dashboard)
 Dashboard khusus bagi tim teknis untuk memantau statistik tugas yang ditugaskan, diproses, dan diselesaikan, lengkap dengan saringan kategori yang responsif.
 <p align="center">
-  <img src="assets/technician_dashboard.png" width="320" style="border-radius: 12px; margin: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);"/>
+  <img src="assets/screen_dashboard.png" width="320" style="border-radius: 12px; margin: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);"/>
 </p>
 
 ---
