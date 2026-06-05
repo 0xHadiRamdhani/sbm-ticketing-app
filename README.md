@@ -46,16 +46,16 @@ Halaman masuk dengan autentikasi email, kata sandi, dan integrasi Google Sign-In
   <img src="assets/screen_login.png" width="320" style="border-radius: 12px; margin: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);"/>
 </p>
 
-### Halaman Utama Pengaju (Requester Dashboard)
-Halaman utama bagi pelapor untuk memantau status tiket, mencari riwayat keluhan, dan membuat tiket baru dengan cepat.
+### Halaman Permintaan (Request Screen)
+Halaman utama bagi pelapor untuk mengajukan tiket keluhan atau permintaan layanan.
 <p align="center">
-  <img src="assets/screen_dashboard.png" width="320" style="border-radius: 12px; margin: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);"/>
+  <img src="assets/screen_request.png" width="320" style="border-radius: 12px; margin: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);"/>
 </p>
 
-### Halaman Utama Teknisi (Technician Dashboard)
-Dashboard khusus bagi tim teknis untuk memantau statistik tugas yang ditugaskan, diproses, dan diselesaikan, lengkap dengan saringan kategori yang responsif.
+### Halaman Tentang (About Screen)
+Halaman informasi mengenai aplikasi dan tim pengembang.
 <p align="center">
-  <img src="assets/screen_dashboard.png" width="320" style="border-radius: 12px; margin: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);"/>
+  <img src="assets/screen_about.png" width="320" style="border-radius: 12px; margin: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);"/>
 </p>
 
 ---
