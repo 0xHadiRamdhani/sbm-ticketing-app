@@ -105,7 +105,7 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
                   ElevatedButton(
                     onPressed: _handleExport,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1A3A5C),
+                      backgroundColor: const Color.fromARGB(255, 117, 117, 117),
                       minimumSize: const Size(double.infinity, 54),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),

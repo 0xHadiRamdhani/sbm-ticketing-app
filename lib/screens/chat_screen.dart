@@ -6,6 +6,7 @@ import '../models/ticket_model.dart';
 import '../models/message_model.dart';
 import '../services/chat_service.dart';
 import '../providers/auth_provider.dart';
+import '../providers/language_provider.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_notifications.dart';
 import 'technician/ticket_detail_screen.dart';
@@ -100,6 +101,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
+    final lang = context.watch<LanguageProvider>();
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final currentUser = authProvider.user;
 
@@ -332,42 +334,14 @@ class _ChatScreenState extends State<ChatScreen> {
               overlayColor: WidgetStatePropertyAll(Colors.transparent),
             ),
             child: Text(
-              'Lihat Detail Tiket',
+              lang.translate('Lihat Detail Tiket', 'View Detail Ticket'),
               style: TextStyle(fontSize: 12, color: c.primary),
             ),
           ),
           IconButton(
             icon: Icon(Icons.info_outline_rounded, color: c.primary),
-            tooltip: 'Detail Tiket',
-            onPressed: () {
-              if (currentUser?.role == 'student' ||
-                  currentUser?.role == 'staff' ||
-                  (currentUser?.role == 'technician' &&
-                      currentUser?.uid == widget.ticket.requesterId)) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        RequesterTicketDetailScreen(ticket: widget.ticket),
-                  ),
-                );
-              } else if (currentUser?.role == 'admin') {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        AdminTicketDetailScreen(ticket: widget.ticket),
-                  ),
-                );
-              } else {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => TicketDetailScreen(ticket: widget.ticket),
-                  ),
-                );
-              }
-            },
+            tooltip: lang.translate('Informasi Tiket', 'Ticket Information'),
+            onPressed: () => _showTicketInfo(context),
           ),
         ],
       ),
@@ -462,6 +436,104 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
           _buildMessageInput(),
+        ],
+      ),
+    );
+  }
+
+  void _showTicketInfo(BuildContext context) {
+    final c = AppColors.of(context);
+    final lang = Provider.of<LanguageProvider>(context, listen: false);
+    final requesterName = _userNames[widget.ticket.requesterId] ?? 'Requester';
+    final technicianName = widget.ticket.technicianId != null
+        ? (_userNames[widget.ticket.technicianId!] ?? 'Belum ada teknisi')
+        : 'Belum ada teknisi';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: c.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 24.0,
+            right: 24.0,
+            top: 24.0,
+          ),
+          child: SafeArea(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    lang.translate('Informasi Tiket', 'Ticket Information'),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: c.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildInfoRow(Icons.numbers_outlined, lang.translate('ID Tiket', 'Ticket ID'), widget.ticket.ticketId, c),
+                  _buildInfoRow(Icons.access_time_outlined, lang.translate('Dibuat Pada', 'Created At'), DateFormat('dd MMM yyyy, HH:mm').format(widget.ticket.createdAt), c),
+                  if (widget.ticket.targetResolutionAt != null)
+                    _buildInfoRow(Icons.flag_outlined, lang.translate('Batas SLA', 'SLA Deadline'), DateFormat('dd MMM yyyy, HH:mm').format(widget.ticket.targetResolutionAt!), c),
+                  _buildInfoRow(Icons.label_outline, lang.translate('Kategori', 'Category'), widget.ticket.category, c),
+                  _buildInfoRow(Icons.priority_high, lang.translate('Prioritas', 'Priority'), widget.ticket.priority, c),
+                  _buildInfoRow(Icons.info_outline, lang.translate('Status', 'Status'), widget.ticket.status, c),
+                  _buildInfoRow(Icons.person_outline, lang.translate('Requester', 'Requester'), requesterName, c),
+                  _buildInfoRow(Icons.build_circle_outlined, lang.translate('Teknisi', 'Technician'), technicianName, c),
+                  if (widget.ticket.location != null && widget.ticket.location!.isNotEmpty)
+                    _buildInfoRow(Icons.location_on_outlined, lang.translate('Lokasi', 'Location'), widget.ticket.location!, c),
+                  _buildInfoRow(Icons.description_outlined, lang.translate('Keluhan', 'Description'), widget.ticket.description, c),
+                  const SizedBox(height: 8),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String label, String value, AppColors c) {
+    Color valueColor = c.textPrimary;
+    if (label == 'Prioritas' || label == 'Priority') {
+      if (value.toLowerCase() == 'high') {
+        valueColor = Colors.red;
+      } else if (value.toLowerCase() == 'medium') {
+        valueColor = Colors.orange;
+      } else if (value.toLowerCase() == 'low') {
+        valueColor = Colors.green;
+      }
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 20, color: c.primary),
+          const SizedBox(width: 12),
+          Text(
+            '$label: ',
+            style: TextStyle(fontSize: 14, color: c.textSecondary),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: valueColor,
+              ),
+            ),
+          ),
         ],
       ),
     );

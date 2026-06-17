@@ -29,6 +29,13 @@ class DeviceService {
 
       final osVersion = Platform.operatingSystemVersion;
 
+      String modelName = "Unknown Model";
+      try {
+        modelName = Platform.localHostname;
+      } catch (e) {
+        modelName = "Unknown Model";
+      }
+
       await _firestore
           .collection('users')
           .doc(uid)
@@ -39,7 +46,7 @@ class DeviceService {
         'deviceName': osName,
         'osVersion': osVersion,
         'lastActive': FieldValue.serverTimestamp(),
-        'model': Platform.localHostname,
+        'model': modelName,
       }, SetOptions(merge: true));
     } catch (e) {
       print("Error registering device: $e");

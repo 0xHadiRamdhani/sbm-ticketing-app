@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/ticket_provider.dart';
+import '../../providers/language_provider.dart';
 import '../shared/ticket_card.dart'; // untuk buildSbmAppBar
 import '../shared/ios_glass_dropdown.dart';
 import '../settings_screen.dart';
@@ -97,6 +98,7 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
   Widget build(BuildContext context) {
     final isLoading = Provider.of<TicketProvider>(context).isLoading;
     final c = AppColors.of(context);
+    final lang = context.watch<LanguageProvider>();
 
     return Scaffold(
       backgroundColor: c.background,
@@ -115,7 +117,7 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Pengajuan Tiket Baru',
+              lang.translate('Pengajuan Tiket Baru', 'New Ticket Submission'),
               style: TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.bold,
@@ -124,7 +126,10 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
             ),
             const SizedBox(height: 10),
             Text(
-              'Silakan isi formulir di bawah ini untuk melaporkan masalah atau mengajukan permintaan layanan terkait IT Support, Fasilitas, atau Akademik.',
+              lang.translate(
+                'Silakan isi formulir di bawah ini untuk melaporkan masalah atau mengajukan permintaan layanan terkait IT Support, Fasilitas, atau Akademik.',
+                'Please fill in the form below to report an issue or request a service related to IT Support, Facilities, or Academics.',
+              ),
               style: TextStyle(
                 fontSize: 14,
                 color: c.textSecondary,
@@ -152,19 +157,19 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildLabel('Judul Masalah', c),
+                    _buildLabel(lang.translate('Judul Masalah', 'Issue Title'), c),
                     _buildTextField(
                       controller: _titleController,
-                      hint: 'Contoh: Kerusakan AC di Ruang Kelas',
+                      hint: lang.translate('Contoh: Kerusakan AC di Ruang Kelas', 'Example: AC broken in classroom'),
                       c: c,
-                      validator: (val) => val == null || val.isEmpty ? 'Wajib diisi' : null,
+                      validator: (val) => val == null || val.isEmpty ? lang.translate('Wajib diisi', 'Required') : null,
                     ),
                     const SizedBox(height: 18),
                     
-                    _buildLabel('Kategori', c),
+                    _buildLabel(lang.translate('Kategori', 'Category'), c),
                     IosGlassDropdownFormField<String>(
                       value: ['IT', 'Fasilitas', 'Akademik', 'Lainnya'].contains(_category) ? _category : null,
-                      hint: 'Pilih kategori masalah',
+                      hint: lang.translate('Pilih kategori masalah', 'Select issue category'),
                       items: const ['IT', 'Fasilitas', 'Akademik', 'Lainnya'],
                       itemLabelBuilder: (e) => e,
                       onChanged: (val) => setState(() => _category = val),
@@ -172,21 +177,24 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
                     ),
                     const SizedBox(height: 18),
                     
-                    _buildLabel('Lokasi / Ruangan (Opsional)', c),
+                    _buildLabel(lang.translate('Lokasi / Ruangan (Opsional)', 'Location / Room (Optional)'), c),
                     _buildTextField(
                       controller: _locationController,
-                      hint: 'Contoh: Gedung SBM Lantai 2',
+                      hint: lang.translate('Contoh: Gedung SBM Lantai 2', 'Example: SBM Building Floor 2'),
                       c: c,
                     ),
                     const SizedBox(height: 18),
                     
-                    _buildLabel('Deskripsi Detail', c),
+                    _buildLabel(lang.translate('Deskripsi Detail', 'Detailed Description'), c),
                     _buildTextField(
                       controller: _descController,
-                      hint: 'Jelaskan masalah secara detail, termasuk langkah-langkah yang sudah Anda coba atau pesan error yang muncul...',
+                      hint: lang.translate(
+                        'Jelaskan masalah secara detail, termasuk langkah-langkah yang sudah Anda coba atau pesan error yang muncul...',
+                        'Describe the issue in detail, including steps you have tried or error messages that appeared...',
+                      ),
                       maxLines: 5,
                       c: c,
-                      validator: (val) => val == null || val.isEmpty ? 'Wajib diisi' : null,
+                      validator: (val) => val == null || val.isEmpty ? lang.translate('Wajib diisi', 'Required') : null,
                     ),
                     const SizedBox(height: 18),
                     
@@ -249,7 +257,7 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
                           side: BorderSide(color: c.border),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                         ),
-                        child: Text('Batal', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c.textPrimary)),
+                        child: Text(lang.translate('Batal', 'Cancel'), style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c.textPrimary)),
                       ),
                     ),
                     const SizedBox(height: 12),

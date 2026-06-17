@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import '../providers/auth_provider.dart';
+import '../providers/language_provider.dart';
 import '../utils/app_colors.dart';
 import 'shared/ticket_card.dart';
 import '../utils/app_notifications.dart';
@@ -162,6 +163,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final user = Provider.of<AuthProvider>(context).user;
     if (user == null) return const SizedBox.shrink();
     final c = AppColors.of(context);
+    final lang = context.watch<LanguageProvider>();
 
     // Determine current photo to show
     ImageProvider? imageProvider;
@@ -176,7 +178,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       appBar: buildSbmAppBar(
         showBackButton: true,
         onBackPressed: () => Navigator.pop(context),
-        titleText: 'Edit Profil',
+        titleText: lang.translate('Edit Profil', 'Edit Profile'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
@@ -269,7 +271,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Nama Lengkap',
+                  lang.translate('Nama Lengkap', 'Full Name'),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -303,9 +305,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             const SizedBox(height: 24),
             
             // Fixed Info Fields (Email / Role)
-            _buildReadOnlyField(context, 'Email', user.email.isEmpty ? user.phoneNumber : user.email, Icons.email_outlined),
+            _buildReadOnlyField(context, lang.translate('Email', 'Email'), user.email.isEmpty ? user.phoneNumber : user.email, Icons.email_outlined),
             const SizedBox(height: 24),
-            _buildReadOnlyField(context, 'Peran (Role)', user.role.toUpperCase(), Icons.badge_outlined),
+            _buildReadOnlyField(context, lang.translate('Peran (Role)', 'Role'), user.role.toUpperCase(), Icons.badge_outlined),
 
             const SizedBox(height: 48),
 
@@ -328,9 +330,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         height: 24,
                         child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
                       )
-                    : const Text(
-                        'Simpan Perubahan',
-                        style: TextStyle(
+                    : Text(
+                        lang.translate('Simpan Perubahan', 'Save Changes'),
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,

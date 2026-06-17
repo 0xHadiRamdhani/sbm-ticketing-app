@@ -28,9 +28,15 @@ class DefaultFirebaseOptions {
       case TargetPlatform.iOS:
         return ios;
       case TargetPlatform.macOS:
-        return macos;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for macos - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.windows:
-        return windows;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for windows - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -59,25 +65,6 @@ class DefaultFirebaseOptions {
     storageBucket: 'ticketing-app-sbm.firebasestorage.app',
     iosClientId: '469061446199-m1qsgi2kteds61lrtgukgm9kj9seclb4.apps.googleusercontent.com',
     iosBundleId: 'com.ticketing.sbm',
-  );
-
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyCpkg8njVbuWmAQqYwVyyTHjJ2H-yC9eb4',
-    appId: '1:469061446199:ios:068fa620e3b1ed5cf22db2',
-    messagingSenderId: '469061446199',
-    projectId: 'ticketing-app-sbm',
-    storageBucket: 'ticketing-app-sbm.firebasestorage.app',
-    iosBundleId: 'com.example.ticketingAppSbm',
-  );
-
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyCAxjkKGJXgst32oY0WGWV_dOhIU7R2rW0',
-    appId: '1:469061446199:web:8b4e2d1d7d2a30d3f22db2',
-    messagingSenderId: '469061446199',
-    projectId: 'ticketing-app-sbm',
-    authDomain: 'ticketing-app-sbm.firebaseapp.com',
-    storageBucket: 'ticketing-app-sbm.firebasestorage.app',
-    measurementId: 'G-S2WNJKS943',
   );
 
 }

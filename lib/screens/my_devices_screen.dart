@@ -1,9 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
-import '../../services/device_service.dart';
-import '../../utils/app_notifications.dart';
+import '../providers/auth_provider.dart';
+import '../providers/language_provider.dart';
+import '../services/device_service.dart';
+import '../utils/app_notifications.dart';
 import '../utils/app_colors.dart';
 import 'shared/ticket_card.dart';
 
@@ -97,13 +98,14 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
+    final lang = context.watch<LanguageProvider>();
     final uid = context.read<AuthProvider>().user?.uid;
 
     if (uid == null) {
       return Scaffold(
         backgroundColor: c.background,
-        appBar: buildSbmAppBar(showBackButton: true, onBackPressed: () => Navigator.pop(context), titleText: 'Perangkat Aktif'),
-        body: Center(child: Text('Tidak ada sesi aktif', style: TextStyle(color: c.textMuted))),
+        appBar: buildSbmAppBar(showBackButton: true, onBackPressed: () => Navigator.pop(context), titleText: lang.translate('Perangkat Aktif', 'Active Devices')),
+        body: Center(child: Text(lang.translate('Tidak ada sesi aktif', 'No active session'), style: TextStyle(color: c.textMuted))),
       );
     }
 
@@ -112,7 +114,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
       appBar: buildSbmAppBar(
         showBackButton: true,
         onBackPressed: () => Navigator.pop(context),
-        titleText: 'Perangkat Aktif Saya',
+        titleText: lang.translate('Perangkat Aktif Saya', 'My Active Devices'),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: _firestore
@@ -243,7 +245,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: Text(
-                                        'Perangkat Ini',
+                                        lang.translate('Perangkat Ini', 'This Device'),
                                         style: TextStyle(
                                           fontSize: 10,
                                           fontWeight: FontWeight.bold,

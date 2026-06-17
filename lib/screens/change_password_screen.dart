@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/language_provider.dart';
 import '../utils/app_colors.dart';
 import 'shared/ticket_card.dart';
 import '../utils/app_notifications.dart';
@@ -69,12 +70,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
+    final lang = context.watch<LanguageProvider>();
     return Scaffold(
       backgroundColor: c.background,
       appBar: buildSbmAppBar(
         showBackButton: true,
         onBackPressed: () => Navigator.pop(context),
-        titleText: 'Ubah Kata Sandi',
+        titleText: lang.translate('Ubah Kata Sandi', 'Change Password'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -97,7 +99,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Silakan masukkan kata sandi Anda saat ini dan kata sandi baru untuk akun Anda.',
+                  lang.translate(
+                    'Silakan masukkan kata sandi Anda saat ini dan kata sandi baru untuk akun Anda.',
+                    'Please enter your current password and a new password for your account.',
+                  ),
                   style: TextStyle(color: c.textSecondary, fontSize: 14, height: 1.5),
                 ),
                 const SizedBox(height: 24),
@@ -105,22 +110,22 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 // Kata sandi saat ini
                 _buildPasswordField(
                   controller: _currentPasswordController,
-                  label: 'Kata Sandi Saat Ini',
+                  label: lang.translate('Kata Sandi Saat Ini', 'Current Password'),
                   obscureText: _obscureCurrent,
                   onToggleObscure: () => setState(() => _obscureCurrent = !_obscureCurrent),
-                  validator: (v) => v!.isEmpty ? 'Harap isi kata sandi saat ini' : null,
+                  validator: (v) => v!.isEmpty ? lang.translate('Harap isi kata sandi saat ini', 'Please enter your current password') : null,
                 ),
                 const SizedBox(height: 20),
                 
                 // Kata sandi baru
                 _buildPasswordField(
                   controller: _newPasswordController,
-                  label: 'Kata Sandi Baru',
+                  label: lang.translate('Kata Sandi Baru', 'New Password'),
                   obscureText: _obscureNew,
                   onToggleObscure: () => setState(() => _obscureNew = !_obscureNew),
                   validator: (v) {
-                    if (v!.isEmpty) return 'Harap isi kata sandi baru';
-                    if (v.length < 6) return 'Minimal 6 karakter';
+                    if (v!.isEmpty) return lang.translate('Harap isi kata sandi baru', 'Please enter a new password');
+                    if (v.length < 6) return lang.translate('Minimal 6 karakter', 'Minimum 6 characters');
                     return null;
                   },
                 ),
@@ -129,12 +134,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 // Konfirmasi kata sandi baru
                 _buildPasswordField(
                   controller: _confirmPasswordController,
-                  label: 'Konfirmasi Kata Sandi Baru',
+                  label: lang.translate('Konfirmasi Kata Sandi Baru', 'Confirm New Password'),
                   obscureText: _obscureConfirm,
                   onToggleObscure: () => setState(() => _obscureConfirm = !_obscureConfirm),
                   validator: (v) {
-                    if (v!.isEmpty) return 'Harap konfirmasi kata sandi baru';
-                    if (v != _newPasswordController.text) return 'Kata sandi tidak cocok';
+                    if (v!.isEmpty) return lang.translate('Harap konfirmasi kata sandi baru', 'Please confirm your new password');
+                    if (v != _newPasswordController.text) return lang.translate('Kata sandi tidak cocok', 'Passwords do not match');
                     return null;
                   },
                 ),
@@ -158,9 +163,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                             width: 24, height: 24, 
                             child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                           )
-                        : const Text(
-                            'Simpan Kata Sandi',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                        : Text(
+                            lang.translate('Simpan Kata Sandi', 'Save Password'),
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
                           ),
                   ),
                 ),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/ticket_model.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/language_provider.dart';
 import '../../providers/ticket_provider.dart';
 import '../../services/notification_service.dart';
 import '../../utils/app_colors.dart';
@@ -106,6 +107,7 @@ class _RequesterDashboardState extends State<RequesterDashboard> {
   Widget build(BuildContext context) {
     final user = Provider.of<AuthProvider>(context, listen: false).user;
     final c = AppColors.of(context);
+    final lang = context.watch<LanguageProvider>();
 
     return Scaffold(
       backgroundColor: c.background,
@@ -122,8 +124,8 @@ class _RequesterDashboardState extends State<RequesterDashboard> {
         ),
         backgroundColor: const Color(0xFF1A3A5C),
         icon: const Icon(Icons.add_rounded, color: Colors.white),
-        label: const Text('Buat Tiket',
-            style: TextStyle(
+        label: Text(lang.translate('Buat Tiket', 'New Ticket'),
+            style: const TextStyle(
                 color: Colors.white, fontWeight: FontWeight.bold)),
       ),
       body: Column(
@@ -141,7 +143,7 @@ class _RequesterDashboardState extends State<RequesterDashboard> {
                   textInputAction: TextInputAction.search,
                   style: TextStyle(color: c.textPrimary),
                   decoration: InputDecoration(
-                    hintText: 'Cari tiket berdasarkan kategori atau lokasi...',
+                    hintText: lang.translate('Cari tiket berdasarkan kategori atau lokasi...', 'Search tickets by category or location...'),
                     hintStyle: TextStyle(color: c.textMuted, fontSize: 13),
                     prefixIcon: Icon(Icons.search_rounded, color: c.textMuted, size: 20),
                     suffixIcon: Icon(Icons.tune_rounded, color: c.textMuted, size: 20),
@@ -210,9 +212,9 @@ class _RequesterDashboardState extends State<RequesterDashboard> {
                           color: Color(0xFF1A73E8)));
                 }
                 if (snap.hasError) {
-                  return const DashboardEmptyState(
+                  return DashboardEmptyState(
                       icon: Icons.error_outline,
-                      message: 'Terjadi kesalahan sistem.');
+                      message: lang.translate('Terjadi kesalahan sistem.', 'A system error occurred.'));
                 }
 
                 var tickets = snap.data ?? [];
@@ -243,9 +245,9 @@ class _RequesterDashboardState extends State<RequesterDashboard> {
                 });
 
                 if (tickets.isEmpty) {
-                  return const DashboardEmptyState(
+                  return DashboardEmptyState(
                       icon: Icons.inbox_outlined,
-                      message: 'Belum ada tiket yang diajukan.');
+                      message: lang.translate('Belum ada tiket yang diajukan.', 'No tickets submitted yet.'));
                 }
 
                 return RefreshIndicator(

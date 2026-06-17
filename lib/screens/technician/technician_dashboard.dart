@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/ticket_model.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/language_provider.dart';
 import '../../providers/ticket_provider.dart';
 import '../../services/notification_service.dart';
 import '../../utils/app_colors.dart';
@@ -74,6 +75,7 @@ class _TechnicianDashboardState extends State<TechnicianDashboard> {
   Widget build(BuildContext context) {
     final user = Provider.of<AuthProvider>(context, listen: false).user;
     final c = AppColors.of(context);
+    final lang = context.watch<LanguageProvider>();
 
     return Scaffold(
       backgroundColor: c.background,
@@ -90,8 +92,8 @@ class _TechnicianDashboardState extends State<TechnicianDashboard> {
         ),
         backgroundColor: const Color(0xFF1A3A5C),
         icon: const Icon(Icons.history_edu, color: Colors.white),
-        label: const Text('Laporan Teknisi',
-            style: TextStyle(
+        label: Text(lang.translate('Laporan Teknisi', 'My Reports'),
+            style: const TextStyle(
                 color: Colors.white, fontWeight: FontWeight.bold)),
       ),
       body: Column(
@@ -106,7 +108,7 @@ class _TechnicianDashboardState extends State<TechnicianDashboard> {
                   return Center(child: CircularProgressIndicator(color: c.primary));
                 }
                 if (snap.hasError) {
-                  return const DashboardEmptyState(icon: Icons.error_outline, message: 'Terjadi kesalahan.');
+                  return DashboardEmptyState(icon: Icons.error_outline, message: lang.translate('Terjadi kesalahan.', 'An error occurred.'));
                 }
 
                 final allTickets = snap.data ?? [];
@@ -138,17 +140,17 @@ class _TechnicianDashboardState extends State<TechnicianDashboard> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Ringkasan Tugas',
+                            lang.translate('Ringkasan Tugas', 'Task Summary'),
                             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
                           ),
                           const SizedBox(height: 12),
                           Row(
                             children: [
-                              Expanded(child: _buildStatCard(context, 'Ditugaskan', assignedCount, const Color(0xFF3B82F6), Icons.assignment_ind_rounded, 0)),
+                              Expanded(child: _buildStatCard(context, lang.translate('Ditugaskan', 'Assigned'), assignedCount, const Color(0xFF3B82F6), Icons.assignment_ind_rounded, 0)),
                               const SizedBox(width: 12),
-                              Expanded(child: _buildStatCard(context, 'Diproses', inProgressCount, const Color(0xFFF59E0B), Icons.autorenew_rounded, 1)),
+                              Expanded(child: _buildStatCard(context, lang.translate('Diproses', 'In Progress'), inProgressCount, const Color(0xFFF59E0B), Icons.autorenew_rounded, 1)),
                               const SizedBox(width: 12),
-                              Expanded(child: _buildStatCard(context, 'Selesai', completedCount, const Color(0xFF10B981), Icons.check_circle_rounded, 2)),
+                              Expanded(child: _buildStatCard(context, lang.translate('Selesai', 'Completed'), completedCount, const Color(0xFF10B981), Icons.check_circle_rounded, 2)),
                             ],
                           ),
                           const SizedBox(height: 20),
@@ -168,7 +170,7 @@ class _TechnicianDashboardState extends State<TechnicianDashboard> {
                             textInputAction: TextInputAction.search,
                             style: TextStyle(color: c.textPrimary),
                             decoration: InputDecoration(
-                              hintText: 'Cari ID Tiket, Lokasi, atau Pelapor...',
+                              hintText: lang.translate('Cari ID Tiket, Lokasi, atau Pelapor...', 'Search Ticket ID, Location, or Requester...'),
                               hintStyle: TextStyle(color: c.textMuted, fontSize: 13),
                               prefixIcon: Icon(Icons.search_rounded, color: c.textMuted, size: 20),
                               suffixIcon: _searchQuery.isNotEmpty
@@ -237,7 +239,7 @@ class _TechnicianDashboardState extends State<TechnicianDashboard> {
                     // ── Ticket List ────────────────────────────────────────
                     Expanded(
                       child: displayedTickets.isEmpty
-                          ? const DashboardEmptyState(icon: Icons.inbox_outlined, message: 'Tidak ada tiket ditemukan.')
+                          ? DashboardEmptyState(icon: Icons.inbox_outlined, message: lang.translate('Tidak ada tiket ditemukan.', 'No tickets found.'))
                           : RefreshIndicator(
                               onRefresh: () async {
                                 setState(() {});
