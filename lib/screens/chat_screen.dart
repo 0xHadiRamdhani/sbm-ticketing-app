@@ -479,18 +479,73 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  _buildInfoRow(Icons.numbers_outlined, lang.translate('ID Tiket', 'Ticket ID'), widget.ticket.ticketId, c),
-                  _buildInfoRow(Icons.access_time_outlined, lang.translate('Dibuat Pada', 'Created At'), DateFormat('dd MMM yyyy, HH:mm').format(widget.ticket.createdAt), c),
+                  _buildInfoRow(
+                    Icons.numbers_outlined,
+                    lang.translate('ID Tiket', 'Ticket ID'),
+                    widget.ticket.ticketId,
+                    c,
+                  ),
+                  _buildInfoRow(
+                    Icons.access_time_outlined,
+                    lang.translate('Dibuat Pada', 'Created At'),
+                    DateFormat(
+                      'dd MMM yyyy, HH:mm',
+                    ).format(widget.ticket.createdAt),
+                    c,
+                  ),
                   if (widget.ticket.targetResolutionAt != null)
-                    _buildInfoRow(Icons.flag_outlined, lang.translate('Batas SLA', 'SLA Deadline'), DateFormat('dd MMM yyyy, HH:mm').format(widget.ticket.targetResolutionAt!), c),
-                  _buildInfoRow(Icons.label_outline, lang.translate('Kategori', 'Category'), widget.ticket.category, c),
-                  _buildInfoRow(Icons.priority_high, lang.translate('Prioritas', 'Priority'), widget.ticket.priority, c),
-                  _buildInfoRow(Icons.info_outline, lang.translate('Status', 'Status'), widget.ticket.status, c),
-                  _buildInfoRow(Icons.person_outline, lang.translate('Requester', 'Requester'), requesterName, c),
-                  _buildInfoRow(Icons.build_circle_outlined, lang.translate('Teknisi', 'Technician'), technicianName, c),
-                  if (widget.ticket.location != null && widget.ticket.location!.isNotEmpty)
-                    _buildInfoRow(Icons.location_on_outlined, lang.translate('Lokasi', 'Location'), widget.ticket.location!, c),
-                  _buildInfoRow(Icons.description_outlined, lang.translate('Keluhan', 'Description'), widget.ticket.description, c),
+                    _buildInfoRow(
+                      Icons.flag_outlined,
+                      lang.translate('Batas SLA', 'SLA Deadline'),
+                      DateFormat(
+                        'dd MMM yyyy, HH:mm',
+                      ).format(widget.ticket.targetResolutionAt!),
+                      c,
+                    ),
+                  _buildInfoRow(
+                    Icons.label_outline,
+                    lang.translate('Kategori', 'Category'),
+                    widget.ticket.category,
+                    c,
+                  ),
+                  _buildInfoRow(
+                    Icons.priority_high,
+                    lang.translate('Prioritas', 'Priority'),
+                    widget.ticket.priority,
+                    c,
+                  ),
+                  _buildInfoRow(
+                    Icons.info_outline,
+                    lang.translate('Status', 'Status'),
+                    widget.ticket.status,
+                    c,
+                  ),
+                  _buildInfoRow(
+                    Icons.person_outline,
+                    lang.translate('Requester', 'Requester'),
+                    requesterName,
+                    c,
+                  ),
+                  _buildInfoRow(
+                    Icons.build_circle_outlined,
+                    lang.translate('Teknisi', 'Technician'),
+                    technicianName,
+                    c,
+                  ),
+                  if (widget.ticket.location != null &&
+                      widget.ticket.location!.isNotEmpty)
+                    _buildInfoRow(
+                      Icons.location_on_outlined,
+                      lang.translate('Lokasi', 'Location'),
+                      widget.ticket.location!,
+                      c,
+                    ),
+                  _buildInfoRow(
+                    Icons.description_outlined,
+                    lang.translate('Keluhan', 'Description'),
+                    widget.ticket.description,
+                    c,
+                  ),
                   const SizedBox(height: 8),
                 ],
               ),
