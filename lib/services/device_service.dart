@@ -23,9 +23,6 @@ class DeviceService {
       String osName = "Unknown Device";
       if (Platform.isAndroid) osName = "Android Device";
       if (Platform.isIOS) osName = "iOS Device";
-      if (Platform.isMacOS) osName = "Mac Device";
-      if (Platform.isWindows) osName = "Windows PC";
-      if (Platform.isLinux) osName = "Linux PC";
 
       final osVersion = Platform.operatingSystemVersion;
 

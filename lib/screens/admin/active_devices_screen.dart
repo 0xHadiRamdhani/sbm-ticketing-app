@@ -36,9 +36,6 @@ class _ActiveDevicesScreenState extends State<ActiveDevicesScreen> {
     final n = deviceName.toLowerCase();
     if (n.contains('android')) return Icons.phone_android_rounded;
     if (n.contains('ios')) return Icons.phone_iphone_rounded;
-    if (n.contains('mac')) return Icons.laptop_mac_rounded;
-    if (n.contains('windows')) return Icons.computer_rounded;
-    if (n.contains('linux')) return Icons.terminal_rounded;
     return Icons.devices_rounded;
   }
 
@@ -46,8 +43,6 @@ class _ActiveDevicesScreenState extends State<ActiveDevicesScreen> {
     final n = deviceName.toLowerCase();
     if (n.contains('android')) return const Color(0xFF3DDC84);
     if (n.contains('ios')) return const Color(0xFF555555);
-    if (n.contains('mac')) return const Color(0xFF555555);
-    if (n.contains('windows')) return const Color(0xFF0078D4);
     return const Color(0xFF6C757D);
   }
 

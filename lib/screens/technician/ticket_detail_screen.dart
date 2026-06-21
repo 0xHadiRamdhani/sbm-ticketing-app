@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
+import '../../utils/timed_cached_image.dart';
 import '../../models/ticket_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/ticket_provider.dart';
@@ -358,44 +359,39 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                                 const SizedBox(height: 12),
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
-                                  child: Image.network(
-                                    widget.ticket.imageUrl!,
+                                  child: TimedCachedImage(
+                                    imageUrl: widget.ticket.imageUrl!,
                                     width: double.infinity,
                                     height: 140,
                                     fit: BoxFit.cover,
-                                    loadingBuilder: (context, child, loadingProgress) {
-                                      if (loadingProgress == null) return child;
-                                      return Container(
-                                        width: double.infinity,
-                                        height: 140,
-                                        color: Colors.grey.withOpacity(0.15),
-                                        child: const Center(
-                                          child: SizedBox(
-                                            width: 30,
-                                            height: 30,
-                                            child: CircularProgressIndicator(strokeWidth: 2),
+                                    placeholder: (context, url) => Container(
+                                      width: double.infinity,
+                                      height: 140,
+                                      color: Colors.grey.withOpacity(0.15),
+                                      child: const Center(
+                                        child: SizedBox(
+                                          width: 30,
+                                          height: 30,
+                                          child: CircularProgressIndicator(strokeWidth: 2),
+                                        ),
+                                      ),
+                                    ),
+                                    errorWidget: (context, url, error) => Container(
+                                      width: double.infinity,
+                                      height: 140,
+                                      color: Colors.grey.withOpacity(0.1),
+                                      child: const Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(Icons.broken_image_outlined, color: Colors.grey, size: 40),
+                                          SizedBox(height: 8),
+                                          Text(
+                                            'Gagal memuat gambar',
+                                            style: TextStyle(color: Colors.grey, fontSize: 12),
                                           ),
-                                        ),
-                                      );
-                                    },
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Container(
-                                        width: double.infinity,
-                                        height: 140,
-                                        color: Colors.grey.withOpacity(0.1),
-                                        child: const Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Icon(Icons.broken_image_outlined, color: Colors.grey, size: 40),
-                                            SizedBox(height: 8),
-                                            Text(
-                                              'Gagal memuat gambar',
-                                              style: TextStyle(color: Colors.grey, fontSize: 12),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ],
@@ -834,30 +830,25 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               borderRadius: BorderRadius.circular(12),
               child: file != null
                   ? Image.file(File(file.path), fit: BoxFit.cover)
-                  : Image.network(
-                      existingUrl!,
+                  : TimedCachedImage(
+                      imageUrl: existingUrl!,
                       fit: BoxFit.cover,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Container(
-                          color: Colors.grey.withOpacity(0.15),
-                          child: const Center(
-                            child: SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
+                      placeholder: (context, url) => Container(
+                        color: Colors.grey.withOpacity(0.15),
+                        child: const Center(
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
                           ),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: Colors.grey.withOpacity(0.1),
-                          child: const Center(
-                            child: Icon(Icons.broken_image_outlined, color: Colors.grey),
-                          ),
-                        );
-                      },
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => Container(
+                        color: Colors.grey.withOpacity(0.1),
+                        child: const Center(
+                          child: Icon(Icons.broken_image_outlined, color: Colors.grey),
+                        ),
+                      ),
                     ),
             ),
             Positioned(

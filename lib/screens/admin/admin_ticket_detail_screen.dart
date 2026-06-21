@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../utils/timed_cached_image.dart';
 import 'package:provider/provider.dart';
 import '../../models/ticket_model.dart';
 import '../../providers/auth_provider.dart';
@@ -990,44 +991,39 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
   Widget _buildImage(String url) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
-      child: Image.network(
-        url,
+      child: TimedCachedImage(
+        imageUrl: url,
         width: double.infinity,
         height: 140,
         fit: BoxFit.cover,
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return Container(
-            width: double.infinity,
-            height: 140,
-            color: Colors.grey.withOpacity(0.15),
-            child: const Center(
-              child: SizedBox(
-                width: 30,
-                height: 30,
-                child: CircularProgressIndicator(strokeWidth: 2),
+        placeholder: (context, url) => Container(
+          width: double.infinity,
+          height: 140,
+          color: Colors.grey.withOpacity(0.15),
+          child: const Center(
+            child: SizedBox(
+              width: 30,
+              height: 30,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          ),
+        ),
+        errorWidget: (context, url, error) => Container(
+          width: double.infinity,
+          height: 140,
+          color: Colors.grey.withOpacity(0.1),
+          child: const Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.broken_image_outlined, color: Colors.grey, size: 40),
+              SizedBox(height: 8),
+              Text(
+                'Gagal memuat gambar',
+                style: TextStyle(color: Colors.grey, fontSize: 12),
               ),
-            ),
-          );
-        },
-        errorBuilder: (context, error, stackTrace) {
-          return Container(
-            width: double.infinity,
-            height: 140,
-            color: Colors.grey.withOpacity(0.1),
-            child: const Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.broken_image_outlined, color: Colors.grey, size: 40),
-                SizedBox(height: 8),
-                Text(
-                  'Gagal memuat gambar',
-                  style: TextStyle(color: Colors.grey, fontSize: 12),
-                ),
-              ],
-            ),
-          );
-        },
+            ],
+          ),
+        ),
       ),
     );
   }

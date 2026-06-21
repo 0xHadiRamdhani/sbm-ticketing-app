@@ -1,9 +1,10 @@
 import 'dart:io';
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:http/http.dart' as http;
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import '../utils/timed_cached_image.dart';
 import '../providers/auth_provider.dart';
 import '../providers/language_provider.dart';
 import '../utils/app_colors.dart';
@@ -83,22 +84,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Future<String?> _uploadToImgBB(XFile imageFile) async {
+  Future<String?> _uploadImage(XFile imageFile) async {
     try {
-      final bytes = await File(imageFile.path).readAsBytes();
-      final base64Image = base64Encode(bytes);
-      final response = await http.post(
-        Uri.parse('https://api.imgbb.com/1/upload'),
-        body: {'key': '639f57d0cc80d6da8ddb0c1927ea1a8a', 'image': base64Image},
-      ).timeout(const Duration(seconds: 45), onTimeout: () {
-        throw Exception('Koneksi unggah foto profil habis (Timeout).');
-      });
-      if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
-        return responseData['data']['url'];
-      }
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}_${imageFile.name}';
+      final ref = FirebaseStorage.instance.ref().child('profile_pictures/$fileName');
+      final uploadTask = await ref.putFile(File(imageFile.path)).timeout(
+        const Duration(seconds: 45),
+        onTimeout: () {
+          throw Exception('Koneksi unggah foto profil habis (Timeout).');
+        },
+      );
+      return await uploadTask.ref.getDownloadURL();
     } catch (e) {
-      debugPrint('ImgBB Upload Error: $e');
+      debugPrint('Firebase Storage Upload Error: $e');
     }
     return null;
   }
@@ -122,7 +120,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       // Upload image if a new one is selected
       if (_selectedImage != null) {
-        final url = await _uploadToImgBB(_selectedImage!);
+        final url = await _uploadImage(_selectedImage!);
         if (url != null) {
           finalPhotoUrl = url;
         } else {
@@ -165,13 +163,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final c = AppColors.of(context);
     final lang = context.watch<LanguageProvider>();
 
-    // Determine current photo to show
-    ImageProvider? imageProvider;
-    if (_selectedImage != null) {
-      imageProvider = FileImage(File(_selectedImage!.path));
-    } else if (user.photoUrl != null && user.photoUrl!.isNotEmpty) {
-      imageProvider = NetworkImage(user.photoUrl!);
-    }
 
     return Scaffold(
       backgroundColor: c.background,
@@ -205,36 +196,40 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ],
                     ),
                     clipBehavior: Clip.hardEdge,
-                    child: imageProvider != null
+                    child: _selectedImage != null
+                        // Gambar baru dari galeri – gunakan FileImage biasa
                         ? Image(
-                            image: imageProvider,
+                            image: FileImage(File(_selectedImage!.path)),
                             fit: BoxFit.cover,
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return Container(
-                                color: Colors.grey.withOpacity(0.3),
-                                child: const Center(
-                                  child: SizedBox(
-                                    width: 32,
-                                    height: 32,
-                                    child: CircularProgressIndicator(strokeWidth: 3),
-                                  ),
-                                ),
-                              );
-                            },
-                            errorBuilder: (context, error, stackTrace) {
-                              return Center(
-                                child: Text(
-                                  user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
-                                  style: TextStyle(
-                                    fontSize: 40,
-                                    fontWeight: FontWeight.bold,
-                                    color: c.textMuted,
-                                  ),
-                                ),
-                              );
-                            },
                           )
+                        : (user.photoUrl != null && user.photoUrl!.isNotEmpty)
+                            // Gambar dari jaringan – gunakan TimedCachedImage
+                            ? TimedCachedImage(
+                                imageUrl: user.photoUrl!,
+                                fit: BoxFit.cover,
+                                width: 120,
+                                height: 120,
+                                placeholder: (context, url) => Container(
+                                  color: Colors.grey.withOpacity(0.3),
+                                  child: const Center(
+                                    child: SizedBox(
+                                      width: 32,
+                                      height: 32,
+                                      child: CircularProgressIndicator(strokeWidth: 3),
+                                    ),
+                                  ),
+                                ),
+                                errorWidget: (context, url, error) => Center(
+                                  child: Text(
+                                    user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
+                                    style: TextStyle(
+                                      fontSize: 40,
+                                      fontWeight: FontWeight.bold,
+                                      color: c.textMuted,
+                                    ),
+                                  ),
+                                ),
+                              )
                         : Center(
                             child: Text(
                               user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',

@@ -2,6 +2,7 @@
 // Shared widgets untuk Ticket List di semua dashboard
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import '../../utils/timed_cached_image.dart';
 import '../../models/ticket_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/app_colors.dart';
@@ -289,42 +290,37 @@ class TicketCard extends StatelessWidget {
                       ),
                       clipBehavior: Clip.hardEdge,
                       child: (photoUrl != null && photoUrl.isNotEmpty)
-                          ? Image.network(
-                              photoUrl,
+                          ? TimedCachedImage(
+                              imageUrl: photoUrl,
                               fit: BoxFit.cover,
-                              loadingBuilder: (context, child, loadingProgress) {
-                                if (loadingProgress == null) return child;
-                                return Container(
-                                  color: Colors.grey.withOpacity(0.3), // Skeleton placeholder
-                                  child: const Center(
-                                    child: SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(strokeWidth: 2),
-                                    ),
+                              placeholder: (context, url) => Container(
+                                color: Colors.grey.withOpacity(0.3),
+                                child: const Center(
+                                  child: SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
                                   ),
-                                );
-                              },
-                              errorBuilder: (context, error, stackTrace) {
-                                return Center(
-                                  child: contactName == 'SBM IT Support'
-                                      ? Icon(
-                                          Icons.support_agent_rounded,
+                                ),
+                              ),
+                              errorWidget: (context, url, error) => Center(
+                                child: contactName == 'SBM IT Support'
+                                    ? Icon(
+                                        Icons.support_agent_rounded,
+                                        color: c.primary,
+                                        size: 28,
+                                      )
+                                    : Text(
+                                        contactName.isNotEmpty
+                                            ? contactName[0].toUpperCase()
+                                            : '?',
+                                        style: TextStyle(
+                                          fontSize: 20,
                                           color: c.primary,
-                                          size: 28,
-                                        )
-                                      : Text(
-                                          contactName.isNotEmpty
-                                              ? contactName[0].toUpperCase()
-                                              : '?',
-                                          style: TextStyle(
-                                            fontSize: 20,
-                                            color: c.primary,
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                                          fontWeight: FontWeight.bold,
                                         ),
-                                );
-                              },
+                                      ),
+                              ),
                             )
                           : Center(
                               child: contactName == 'SBM IT Support'

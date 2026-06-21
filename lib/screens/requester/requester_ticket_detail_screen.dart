@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../utils/timed_cached_image.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../models/ticket_model.dart';
@@ -257,51 +258,46 @@ class _RequesterTicketDetailScreenState
                     const SizedBox(height: 16),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        widget.ticket.imageUrl!,
+                      child: TimedCachedImage(
+                        imageUrl: widget.ticket.imageUrl!,
                         width: double.infinity,
                         height: 180,
                         fit: BoxFit.cover,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Container(
-                            width: double.infinity,
-                            height: 180,
-                            color: Colors.grey.withOpacity(0.15),
-                            child: const Center(
-                              child: SizedBox(
-                                width: 30,
-                                height: 30,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                        placeholder: (context, url) => Container(
+                          width: double.infinity,
+                          height: 180,
+                          color: Colors.grey.withOpacity(0.15),
+                          child: const Center(
+                            child: SizedBox(
+                              width: 30,
+                              height: 30,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          width: double.infinity,
+                          height: 180,
+                          color: c.surfaceElevated,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.broken_image_outlined,
+                                color: c.textMuted,
+                                size: 40,
                               ),
-                            ),
-                          );
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            width: double.infinity,
-                            height: 180,
-                            color: c.surfaceElevated,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.broken_image_outlined,
-                                  color: c.textMuted,
-                                  size: 40,
+                              const SizedBox(height: 8),
+                              Text(
+                                'Gagal memuat gambar',
+                                style: TextStyle(
+                                  color: c.textSecondary,
+                                  fontSize: 13,
                                 ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Gagal memuat gambar',
-                                  style: TextStyle(
-                                    color: c.textSecondary,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -489,38 +485,33 @@ class _RequesterTicketDetailScreenState
                                 const SizedBox(height: 8),
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
-                                  child: Image.network(
-                                    widget.ticket.photoBeforeUrl!,
+                                  child: TimedCachedImage(
+                                    imageUrl: widget.ticket.photoBeforeUrl!,
                                     height: 120,
                                     width: double.infinity,
                                     fit: BoxFit.cover,
-                                    loadingBuilder: (context, child, loadingProgress) {
-                                      if (loadingProgress == null) return child;
-                                      return Container(
-                                        height: 120,
-                                        width: double.infinity,
-                                        color: Colors.grey.withOpacity(0.15),
-                                        child: const Center(
-                                          child: SizedBox(
-                                            width: 20,
-                                            height: 20,
-                                            child: CircularProgressIndicator(strokeWidth: 2),
-                                          ),
+                                    placeholder: (context, url) => Container(
+                                      height: 120,
+                                      width: double.infinity,
+                                      color: Colors.grey.withOpacity(0.15),
+                                      child: const Center(
+                                        child: SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(strokeWidth: 2),
                                         ),
-                                      );
-                                    },
-                                    errorBuilder:
-                                        (context, error, stackTrace) =>
-                                            Container(
-                                              height: 120,
-                                              color: c.surfaceElevated,
-                                              child: Center(
-                                                child: Icon(
-                                                  Icons.broken_image_outlined,
-                                                  color: c.textMuted,
-                                                ),
-                                              ),
-                                            ),
+                                      ),
+                                    ),
+                                    errorWidget: (context, url, error) => Container(
+                                      height: 120,
+                                      color: c.surfaceElevated,
+                                      child: Center(
+                                        child: Icon(
+                                          Icons.broken_image_outlined,
+                                          color: c.textMuted,
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ],
@@ -545,38 +536,33 @@ class _RequesterTicketDetailScreenState
                                 const SizedBox(height: 8),
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
-                                  child: Image.network(
-                                    widget.ticket.photoAfterUrl!,
+                                  child: TimedCachedImage(
+                                    imageUrl: widget.ticket.photoAfterUrl!,
                                     height: 120,
                                     width: double.infinity,
                                     fit: BoxFit.cover,
-                                    loadingBuilder: (context, child, loadingProgress) {
-                                      if (loadingProgress == null) return child;
-                                      return Container(
-                                        height: 120,
-                                        width: double.infinity,
-                                        color: Colors.grey.withOpacity(0.15),
-                                        child: const Center(
-                                          child: SizedBox(
-                                            width: 20,
-                                            height: 20,
-                                            child: CircularProgressIndicator(strokeWidth: 2),
-                                          ),
+                                    placeholder: (context, url) => Container(
+                                      height: 120,
+                                      width: double.infinity,
+                                      color: Colors.grey.withOpacity(0.15),
+                                      child: const Center(
+                                        child: SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(strokeWidth: 2),
                                         ),
-                                      );
-                                    },
-                                    errorBuilder:
-                                        (context, error, stackTrace) =>
-                                            Container(
-                                              height: 120,
-                                              color: c.surfaceElevated,
-                                              child: Center(
-                                                child: Icon(
-                                                  Icons.broken_image_outlined,
-                                                  color: c.textMuted,
-                                                ),
-                                              ),
-                                            ),
+                                      ),
+                                    ),
+                                    errorWidget: (context, url, error) => Container(
+                                      height: 120,
+                                      color: c.surfaceElevated,
+                                      child: Center(
+                                        child: Icon(
+                                          Icons.broken_image_outlined,
+                                          color: c.textMuted,
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ],
@@ -806,41 +792,36 @@ class _RequesterTicketDetailScreenState
           children: [
             if (photoUrl != null && photoUrl.isNotEmpty)
               ClipOval(
-                child: Image.network(
-                  photoUrl,
+                child: TimedCachedImage(
+                  imageUrl: photoUrl,
                   width: 40,
                   height: 40,
                   fit: BoxFit.cover,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Container(
-                      width: 40,
-                      height: 40,
-                      color: Colors.grey.withOpacity(0.3),
-                      child: const Center(
-                        child: SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
+                  placeholder: (context, url) => Container(
+                    width: 40,
+                    height: 40,
+                    color: Colors.grey.withOpacity(0.3),
+                    child: const Center(
+                      child: SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
                       ),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: c.primaryLight,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.engineering_outlined,
-                        size: 20,
-                        color: c.primary,
-                      ),
-                    );
-                  },
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: c.primaryLight,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.engineering_outlined,
+                      size: 20,
+                      color: c.primary,
+                    ),
+                  ),
                 ),
               )
             else

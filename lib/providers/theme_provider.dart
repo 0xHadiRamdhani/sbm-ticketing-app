@@ -28,7 +28,6 @@ class ThemeProvider with ChangeNotifier {
     builders: {
       TargetPlatform.android: _PremiumPageTransitionsBuilder(),
       TargetPlatform.iOS: _PremiumPageTransitionsBuilder(),
-      TargetPlatform.macOS: _PremiumPageTransitionsBuilder(),
     },
   );
 

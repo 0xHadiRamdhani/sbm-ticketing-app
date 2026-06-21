@@ -137,8 +137,8 @@ class PrivacyPolicyScreen extends StatelessWidget {
               '4. Data Storage and Security',
             ),
             content: lang.translate(
-              'Data Anda disimpan menggunakan infrastruktur Google Firebase Cloud Firestore yang aman dan terenkripsi. Gambar lampiran disimpan menggunakan layanan pihak ketiga ImgBB dengan enkripsi standar industri.\n\nKami menerapkan langkah-langkah keamanan teknis dan organisasi yang wajar untuk melindungi data Anda dari akses, pengungkapan, atau penghancuran yang tidak sah. Namun, tidak ada metode transmisi data melalui internet yang sepenuhnya aman.',
-              'Your data is stored using a secure and encrypted Google Firebase Cloud Firestore infrastructure. Attachment images are stored using the third-party service ImgBB with industry-standard encryption.\n\nWe implement reasonable technical and organizational security measures to protect your data from unauthorized access, disclosure, or destruction. However, no method of transmitting data over the internet is completely secure.',
+              'Data Anda disimpan menggunakan infrastruktur Google Firebase yang aman dan terenkripsi, mencakup Cloud Firestore untuk data tiket serta Firebase Storage untuk gambar lampiran.\n\nKami menerapkan langkah-langkah keamanan teknis dan organisasi yang wajar untuk melindungi data Anda dari akses, pengungkapan, atau penghancuran yang tidak sah. Namun, tidak ada metode transmisi data melalui internet yang sepenuhnya aman.',
+              'Your data is stored using a secure and encrypted Google Firebase infrastructure, including Cloud Firestore for ticket data and Firebase Storage for attachment images.\n\nWe implement reasonable technical and organizational security measures to protect your data from unauthorized access, disclosure, or destruction. However, no method of transmitting data over the internet is completely secure.',
             ),
           ),
 
@@ -150,13 +150,11 @@ class PrivacyPolicyScreen extends StatelessWidget {
             ),
             content: lang.translate(
               'Kami tidak menjual, memperdagangkan, atau menyewakan informasi pribadi Anda kepada pihak ketiga untuk tujuan komersial.\n\nInformasi dapat dibagikan kepada:\n\n'
-                  '• Layanan Firebase (Google): Untuk autentikasi, penyimpanan database, dan sinkronisasi data.\n\n'
-                  '• EmailJS: Untuk pengiriman kode verifikasi OTP ke alamat email Anda.\n\n'
-                  '• ImgBB: Untuk penyimpanan foto lampiran tiket yang diunggah.\n\nLayanan pihak ketiga ini memiliki kebijakan privasi masing-masing yang mengatur penggunaan informasi Anda.',
+                  '• Layanan Firebase (Google): Untuk autentikasi, penyimpanan database, penyimpanan gambar (Firebase Storage), dan sinkronisasi data.\n\n'
+                  '• EmailJS: Untuk pengiriman kode verifikasi OTP ke alamat email Anda.\n\nLayanan pihak ketiga ini memiliki kebijakan privasi masing-masing yang mengatur penggunaan informasi Anda.',
               'We do not sell, trade, or rent your personal information to third parties for commercial purposes.\n\nInformation may be shared with:\n\n'
-                  '• Firebase Services (Google): For authentication, database storage, and data synchronization.\n\n'
-                  '• EmailJS: For sending OTP verification codes to your email address.\n\n'
-                  '• ImgBB: For storing uploaded ticket attachment photos.\n\nThese third-party services have their own privacy policies governing the use of your information.',
+                  '• Firebase Services (Google): For authentication, database storage, image storage (Firebase Storage), and data synchronization.\n\n'
+                  '• EmailJS: For sending OTP verification codes to your email address.\n\nThese third-party services have their own privacy policies governing the use of your information.',
             ),
           ),
 

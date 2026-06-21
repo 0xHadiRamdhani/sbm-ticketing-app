@@ -1,6 +1,4 @@
 import 'dart:io';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import '../models/ticket_model.dart';
@@ -73,28 +71,20 @@ class TicketService {
   }) async {
     String? imageUrl;
 
-    // Jika ada gambar, upload ke ImgBB
+    // Jika ada gambar, upload ke Firebase Storage
     if (imageFile != null) {
       try {
-        final bytes = await File(imageFile.path).readAsBytes();
-        final base64Image = base64Encode(bytes);
-
-        final response = await http.post(
-          Uri.parse('https://api.imgbb.com/1/upload'),
-          body: {
-            'key': '639f57d0cc80d6da8ddb0c1927ea1a8a',
-            'image': base64Image,
+        final fileName = '${DateTime.now().millisecondsSinceEpoch}_${imageFile.name}';
+        final ref = _storage.ref().child('ticket_images/$fileName');
+        final uploadTask = await ref.putFile(File(imageFile.path)).timeout(
+          const Duration(seconds: 45),
+          onTimeout: () {
+            throw Exception('Koneksi unggah gambar tiket habis (Timeout).');
           },
         );
-
-        if (response.statusCode == 200) {
-          final responseData = json.decode(response.body);
-          imageUrl = responseData['data']['url'];
-        } else {
-          print('ImgBB Upload Failed: ${response.body}');
-        }
+        imageUrl = await uploadTask.ref.getDownloadURL();
       } catch (e) {
-        print('Error uploading to ImgBB: $e');
+        print('Error uploading to Firebase Storage: $e');
       }
     }
 
@@ -179,32 +169,19 @@ class TicketService {
     });
   }
 
-  Future<String?> _uploadToImgBB(XFile imageFile) async {
+  Future<String?> _uploadImage(XFile imageFile, String folder) async {
     try {
-      final bytes = await File(imageFile.path).readAsBytes();
-      final base64Image = base64Encode(bytes);
-      final response = await http
-          .post(
-            Uri.parse('https://api.imgbb.com/1/upload'),
-            body: {
-              'key': '639f57d0cc80d6da8ddb0c1927ea1a8a',
-              'image': base64Image,
-            },
-          )
-          .timeout(
-            const Duration(seconds: 45),
-            onTimeout: () {
-              throw Exception(
-                'Koneksi unggah foto lampiran tiket habis (Timeout).',
-              );
-            },
-          );
-      if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
-        return responseData['data']['url'];
-      }
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}_${imageFile.name}';
+      final ref = _storage.ref().child('$folder/$fileName');
+      final uploadTask = await ref.putFile(File(imageFile.path)).timeout(
+        const Duration(seconds: 45),
+        onTimeout: () {
+          throw Exception('Koneksi unggah foto lampiran habis (Timeout).');
+        },
+      );
+      return await uploadTask.ref.getDownloadURL();
     } catch (e) {
-      print('ImgBB Upload Error: $e');
+      print('Firebase Storage Upload Error: $e');
     }
     return null;
   }
@@ -238,19 +215,19 @@ class TicketService {
     }
 
     if (photoBefore != null) {
-      String? url = await _uploadToImgBB(photoBefore);
+      String? url = await _uploadImage(photoBefore, 'repair_images');
       if (url != null) updateData['photo_before_url'] = url;
     }
 
     if (photoAfter != null) {
-      String? url = await _uploadToImgBB(photoAfter);
+      String? url = await _uploadImage(photoAfter, 'repair_images');
       if (url != null) updateData['photo_after_url'] = url;
     }
 
     if (resolvedImages != null && resolvedImages.isNotEmpty) {
       List<String> imageUrls = [];
       for (var imageFile in resolvedImages) {
-        String? url = await _uploadToImgBB(imageFile);
+        String? url = await _uploadImage(imageFile, 'resolved_images');
         if (url != null) imageUrls.add(url);
       }
       if (imageUrls.isNotEmpty) {

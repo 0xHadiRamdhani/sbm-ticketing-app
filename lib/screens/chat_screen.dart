@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../utils/timed_cached_image.dart';
 import '../models/ticket_model.dart';
 import '../models/message_model.dart';
 import '../services/chat_service.dart';
@@ -161,42 +162,37 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               clipBehavior: Clip.hardEdge,
               child: contactPhoto.isNotEmpty
-                  ? Image.network(
-                      contactPhoto,
+                  ? TimedCachedImage(
+                      imageUrl: contactPhoto,
                       fit: BoxFit.cover,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Container(
-                          color: Colors.grey.withOpacity(0.3),
-                          child: const Center(
-                            child: SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
+                      placeholder: (context, url) => Container(
+                        color: Colors.grey.withOpacity(0.3),
+                        child: const Center(
+                          child: SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
                           ),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) {
-                        return Center(
-                          child: contactName == 'SBM IT Support'
-                              ? Icon(
-                                  Icons.support_agent_rounded,
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => Center(
+                        child: contactName == 'SBM IT Support'
+                            ? Icon(
+                                Icons.support_agent_rounded,
+                                color: c.primary,
+                                size: 22,
+                              )
+                            : Text(
+                                contactName.isNotEmpty
+                                    ? contactName[0].toUpperCase()
+                                    : '?',
+                                style: TextStyle(
+                                  fontSize: 16,
                                   color: c.primary,
-                                  size: 22,
-                                )
-                              : Text(
-                                  contactName.isNotEmpty
-                                      ? contactName[0].toUpperCase()
-                                      : '?',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: c.primary,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  fontWeight: FontWeight.bold,
                                 ),
-                        );
-                      },
+                              ),
+                      ),
                     )
                   : Center(
                       child: contactName == 'SBM IT Support'
@@ -713,36 +709,31 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               clipBehavior: Clip.hardEdge,
               child: senderPhoto.isNotEmpty
-                  ? Image.network(
-                      senderPhoto,
+                  ? TimedCachedImage(
+                      imageUrl: senderPhoto,
                       fit: BoxFit.cover,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Container(
-                          color: Colors.grey.withOpacity(0.3),
-                          child: const Center(
-                            child: SizedBox(
-                              width: 12,
-                              height: 12,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
+                      placeholder: (context, url) => Container(
+                        color: Colors.grey.withOpacity(0.3),
+                        child: const Center(
+                          child: SizedBox(
+                            width: 12,
+                            height: 12,
+                            child: CircularProgressIndicator(strokeWidth: 2),
                           ),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) {
-                        return Center(
-                          child: Text(
-                            senderName.isNotEmpty
-                                ? senderName[0].toUpperCase()
-                                : '?',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: c.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => Center(
+                        child: Text(
+                          senderName.isNotEmpty
+                              ? senderName[0].toUpperCase()
+                              : '?',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: c.primary,
+                            fontWeight: FontWeight.bold,
                           ),
-                        );
-                      },
+                        ),
+                      ),
                     )
                   : Center(
                       child: Text(
