@@ -289,7 +289,7 @@ class _RequesterTicketDetailScreenState
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'Gagal memuat gambar',
+                                'gagal memuat foto',
                                 style: TextStyle(
                                   color: c.textSecondary,
                                   fontSize: 13,

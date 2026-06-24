@@ -31,7 +31,16 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
   bool _isSelectionMode = false;
   bool _isAnalyticsExpanded = true;
 
-  final _filters = ['Semua', 'New', 'Assigned', 'In Progress', 'Pending', 'Resolved', 'Closed', 'Re-opened'];
+  final _filters = [
+    'Semua',
+    'New',
+    'Assigned',
+    'In Progress',
+    'Pending',
+    'Resolved',
+    'Closed',
+    'Re-opened',
+  ];
 
   final List<String> _categories = [
     'Semua Kategori',
@@ -53,7 +62,10 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<TicketProvider>(context, listen: false).checkAndEscalateTickets();
+      Provider.of<TicketProvider>(
+        context,
+        listen: false,
+      ).checkAndEscalateTickets();
     });
   }
 
@@ -160,7 +172,9 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
                       itemLabelBuilder: (c) => c,
                       onChanged: (val) {
                         setState(() {
-                          _selectedCategory = val == 'Semua Kategori' ? null : val;
+                          _selectedCategory = val == 'Semua Kategori'
+                              ? null
+                              : val;
                         });
                       },
                     ),
@@ -173,7 +187,9 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
                       itemLabelBuilder: (p) => p,
                       onChanged: (val) {
                         setState(() {
-                          _selectedPriority = val == 'Semua Prioritas' ? null : val;
+                          _selectedPriority = val == 'Semua Prioritas'
+                              ? null
+                              : val;
                         });
                       },
                     ),
@@ -211,17 +227,17 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                _buildQuickAction(
-                  context,
-                  icon: Icons.edit_notifications_outlined,
-                  label: 'Templat',
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const NotificationTemplatesScreen(),
-                    ),
-                  ),
-                ),
+                // _buildQuickAction(
+                //   context,
+                //   icon: Icons.edit_notifications_outlined,
+                //   label: 'Templat',
+                //   onTap: () => Navigator.push(
+                //     context,
+                //     MaterialPageRoute(
+                //       builder: (_) => const NotificationTemplatesScreen(),
+                //     ),
+                //   ),
+                // ),
                 const SizedBox(width: 12),
                 _buildQuickAction(
                   context,
@@ -310,14 +326,22 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
                 return matchCategory &&
                     matchPriority &&
                     matchStatus &&
-                      matchSearch;
+                    matchSearch;
               }).toList();
 
               // Stats
               int total = filteredTickets.length;
-              int open = filteredTickets.where((t) => t.status == 'New' || t.status == 'Re-opened').length;
-              int inProgress = filteredTickets.where((t) => t.status == 'In Progress' || t.status == 'Assigned').length;
-              int resolved = filteredTickets.where((t) => t.status == 'Resolved' || t.status == 'Closed').length;
+              int open = filteredTickets
+                  .where((t) => t.status == 'New' || t.status == 'Re-opened')
+                  .length;
+              int inProgress = filteredTickets
+                  .where(
+                    (t) => t.status == 'In Progress' || t.status == 'Assigned',
+                  )
+                  .length;
+              int resolved = filteredTickets
+                  .where((t) => t.status == 'Resolved' || t.status == 'Closed')
+                  .length;
 
               return Column(
                 children: [
@@ -336,32 +360,48 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
                           _buildStatCard(
                             'Total',
                             total,
-                            AppColors.of(context).isDark ? const Color(0xFFE2E8F0) : const Color(0xFF0F172A),
-                            AppColors.of(context).isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                            AppColors.of(context).isDark
+                                ? const Color(0xFFE2E8F0)
+                                : const Color(0xFF0F172A),
+                            AppColors.of(context).isDark
+                                ? const Color(0xFF1E293B)
+                                : const Color(0xFFF1F5F9),
                           ),
                           _buildStatCard(
                             'Open',
                             open,
-                            AppColors.of(context).isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626),
-                            AppColors.of(context).isDark ? const Color(0xFF450A0A) : const Color(0xFFFEF2F2),
+                            AppColors.of(context).isDark
+                                ? const Color(0xFFF87171)
+                                : const Color(0xFFDC2626),
+                            AppColors.of(context).isDark
+                                ? const Color(0xFF450A0A)
+                                : const Color(0xFFFEF2F2),
                           ),
                           _buildStatCard(
                             'In Progress',
                             inProgress,
-                            AppColors.of(context).isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706),
-                            AppColors.of(context).isDark ? const Color(0xFF451A03) : const Color(0xFFFFFBEB),
+                            AppColors.of(context).isDark
+                                ? const Color(0xFFFBBF24)
+                                : const Color(0xFFD97706),
+                            AppColors.of(context).isDark
+                                ? const Color(0xFF451A03)
+                                : const Color(0xFFFFFBEB),
                           ),
                           _buildStatCard(
                             'Resolved',
                             resolved,
-                            AppColors.of(context).isDark ? const Color(0xFF4ADE80) : const Color(0xFF16A34A),
-                            AppColors.of(context).isDark ? const Color(0xFF064E3B) : const Color(0xFFF0FDF4),
+                            AppColors.of(context).isDark
+                                ? const Color(0xFF4ADE80)
+                                : const Color(0xFF16A34A),
+                            AppColors.of(context).isDark
+                                ? const Color(0xFF064E3B)
+                                : const Color(0xFFF0FDF4),
                           ),
                         ],
                       ),
                     ),
                   ),
-                  _buildAnalyticsChart(allTickets),
+                  // _buildAnalyticsChart(allTickets),
                   _buildBulkActionBar(),
                   // ── Ticket List ─────────────────────────────────────────────
                   Expanded(
@@ -381,7 +421,9 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
                               },
                               color: AppColors.of(context).primary,
                               child: ListView.builder(
-                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
                                 itemCount: filteredTickets.length,
                                 itemBuilder: (context, index) {
                                   final ticket = filteredTickets[index];
@@ -562,7 +604,8 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
     final confirm = await AppNotifications.showConfirmDialog(
       context,
       title: 'Hapus Massal',
-      message: 'Hapus ${_selectedTicketIds.length} tiket yang dipilih secara permanen?',
+      message:
+          'Hapus ${_selectedTicketIds.length} tiket yang dipilih secara permanen?',
       confirmLabel: 'Hapus',
       cancelLabel: 'Batal',
       isDestructive: true,
@@ -596,7 +639,9 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
       decoration: BoxDecoration(
         // Gradient for premium look in dark mode, solid color in light mode
         gradient: isDark
-            ? LinearGradient(colors: [bgColor.withOpacity(0.9), bgColor.withOpacity(0.6)])
+            ? LinearGradient(
+                colors: [bgColor.withOpacity(0.9), bgColor.withOpacity(0.6)],
+              )
             : null,
         color: isDark ? null : bgColor,
         borderRadius: BorderRadius.circular(12),
@@ -642,17 +687,21 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
 
     for (int i = 5; i >= 0; i--) {
       final date = DateTime(now.year, now.month - i, 1);
-      
-      final masuk = tickets.where((t) => 
-        t.createdAt.month == date.month && t.createdAt.year == date.year
-      ).length;
-      
+
+      final masuk = tickets
+          .where(
+            (t) =>
+                t.createdAt.month == date.month &&
+                t.createdAt.year == date.year,
+          )
+          .length;
+
       final selesai = tickets.where((t) {
         if (t.status != 'Resolved') return false;
         final d = t.resolvedAt ?? t.createdAt;
         return d.month == date.month && d.year == date.year;
       }).length;
-      
+
       barGroups.add(
         BarChartGroupData(
           x: 5 - i,
@@ -670,10 +719,23 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
               borderRadius: BorderRadius.circular(4),
             ),
           ],
-        )
+        ),
       );
-      
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+
+      const months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'Mei',
+        'Jun',
+        'Jul',
+        'Agu',
+        'Sep',
+        'Okt',
+        'Nov',
+        'Des',
+      ];
       monthLabels.add(months[date.month - 1]);
     }
 
@@ -714,19 +776,47 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(width: 10, height: 10, decoration: BoxDecoration(color: AppColors.of(context).primary, borderRadius: BorderRadius.circular(2))),
+                    Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: AppColors.of(context).primary,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
                     const SizedBox(width: 4),
-                    Text('Masuk', style: TextStyle(fontSize: 10, color: AppColors.of(context).textSecondary)),
+                    Text(
+                      'Masuk',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: AppColors.of(context).textSecondary,
+                      ),
+                    ),
                     const SizedBox(width: 8),
-                    Container(width: 10, height: 10, decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(2))),
+                    Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: Colors.green,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
                     const SizedBox(width: 4),
-                    Text('Selesai', style: TextStyle(fontSize: 10, color: AppColors.of(context).textSecondary)),
+                    Text(
+                      'Selesai',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: AppColors.of(context).textSecondary,
+                      ),
+                    ),
                   ],
                 ),
               ],
               const SizedBox(width: 8),
               GestureDetector(
-                onTap: () => setState(() => _isAnalyticsExpanded = !_isAnalyticsExpanded),
+                onTap: () => setState(
+                  () => _isAnalyticsExpanded = !_isAnalyticsExpanded,
+                ),
                 child: Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
@@ -752,7 +842,9 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
             firstCurve: Curves.easeOutCubic,
             secondCurve: Curves.easeOutCubic,
             sizeCurve: Curves.easeOutCubic,
-            crossFadeState: _isAnalyticsExpanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+            crossFadeState: _isAnalyticsExpanded
+                ? CrossFadeState.showFirst
+                : CrossFadeState.showSecond,
             firstChild: Column(
               children: [
                 const SizedBox(height: 16),
@@ -773,15 +865,24 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
                                 padding: const EdgeInsets.only(top: 8),
                                 child: Text(
                                   monthLabels[value.toInt()],
-                                  style: TextStyle(fontSize: 10, color: AppColors.of(context).textSecondary),
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: AppColors.of(context).textSecondary,
+                                  ),
                                 ),
                               );
                             },
                           ),
                         ),
-                        leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        leftTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                        topTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                        rightTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
                       ),
                       gridData: const FlGridData(show: false),
                       borderData: FlBorderData(show: false),

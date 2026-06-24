@@ -1018,7 +1018,7 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
               Icon(Icons.broken_image_outlined, color: Colors.grey, size: 40),
               SizedBox(height: 8),
               Text(
-                'Gagal memuat gambar',
+                'gagal memuat foto',
                 style: TextStyle(color: Colors.grey, fontSize: 12),
               ),
             ],
