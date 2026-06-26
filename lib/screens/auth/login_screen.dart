@@ -181,79 +181,590 @@ class _LoginScreenState extends State<LoginScreen>
     final c = AppColors.of(context);
     return Scaffold(
       backgroundColor: c.background,
-      body: Stack(
-        children: [
-          // Background Gradient Header
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 340,
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF1E3A8A), Color(0xFF0F172A)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(40),
-                  bottomRight: Radius.circular(40),
-                ),
-              ),
-            ),
-          ),
-          SafeArea(
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.only(
-                  left: 24.0,
-                  right: 24.0,
-                  top: 30.0,
-                  bottom: 24.0,
-                ),
-                child: _fadeAnimation == null
-                    ? _buildContent() // Fallback if hot reloaded without restart
-                    : FadeTransition(
-                        opacity: _fadeAnimation!,
-                        child: _buildContent(),
-                      ),
-              ),
-            ),
-          ),
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 10,
-            right: 16,
-            child: Consumer<ThemeProvider>(
-              builder: (context, themeProvider, _) {
-                final isDark = themeProvider.isDarkMode;
-                return Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.2),
-                      width: 1.5,
-                    ),
-                  ),
-                  child: IconButton(
-                    icon: Icon(
-                      isDark
-                          ? Icons.light_mode_rounded
-                          : Icons.dark_mode_rounded,
-                      color: Colors.white,
-                      size: 22,
-                    ),
-                    onPressed: () => themeProvider.toggleTheme(!isDark),
-                    tooltip: isDark ? 'Light Mode' : 'Dark Mode',
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isDesktop = constraints.maxWidth >= 900;
+          
+          if (isDesktop) {
+            return _buildDesktopLayout(c);
+          } else {
+            return _buildMobileLayout(c);
+          }
+        },
       ),
+    );
+  }
+
+  // ─── DESKTOP LAYOUT (≥900px) ───────────────────────────────────
+  Widget _buildDesktopLayout(AppColors c) {
+    return Row(
+      children: [
+        // Left Panel: Branding & Illustration
+        Expanded(
+          flex: 5,
+          child: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF1E3A8A), Color(0xFF0F172A)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Stack(
+              children: [
+                // Decorative circles
+                Positioned(
+                  top: -50,
+                  left: -50,
+                  child: Container(
+                    width: 200,
+                    height: 200,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withOpacity(0.05),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: -80,
+                  right: -80,
+                  child: Container(
+                    width: 300,
+                    height: 300,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withOpacity(0.05),
+                    ),
+                  ),
+                ),
+                
+                // Content
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Logo
+                      Container(
+                        width: 160,
+                        height: 160,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 32,
+                              offset: const Offset(0, 12),
+                            ),
+                          ],
+                        ),
+                        padding: const EdgeInsets.all(28),
+                        child: Image.asset(
+                          'assets/sbm.png',
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Icon(
+                              Icons.confirmation_num_rounded,
+                              size: 80,
+                              color: const Color(0xFF1A3A5C),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 36),
+                      const Text(
+                        'SBM ITB Support',
+                        style: TextStyle(
+                          fontSize: 42,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          letterSpacing: -1,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Sistem Tiket Helpdesk Terpadu',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.white.withOpacity(0.85),
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(100),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.2),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.check_circle_outline_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Responsif & Aman',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.95),
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        
+        // Right Panel: Form
+        Expanded(
+          flex: 4,
+          child: Container(
+            color: c.background,
+            child: Stack(
+              children: [
+                Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 48,
+                      vertical: 32,
+                    ),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 480),
+                      child: _fadeAnimation == null
+                          ? _buildFormContent(c)
+                          : FadeTransition(
+                              opacity: _fadeAnimation!,
+                              child: _buildFormContent(c),
+                            ),
+                    ),
+                  ),
+                ),
+                
+                // Theme toggle button (top right)
+                Positioned(
+                  top: 24,
+                  right: 24,
+                  child: Consumer<ThemeProvider>(
+                    builder: (context, themeProvider, _) {
+                      final isDark = themeProvider.isDarkMode;
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: c.surface,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: c.border,
+                            width: 1.5,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(
+                                c.isDark ? 0.2 : 0.06,
+                              ),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: IconButton(
+                          icon: Icon(
+                            isDark
+                                ? Icons.light_mode_rounded
+                                : Icons.dark_mode_rounded,
+                            color: c.textSecondary,
+                            size: 22,
+                          ),
+                          onPressed: () => themeProvider.toggleTheme(!isDark),
+                          tooltip: isDark ? 'Light Mode' : 'Dark Mode',
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ─── MOBILE LAYOUT (<900px) ────────────────────────────────────
+  Widget _buildMobileLayout(AppColors c) {
+    return Stack(
+      children: [
+        // Background Gradient Header
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 340,
+          child: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF1E3A8A), Color(0xFF0F172A)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(40),
+                bottomRight: Radius.circular(40),
+              ),
+            ),
+          ),
+        ),
+        SafeArea(
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(
+                left: 24.0,
+                right: 24.0,
+                top: 30.0,
+                bottom: 24.0,
+              ),
+              child: _fadeAnimation == null
+                  ? _buildContent()
+                  : FadeTransition(
+                      opacity: _fadeAnimation!,
+                      child: _buildContent(),
+                    ),
+            ),
+          ),
+        ),
+        Positioned(
+          top: MediaQuery.of(context).padding.top + 10,
+          right: 16,
+          child: Consumer<ThemeProvider>(
+            builder: (context, themeProvider, _) {
+              final isDark = themeProvider.isDarkMode;
+              return Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.2),
+                    width: 1.5,
+                  ),
+                ),
+                child: IconButton(
+                  icon: Icon(
+                    isDark
+                        ? Icons.light_mode_rounded
+                        : Icons.dark_mode_rounded,
+                    color: Colors.white,
+                    size: 22,
+                  ),
+                  onPressed: () => themeProvider.toggleTheme(!isDark),
+                  tooltip: isDark ? 'Light Mode' : 'Dark Mode',
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ─── FORM CONTENT (for desktop) ────────────────────────────────
+  Widget _buildFormContent(AppColors c) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Title
+        Text(
+          _isLogin ? 'Masuk ke Akun' : 'Buat Akun Baru',
+          style: TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.bold,
+            color: c.textPrimary,
+            letterSpacing: -0.5,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          _isLogin
+              ? 'Silakan masukkan kredensial Anda'
+              : 'Lengkapi formulir di bawah untuk mendaftar',
+          style: TextStyle(
+            fontSize: 15,
+            color: c.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 32),
+        
+        // Form
+        Form(
+          key: _formKey,
+          child: AnimatedSize(
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeInOutBack,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (!_isLogin) ...[
+                  _buildLabel('Nama Lengkap'),
+                  _buildTextField(
+                    controller: _nameController,
+                    hint: 'Masukkan nama Anda',
+                    icon: Icons.person_outline_rounded,
+                    validator: (val) =>
+                        val == null || val.isEmpty ? 'Nama wajib diisi' : null,
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildLabel('Peran / Role'),
+                  IosGlassDropdownFormField<String>(
+                    value: _selectedRole,
+                    items: const ['student', 'staff', 'technician', 'admin'],
+                    itemLabelBuilder: (r) {
+                      switch (r) {
+                        case 'student':
+                          return 'Mahasiswa';
+                        case 'staff':
+                          return 'Staf / Dosen';
+                        case 'technician':
+                          return 'Teknisi IT';
+                        case 'admin':
+                          return 'Admin';
+                        default:
+                          return '';
+                      }
+                    },
+                    onChanged: (val) {
+                      if (val != null) {
+                        setState(() => _selectedRole = val);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildLabel('Departemen/Angkatan (Opsional)'),
+                  _buildTextField(
+                    controller: _departmentController,
+                    hint: 'Contoh: Manajemen 2024',
+                    icon: Icons.apartment_outlined,
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
+                _buildLabel('Alamat Email'),
+                _buildTextField(
+                  controller: _emailController,
+                  hint: 'nama@example.com',
+                  icon: Icons.email_outlined,
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (val) {
+                    if (val == null || val.isEmpty) return 'Email wajib diisi';
+                    final emailRegex = RegExp(
+                      r'^[\w\-\.]+@([\w\-]+\.)+[\w\-]{2,}$',
+                    );
+                    if (!emailRegex.hasMatch(val.trim()))
+                      return 'Format email tidak valid';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                _buildLabel('Kata Sandi'),
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: _isObscure,
+                  style: TextStyle(fontSize: 14, color: c.textPrimary),
+                  decoration: _inputDecoration(
+                    hint: 'Masukkan kata sandi',
+                    icon: Icons.lock_outline_rounded,
+                  ).copyWith(
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _isObscure
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                        color: c.textMuted,
+                        size: 20,
+                      ),
+                      onPressed: () =>
+                          setState(() => _isObscure = !_isObscure),
+                    ),
+                  ),
+                  validator: (val) {
+                    if (val == null || val.isEmpty)
+                      return 'Kata sandi wajib diisi';
+                    if (!_isLogin && val.length < 6)
+                      return 'Minimal 6 karakter';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 28),
+
+                Consumer<AuthProvider>(
+                  builder: (context, auth, child) {
+                    final busy = auth.isLoading || _isSendingOtp;
+                    return SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: busy ? null : _submit,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF1A3A5C),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        child: busy
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2.5,
+                                ),
+                              )
+                            : Text(
+                                _isLogin
+                                    ? 'Masuk Sekarang'
+                                    : 'Daftar & Kirim OTP',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                      ),
+                    );
+                  },
+                ),
+                
+                if (_isLogin) ...[
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(child: Divider(color: c.divider)),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Text(
+                          'atau',
+                          style: TextStyle(color: c.textMuted, fontSize: 13),
+                        ),
+                      ),
+                      Expanded(child: Divider(color: c.divider)),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  if (_deviceSupportsBiometric) ...[
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: _tryBiometricLogin,
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          side: BorderSide(
+                            color: c.isDark ? c.border : const Color(0xFFE2E8F0),
+                            width: 1.5,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          backgroundColor:
+                              c.isDark ? c.searchBar : const Color(0xFFF8FAFC),
+                          foregroundColor:
+                              c.isDark ? Colors.white : const Color(0xFF1A3A5C),
+                        ),
+                        icon: Icon(
+                          Icons.fingerprint_rounded,
+                          color:
+                              c.isDark ? c.primary : const Color(0xFF1A3A5C),
+                          size: 26,
+                        ),
+                        label: Text(
+                          'Masuk dengan Sidik Jari / Face ID',
+                          style: TextStyle(
+                            color: c.isDark
+                                ? Colors.white
+                                : const Color(0xFF1A3A5C),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        final authProvider =
+                            Provider.of<AuthProvider>(context, listen: false);
+                        try {
+                          await authProvider.signInAsGuest();
+                        } catch (e) {
+                          if (!mounted) return;
+                          String msg = e.toString();
+                          if (msg.contains(']'))
+                            msg = msg.split(']').last.trim();
+                          _showSnackBar(
+                            'Gagal masuk sebagai tamu: $msg',
+                            isError: true,
+                          );
+                        }
+                      },
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        side: BorderSide(
+                          color: c.isDark
+                              ? c.primary.withValues(alpha: 0.5)
+                              : const Color(0xFF1A3A5C)
+                                  .withValues(alpha: 0.5),
+                          width: 1.5,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        backgroundColor:
+                            c.isDark ? c.searchBar : const Color(0xFFF8FAFC),
+                      ),
+                      icon: Icon(
+                        Icons.person_search_rounded,
+                        color: c.isDark ? c.primary : const Color(0xFF1A3A5C),
+                        size: 22,
+                      ),
+                      label: Text(
+                        'Lanjutkan sebagai Tamu',
+                        style: TextStyle(
+                          color:
+                              c.isDark ? Colors.white : const Color(0xFF1A3A5C),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14.5,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        _buildFooterTextButton(),
+      ],
     );
   }
 

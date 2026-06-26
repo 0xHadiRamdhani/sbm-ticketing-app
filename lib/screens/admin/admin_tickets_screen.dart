@@ -2,12 +2,11 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../utils/app_colors.dart';
-import '../../providers/language_provider.dart';
 import 'admin_stats_screen.dart';
 import 'audit_log_screen.dart';
-import 'notification_templates_screen.dart';
 import 'active_devices_screen.dart';
 import 'export_reports_screen.dart';
+import 'import_tickets_screen.dart';
 import 'user_management_screen.dart';
 import '../../services/audit_service.dart';
 import '../../providers/ticket_provider.dart';
@@ -25,11 +24,37 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
   String? _selectedCategory;
   String? _selectedPriority;
   String? _selectedStatus; // null means 'All'
+  String? _selectedMonth; // null means 'Semua Bulan'
+  int? _selectedDay; // null means 'Semua Tanggal'
   String _searchQuery = '';
   final _searchCtrl = TextEditingController();
   final Set<String> _selectedTicketIds = {};
   bool _isSelectionMode = false;
   bool _isAnalyticsExpanded = true;
+
+  final List<String> _months = [
+    'Semua Bulan',
+    'Januari',
+    'Februari',
+    'Maret',
+    'April',
+    'Mei',
+    'Juni',
+    'Juli',
+    'Agustus',
+    'September',
+    'Oktober',
+    'November',
+    'Desember',
+  ];
+
+  List<String> get _days {
+    final list = <String>['Semua Tanggal'];
+    for (int d = 1; d <= 31; d++) {
+      list.add(d.toString());
+    }
+    return list;
+  }
 
   final _filters = [
     'Semua',
@@ -196,6 +221,40 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
                   ),
                 ],
               ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: IosGlassDropdown<String>(
+                      value: _selectedMonth ?? 'Semua Bulan',
+                      items: _months,
+                      itemLabelBuilder: (m) => m,
+                      onChanged: (val) {
+                        setState(() {
+                          _selectedMonth = val == 'Semua Bulan' ? null : val;
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: IosGlassDropdown<String>(
+                      value: _selectedDay != null
+                          ? _selectedDay.toString()
+                          : 'Semua Tanggal',
+                      items: _days,
+                      itemLabelBuilder: (d) => d,
+                      onChanged: (val) {
+                        setState(() {
+                          _selectedDay = val == 'Semua Tanggal'
+                              ? null
+                              : int.tryParse(val);
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 12),
             ],
           ),
@@ -247,6 +306,18 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
                     context,
                     MaterialPageRoute(
                       builder: (_) => const ExportReportsScreen(),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                _buildQuickAction(
+                  context,
+                  icon: Icons.file_upload_outlined,
+                  label: 'Import',
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ImportTicketsScreen(),
                     ),
                   ),
                 ),
@@ -317,6 +388,12 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
                     t.priority == _selectedPriority;
                 bool matchStatus =
                     _selectedStatus == null || t.status == _selectedStatus;
+                bool matchMonth =
+                    _selectedMonth == null ||
+                    t.createdAt.month == _months.indexOf(_selectedMonth!);
+                bool matchDay =
+                    _selectedDay == null ||
+                    t.createdAt.day == _selectedDay;
                 bool matchSearch =
                     _searchQuery.isEmpty ||
                     t.ticketId.toLowerCase().contains(_searchQuery) ||
@@ -326,6 +403,8 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
                 return matchCategory &&
                     matchPriority &&
                     matchStatus &&
+                    matchMonth &&
+                    matchDay &&
                     matchSearch;
               }).toList();
 

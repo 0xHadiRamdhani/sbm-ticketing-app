@@ -90,17 +90,8 @@ class TicketService {
 
     DateTime now = DateTime.now();
     
-    // 1. SLA Management: Calculate Target Resolution Time based on priority
-    DateTime targetResolution = now;
-    if (priority.toLowerCase() == 'urgent') {
-      targetResolution = now.add(const Duration(hours: 2));
-    } else if (priority.toLowerCase() == 'high') {
-      targetResolution = now.add(const Duration(hours: 6));
-    } else if (priority.toLowerCase() == 'medium') {
-      targetResolution = now.add(const Duration(hours: 24));
-    } else {
-      targetResolution = now.add(const Duration(hours: 72));
-    }
+    // 1. SLA Management: Calculate Target Resolution Time - ALL SET TO 1 HOUR
+    DateTime targetResolution = now.add(const Duration(hours: 1));
 
     // 2. Auto-Assign & Smart Routing
     String requiredSkill = 'general';

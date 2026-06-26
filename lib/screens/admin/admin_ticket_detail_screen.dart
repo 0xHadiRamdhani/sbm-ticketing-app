@@ -785,15 +785,15 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
   }
 
   Widget _buildSLATimer() {
-    // SLA Definitions (in hours)
+    // SLA Definitions (in hours) - ALL SET TO 1 HOUR
     final Map<String, int> slaTargets = {
-      'Critical': 2,
-      'High': 4,
-      'Medium': 8,
-      'Low': 24,
+      'Critical': 1,
+      'High': 1,
+      'Medium': 1,
+      'Low': 1,
     };
 
-    final targetHours = slaTargets[widget.ticket.priority] ?? 24;
+    final targetHours = slaTargets[widget.ticket.priority] ?? 1;
     final deadline = widget.ticket.createdAt.add(Duration(hours: targetHours));
     final now = DateTime.now();
     final isOverdue = now.isAfter(deadline);

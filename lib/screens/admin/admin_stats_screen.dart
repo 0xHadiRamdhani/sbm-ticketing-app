@@ -4,10 +4,43 @@ import 'package:provider/provider.dart';
 import '../../providers/ticket_provider.dart';
 import '../../models/ticket_model.dart';
 import '../shared/ticket_card.dart';
+import '../shared/ios_glass_dropdown.dart';
 import '../../utils/app_colors.dart';
 
-class AdminStatsScreen extends StatelessWidget {
+class AdminStatsScreen extends StatefulWidget {
   const AdminStatsScreen({Key? key}) : super(key: key);
+
+  @override
+  State<AdminStatsScreen> createState() => _AdminStatsScreenState();
+}
+
+class _AdminStatsScreenState extends State<AdminStatsScreen> {
+  String? _selectedMonth;
+  int? _selectedDay;
+
+  final List<String> _months = [
+    'Semua Bulan',
+    'Januari',
+    'Februari',
+    'Maret',
+    'April',
+    'Mei',
+    'Juni',
+    'Juli',
+    'Agustus',
+    'September',
+    'Oktober',
+    'November',
+    'Desember',
+  ];
+
+  List<String> get _days {
+    final list = <String>['Semua Tanggal'];
+    for (int d = 1; d <= 31; d++) {
+      list.add(d.toString());
+    }
+    return list;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,12 +80,87 @@ class AdminStatsScreen extends StatelessWidget {
 
           final allTickets = snapshot.data!;
 
+          // Apply Filters
+          final filteredTickets = allTickets.where((t) {
+            bool matchMonth =
+                _selectedMonth == null ||
+                t.createdAt.month == _months.indexOf(_selectedMonth!);
+            bool matchDay =
+                _selectedDay == null ||
+                t.createdAt.day == _selectedDay;
+            return matchMonth && matchDay;
+          }).toList();
+
           return SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Filter Section
+                  _card(
+                    c: c,
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.filter_list_rounded,
+                              size: 18,
+                              color: c.primary,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Filter Tanggal',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: c.textPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: IosGlassDropdown<String>(
+                                value: _selectedMonth ?? 'Semua Bulan',
+                                items: _months,
+                                itemLabelBuilder: (m) => m,
+                                onChanged: (val) {
+                                  setState(() {
+                                    _selectedMonth =
+                                        val == 'Semua Bulan' ? null : val;
+                                  });
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: IosGlassDropdown<String>(
+                                value: _selectedDay != null
+                                    ? _selectedDay.toString()
+                                    : 'Semua Tanggal',
+                                items: _days,
+                                itemLabelBuilder: (d) => d,
+                                onChanged: (val) {
+                                  setState(() {
+                                    _selectedDay = val == 'Semua Tanggal'
+                                        ? null
+                                        : int.tryParse(val);
+                                  });
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
                   _buildSectionHeader(
                     'Tren Tiket',
                     'Grafik 12 bulan terakhir',
@@ -60,7 +168,7 @@ class AdminStatsScreen extends StatelessWidget {
                     c,
                   ),
                   const SizedBox(height: 12),
-                  _buildAnalyticsChart(allTickets, c),
+                  _buildAnalyticsChart(filteredTickets, c),
                   const SizedBox(height: 32),
                   _buildSectionHeader(
                     'SLA Performance',
@@ -69,7 +177,7 @@ class AdminStatsScreen extends StatelessWidget {
                     c,
                   ),
                   const SizedBox(height: 12),
-                  _buildSLAAnalytics(allTickets, c),
+                  _buildSLAAnalytics(filteredTickets, c),
                   const SizedBox(height: 32),
                   _buildSectionHeader(
                     'Detail Bulanan',
@@ -78,7 +186,7 @@ class AdminStatsScreen extends StatelessWidget {
                     c,
                   ),
                   const SizedBox(height: 12),
-                  _buildMonthlyDetails(allTickets, c),
+                  _buildMonthlyDetails(filteredTickets, c),
                 ],
               ),
             ),
@@ -345,34 +453,64 @@ class AdminStatsScreen extends StatelessWidget {
   }
 
   Widget _buildSLAAnalytics(List<TicketModel> tickets, AppColors c) {
+    // Hitung semua tiket yang sudah diselesaikan
     final resolvedTickets = tickets
         .where((t) => t.status == 'Resolved')
         .toList();
+    
+    // Hitung tiket yang masih aktif tapi sudah melewati target (terlambat)
+    final now = DateTime.now();
+    final lateActiveTickets = tickets.where((t) {
+      // Tiket aktif (belum resolved)
+      if (t.status == 'Resolved' || t.status == 'Closed') return false;
+      
+      // Tentukan target: gunakan targetResolutionAt jika ada, 
+      // atau hitung 1 jam dari createdAt sebagai fallback
+      DateTime target;
+      if (t.targetResolutionAt != null) {
+        target = t.targetResolutionAt!;
+      } else {
+        // Fallback: 1 jam dari waktu pembuatan
+        target = t.createdAt.add(const Duration(hours: 1));
+      }
+      
+      // Target sudah terlewat
+      return now.isAfter(target);
+    }).toList();
+    
     int onTimeCount = 0;
-    int lateCount = 0;
+    int lateCount = lateActiveTickets.length; // Mulai dengan tiket aktif yang terlambat
     double totalResolutionHours = 0;
 
+    // Hitung tiket yang sudah resolved
     for (var t in resolvedTickets) {
       if (t.resolvedAt != null && t.createdAt != null) {
         final duration = t.resolvedAt!.difference(t.createdAt);
         totalResolutionHours += duration.inMinutes / 60.0;
 
+        // Tentukan target untuk tiket resolved
+        DateTime target;
         if (t.targetResolutionAt != null) {
-          if (t.resolvedAt!.isBefore(t.targetResolutionAt!) ||
-              t.resolvedAt!.isAtSameMomentAs(t.targetResolutionAt!)) {
-            onTimeCount++;
-          } else {
-            lateCount++;
-          }
+          target = t.targetResolutionAt!;
         } else {
+          // Fallback: 1 jam dari waktu pembuatan
+          target = t.createdAt.add(const Duration(hours: 1));
+        }
+        
+        // Bandingkan waktu resolved dengan target
+        if (t.resolvedAt!.isBefore(target) ||
+            t.resolvedAt!.isAtSameMomentAs(target)) {
           onTimeCount++;
+        } else {
+          lateCount++;
         }
       }
     }
 
-    final int successRate = resolvedTickets.isEmpty
+    final totalTracked = onTimeCount + lateCount;
+    final int successRate = totalTracked == 0
         ? 0
-        : ((onTimeCount / resolvedTickets.length) * 100).round();
+        : ((onTimeCount / totalTracked) * 100).round();
 
     final int avgHours = resolvedTickets.isEmpty
         ? 0
@@ -428,16 +566,16 @@ class AdminStatsScreen extends StatelessWidget {
           _buildSimpleStatusRow(
             label: 'Selesai Tepat Waktu',
             count: onTimeCount,
-            total: resolvedTickets.length,
+            total: totalTracked,
             color: const Color(0xFF10B981),
             icon: Icons.thumb_up_rounded,
             c: c,
           ),
           const SizedBox(height: 12),
           _buildSimpleStatusRow(
-            label: 'Terlambat',
+            label: 'Terlambat / Melewati Target',
             count: lateCount,
-            total: resolvedTickets.length,
+            total: totalTracked,
             color: const Color(0xFFEF4444),
             icon: Icons.warning_rounded,
             c: c,

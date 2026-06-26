@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/rendering.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:excel/excel.dart' hide Border;
 import 'package:path_provider/path_provider.dart';
@@ -602,8 +603,15 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
       if (!mounted) return;
       Navigator.pop(context); // Close loading dialog
 
-      // 4. Share File
-      await Share.shareXFiles([XFile(filePath)], text: 'Laporan Tiket SBM ITB');
+      // 4. Share File with sharePositionOrigin for iOS
+      final box = context.findRenderObject() as RenderBox?;
+      await Share.shareXFiles(
+        [XFile(filePath)],
+        text: 'Laporan Tiket SBM ITB',
+        sharePositionOrigin: box != null
+            ? box.localToGlobal(Offset.zero) & box.size
+            : null,
+      );
     } catch (e, stack) {
       debugPrint('Export Error: $e');
       debugPrint(stack.toString());

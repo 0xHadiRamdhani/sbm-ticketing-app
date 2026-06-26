@@ -215,6 +215,13 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  /// Set mock user for development (bypass authentication)
+  void setMockUser(UserModel mockUser) {
+    _user = mockUser;
+    _isLoading = false;
+    notifyListeners();
+  }
+
   void _setLoading(bool value) {
     _isLoading = value;
     notifyListeners();
