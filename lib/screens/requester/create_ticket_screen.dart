@@ -21,6 +21,7 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
   
   final _titleController = TextEditingController();
   String? _category;
+  String? _priority = 'Medium';
   final _locationController = TextEditingController();
   final _descController = TextEditingController();
 
@@ -70,7 +71,7 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
           requesterId: user.uid,
           category: _category!,
           description: combinedDesc,
-          priority: 'Medium', // Default prioritas
+          priority: _priority ?? 'Medium',
           location: _locationController.text.isNotEmpty ? _locationController.text : 'Tidak ditentukan',
           imageFile: _imageFile,
         );
@@ -173,6 +174,17 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
                       items: const ['IT', 'Fasilitas', 'Akademik', 'Lainnya'],
                       itemLabelBuilder: (e) => e,
                       onChanged: (val) => setState(() => _category = val),
+                      validator: (val) => val == null ? 'Wajib dipilih' : null,
+                    ),
+                    const SizedBox(height: 18),
+                    
+                    _buildLabel(lang.translate('Prioritas', 'Priority'), c),
+                    IosGlassDropdownFormField<String>(
+                      value: ['Low', 'Medium', 'High', 'Urgent'].contains(_priority) ? _priority : null,
+                      hint: lang.translate('Pilih tingkat prioritas', 'Select priority level'),
+                      items: const ['Low', 'Medium', 'High', 'Urgent'],
+                      itemLabelBuilder: (e) => e,
+                      onChanged: (val) => setState(() => _priority = val),
                       validator: (val) => val == null ? 'Wajib dipilih' : null,
                     ),
                     const SizedBox(height: 18),
