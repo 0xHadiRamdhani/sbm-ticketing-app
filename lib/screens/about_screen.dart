@@ -83,7 +83,7 @@ class AboutScreen extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      lang.translate('Versi 2.1.2', 'Version 2.1.2'),
+                      lang.translate('Versi 2.1.3', 'Version 2.1.3'),
                       style: const TextStyle(
                         fontSize: 13,
                         color: Colors.white,
