@@ -8,7 +8,7 @@
   <a href="https://flutter.dev"><img src="https://img.shields.io/badge/Flutter-3.x-blue.svg?style=for-the-badge&logo=flutter" alt="Flutter Version"/></a>
   <a href="https://firebase.google.com/"><img src="https://img.shields.io/badge/Backend-Firebase-orange.svg?style=for-the-badge&logo=firebase" alt="Firebase Backend"/></a>
   <a href="https://pub.dev"><img src="https://img.shields.io/badge/Status-Production-green.svg?style=for-the-badge" alt="Build Status"/></a>
-  <a href="#"><img src="https://img.shields.io/badge/Version-2.1.2-purple.svg?style=for-the-badge" alt="Version"/></a>
+  <a href="#"><img src="https://img.shields.io/badge/Version-2.1.3-purple.svg?style=for-the-badge" alt="Version"/></a>
 </p>
 
 ---
@@ -65,7 +65,7 @@ Berikut adalah beberapa tampilan utama dari aplikasi helpdesk:
 
 ---
 
-## Fitur Unggulan (Versi 2.1.2)
+## Fitur Unggulan (Versi 2.1.3)
 
 ### Dukungan Multi-Bahasa (Localization)
 *   **Dynamic Language Switcher**: Dukungan penuh untuk pergantian bahasa instan (Bahasa Indonesia & English) di seluruh modul aplikasi tanpa memerlukan restart aplikasi.
@@ -85,15 +85,18 @@ Berikut adalah beberapa tampilan utama dari aplikasi helpdesk:
 
 ### Sistem Keamanan, Audit & Escalation
 *   **Automated Ticket Escalation**: Mesin otomatis untuk eskalasi prioritas tiket dan penyesuaian deadline target SLA berdasarkan tingkat urgensi.
-*   **Audit Log System**: Pencatatan aktivitas administratif secara otomatis pada Firestore (misal: penghapusan tiket, perubahan peran, pembaruan SLA) untuk transparansi penuh.
+*   **Audit Log System**: Pencatatan aktivitas administratif secara otomatis pada Firestore (misal: penghapusan tiket, perubahan peran, pembaruan SLA, serta modifikasi tiket) untuk transparansi penuh.
+*   **Ticket Modification by Admin**: Kemampuan bagi administrator untuk mengedit langsung rincian tiket (kategori, prioritas, judul, deskripsi, lokasi) dengan pencatatan log otomatis.
 *   **Resolved State Locking**: Penguncian data tiket yang telah selesai (Resolved) agar tidak dapat diubah kembali oleh teknisi untuk menjaga integritas data.
 *   **Admin Impersonation**: Fitur simulasi peran bagi administrator untuk mempermudah pemecahan masalah langsung di lingkungan produksi.
 
 ### Laporan, Manajemen Data & Inventaris
 *   **Ekspor Laporan**: Pengunduhan laporan data tiket dalam format Excel dan CSV dengan saringan rentang tanggal.
 *   **Pemantauan SLA**: Pelacakan penyelesaian kendala berdasarkan tingkat prioritas layanan.
+*   **Priority-Based Submission**: Pelapor dapat menentukan tingkat urgensi tiket (Low, Medium, High, Urgent) saat membuat tiket untuk penanganan lebih efisien.
 *   **Simulasi Laporan Terjadwal**: Pengaturan waktu kirim laporan mingguan atau bulanan otomatis.
 *   **Device Inventory & Biometrics**: Modul pelacakan perangkat pengguna (My Devices) terintegrasi dengan opsi keamanan Biometrik (FaceID/TouchID).
+*   **Legacy Image Compatibility**: Mekanisme fallback otomatis untuk memuat gambar dari data versi terdahulu (imageUrl/image) guna menjaga konsistensi tampilan.
 
 ### Komunikasi & Kolaborasi
 *   **Catatan Internal**: Fitur diskusi tertutup khusus bagi admin dan teknisi yang tidak terlihat oleh pelapor.
@@ -169,7 +172,12 @@ lib/
 
 ## Riwayat Rilis
 
-*   **Versi 2.1.2 (Terbaru)**:
+*   **Versi 2.1.3 (Terbaru)**:
+    *   Penambahan opsi pemilihan tingkat prioritas tiket (Low, Medium, High, Urgent) saat pembuatan tiket baru oleh pelapor.
+    *   Fitur modifikasi detail tiket (kategori, prioritas, judul, deskripsi, lokasi) oleh administrator langsung dari panel detail.
+    *   Integrasi audit log otomatis untuk mencatat riwayat perubahan isi tiket oleh administrator.
+    *   Penerapan mekanisme fallback pembacaan properti gambar lama (imageUrl/image) untuk seluruh peran.
+*   **Versi 2.1.2**:
     *   Android and iOS build optimization (migrasi Kotlin `compilerOptions` DSL dan `FlutterImplicitEngineDelegate` iOS).
     *   Pembaruan SDK minimal Dart menjadi `3.10.0-0`.
     *   Pembaruan pustaka dependensi ke versi terbaru (Firebase Core, Auth, Firestore, dll).
