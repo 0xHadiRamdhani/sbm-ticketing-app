@@ -44,7 +44,7 @@ Berikut adalah beberapa tampilan utama dari aplikasi helpdesk:
   <tr>
     <td align="center"><b>Halaman Masuk (Login Screen)</b></td>
     <td align="center"><b>Halaman Permintaan (Request Screen)</b></td>
-    <td align="center"><b>Halaman Statistik Admin (Stats Screen)</b></td>
+    <td align="center"><b>Halaman Detail Tiket Admin (Detail Screen)</b></td>
   </tr>
   <tr>
     <td valign="top"><img src="assets/screen_login.png" width="240" style="border-radius: 12px; margin: 5px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);"/></td>
@@ -52,8 +52,8 @@ Berikut adalah beberapa tampilan utama dari aplikasi helpdesk:
     <td valign="top"><img src="assets/screen_statistics.png" width="240" style="border-radius: 12px; margin: 5px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);"/></td>
   </tr>
   <tr>
+    <td align="center"><b>Halaman Dashboard (Dashboard Screen)</b></td>
     <td align="center"><b>Halaman Pengaturan (Settings Screen)</b></td>
-    <td align="center"><b>Halaman Perangkat (Devices Screen)</b></td>
     <td align="center"><b>Halaman Tentang (About Screen)</b></td>
   </tr>
   <tr>
