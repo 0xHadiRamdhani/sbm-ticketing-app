@@ -67,6 +67,27 @@ class TicketProvider with ChangeNotifier {
     }
   }
 
+  Future<void> updateTicketDetails(
+    String ticketId, {
+    required String category,
+    required String priority,
+    required String location,
+    required String description,
+  }) async {
+    _setLoading(true);
+    try {
+      await _ticketService.updateTicketDetails(
+        ticketId,
+        category: category,
+        priority: priority,
+        location: location,
+        description: description,
+      );
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   void _setLoading(bool value) {
     _isLoading = value;
     notifyListeners();

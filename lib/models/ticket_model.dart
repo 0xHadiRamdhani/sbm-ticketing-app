@@ -60,14 +60,14 @@ class TicketModel {
       priority: data['priority'] ?? 'Low',
       requesterId: data['requester_id'] ?? '',
       technicianId: data['technician_id'],
-      imageUrl: data['image_url'],
+      imageUrl: data['image_url'] ?? data['imageUrl'] ?? data['image'],
       location: data['location'],
       resolvedImageUrls: data['resolved_image_urls'] != null
           ? List<String>.from(data['resolved_image_urls'])
           : null,
       note: data['note'],
-      photoBeforeUrl: data['photo_before_url'],
-      photoAfterUrl: data['photo_after_url'],
+      photoBeforeUrl: data['photo_before_url'] ?? data['photoBeforeUrl'],
+      photoAfterUrl: data['photo_after_url'] ?? data['photoAfterUrl'],
       resolvedAt: data['resolved_at'] != null
           ? (data['resolved_at'] as Timestamp).toDate()
           : null,

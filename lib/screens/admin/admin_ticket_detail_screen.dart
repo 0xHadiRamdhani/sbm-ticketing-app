@@ -113,6 +113,164 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
     }
   }
 
+  Future<void> _editTicket() async {
+    final _formKey = GlobalKey<FormState>();
+    String? category = widget.ticket.category;
+    String? priority = widget.ticket.priority;
+    final locationController = TextEditingController(text: widget.ticket.location ?? '');
+    
+    // Parse title and description
+    String displayTitle = widget.ticket.category;
+    String displayDesc = widget.ticket.description;
+    if (widget.ticket.description.startsWith('Judul: ')) {
+      final parts = widget.ticket.description.split('\n\nDetail:\n');
+      if (parts.length == 2) {
+        displayTitle = parts[0].replaceFirst('Judul: ', '').trim();
+        displayDesc = parts[1].trim();
+      }
+    }
+    
+    final titleController = TextEditingController(text: displayTitle);
+    final descController = TextEditingController(text: displayDesc);
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        final c = AppColors.of(context);
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              backgroundColor: c.background,
+              title: Text('Edit Tiket', style: TextStyle(color: c.textPrimary, fontWeight: FontWeight.bold)),
+              content: SingleChildScrollView(
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Kategori', style: TextStyle(color: c.textPrimary, fontSize: 13, fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        dropdownColor: c.surfaceElevated,
+                        value: ['IT', 'Fasilitas', 'Akademik', 'Lainnya'].contains(category) ? category : null,
+                        items: ['IT', 'Fasilitas', 'Akademik', 'Lainnya'].map((e) => DropdownMenuItem(value: e, child: Text(e, style: TextStyle(color: c.textPrimary)))).toList(),
+                        onChanged: (val) => setStateDialog(() => category = val),
+                        validator: (val) => val == null ? 'Wajib dipilih' : null,
+                      ),
+                      const SizedBox(height: 16),
+                      Text('Prioritas', style: TextStyle(color: c.textPrimary, fontSize: 13, fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        dropdownColor: c.surfaceElevated,
+                        value: ['Low', 'Medium', 'High', 'Urgent', 'Critical'].contains(priority) ? priority : 'Medium',
+                        items: ['Low', 'Medium', 'High', 'Urgent', 'Critical'].map((e) => DropdownMenuItem(value: e, child: Text(e, style: TextStyle(color: c.textPrimary)))).toList(),
+                        onChanged: (val) => setStateDialog(() => priority = val),
+                        validator: (val) => val == null ? 'Wajib dipilih' : null,
+                      ),
+                      const SizedBox(height: 16),
+                      Text('Judul / Singkat', style: TextStyle(color: c.textPrimary, fontSize: 13, fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: titleController,
+                        style: TextStyle(color: c.textPrimary, fontSize: 14),
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: c.surfaceElevated,
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        ),
+                        validator: (val) => val == null || val.isEmpty ? 'Wajib diisi' : null,
+                      ),
+                      const SizedBox(height: 16),
+                      Text('Deskripsi Detail', style: TextStyle(color: c.textPrimary, fontSize: 13, fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: descController,
+                        maxLines: 4,
+                        style: TextStyle(color: c.textPrimary, fontSize: 14),
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: c.surfaceElevated,
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        ),
+                        validator: (val) => val == null || val.isEmpty ? 'Wajib diisi' : null,
+                      ),
+                      const SizedBox(height: 16),
+                      Text('Lokasi (Opsional)', style: TextStyle(color: c.textPrimary, fontSize: 13, fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: locationController,
+                        style: TextStyle(color: c.textPrimary, fontSize: 14),
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: c.surfaceElevated,
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('Batal', style: TextStyle(color: c.textSecondary)),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: c.primary),
+                  onPressed: () async {
+                    if (_formKey.currentState!.validate()) {
+                      final combinedDesc = "Judul: ${titleController.text}\n\nDetail:\n${descController.text}";
+                      try {
+                        await context.read<TicketProvider>().updateTicketDetails(
+                          widget.ticket.ticketId,
+                          category: category!,
+                          priority: priority!,
+                          location: locationController.text,
+                          description: combinedDesc,
+                        );
+
+                        // Audit Log
+                        await AuditService().logAction(
+                          actionType: 'EDIT_TICKET',
+                          targetId: widget.ticket.ticketId,
+                          description: 'Mengubah isi tiket: kategori, prioritas, dsb.',
+                        );
+                        
+                        if (mounted) {
+                          Navigator.pop(context);
+                          AppNotifications.showNotification(
+                            context,
+                            title: 'Sukses',
+                            message: 'Tiket berhasil diubah.',
+                            isError: false,
+                          );
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          AppNotifications.showNotification(
+                            context,
+                            title: 'Gagal',
+                            message: 'Gagal mengubah tiket: $e',
+                            isError: true,
+                          );
+                        }
+                      }
+                    }
+                  },
+                  child: const Text('Simpan', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            );
+          }
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
@@ -183,10 +341,39 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
                     offset: const Offset(0, 45),
                     padding: EdgeInsets.zero,
                     onSelected: (val) {
+                      if (val == 'edit') _editTicket();
                       if (val == 'date') _updateTicketDate();
                       if (val == 'delete') _deleteTicket();
                     },
                     itemBuilder: (context) => [
+                      PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: c.primary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(
+                                Icons.edit_outlined,
+                                size: 16,
+                                color: c.primary,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Edit Tiket',
+                              style: TextStyle(
+                                color: c.textPrimary,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                       PopupMenuItem(
                         value: 'date',
                         child: Row(

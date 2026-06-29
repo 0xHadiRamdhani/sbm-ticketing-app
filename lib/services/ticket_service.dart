@@ -289,6 +289,21 @@ class TicketService {
     });
   }
 
+  Future<void> updateTicketDetails(
+    String ticketId, {
+    required String category,
+    required String priority,
+    required String location,
+    required String description,
+  }) async {
+    await _firestore.collection('tickets').doc(ticketId).update({
+      'category': category,
+      'priority': priority,
+      'location': location,
+      'description': description,
+    });
+  }
+
   Future<void> addInternalNote(
     String ticketId,
     String note,
