@@ -119,6 +119,10 @@ Berikut adalah beberapa tampilan utama dari aplikasi helpdesk:
 
 ## Modul Web Responsif (Panel Admin & Operasional)
 
+<p align="center">
+  <img src="assets/screen_web_dashboard.png" alt="SBM ITB Web Dashboard" width="600" style="border-radius: 12px; margin: 15px 0; box-shadow: 0 4px 25px rgba(0,0,0,0.15);"/>
+</p>
+
 Aplikasi SBM ITB Ticketing juga dilengkapi dengan modul berbasis web yang dioptimalkan untuk performa desktop, tablet, dan mobile. Halaman utama web dialihkan secara otomatis berdasarkan peran pengguna melalui `WebWrapper`.
 
 ### Tata Letak Responsif (Breakpoints)
