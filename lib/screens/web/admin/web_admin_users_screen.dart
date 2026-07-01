@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../models/user_model.dart';
 import '../../../utils/app_colors.dart';
 import '../../../utils/app_notifications.dart';
+import '../../../services/audit_service.dart';
 
 /// Web Admin Users Screen - User management with CRUD operations
 class WebAdminUsersScreen extends StatefulWidget {
@@ -16,12 +18,22 @@ class _WebAdminUsersScreenState extends State<WebAdminUsersScreen> {
   String? _selectedRole;
   String _searchQuery = '';
   final _searchCtrl = TextEditingController();
+  
+  // Controllers for Add User Dialog
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  String _selectedNewRole = 'student';
+  bool _isCreatingUser = false;
 
   final _roles = ['admin', 'technician', 'staff', 'student'];
 
   @override
   void dispose() {
     _searchCtrl.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _nameController.dispose();
     super.dispose();
   }
 
@@ -404,13 +416,237 @@ class _WebAdminUsersScreenState extends State<WebAdminUsersScreen> {
   }
 
   void _showAddUserDialog() {
-    // TODO: Implement add user dialog
-    AppNotifications.showNotification(
-      context,
-      title: 'Coming Soon',
-      message: 'Fitur tambah pengguna akan segera hadir',
-      isError: false,
+    _emailController.clear();
+    _passwordController.clear();
+    _nameController.clear();
+    _selectedNewRole = 'student';
+    
+    final c = AppColors.of(context);
+    
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          backgroundColor: c.surface,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: c.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(Icons.person_add_rounded, color: c.primary, size: 24),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Tambah Pengguna Baru',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: c.textPrimary,
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: SizedBox(
+              width: 400,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Buat akun baru dengan mengisi informasi berikut:',
+                    style: TextStyle(fontSize: 13, color: c.textSecondary),
+                  ),
+                  const SizedBox(height: 20),
+                  
+                  // Nama Lengkap
+                  Text(
+                    'Nama Lengkap',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: c.textSecondary),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _nameController,
+                    style: TextStyle(color: c.textPrimary),
+                    decoration: InputDecoration(
+                      hintText: 'Masukkan nama lengkap',
+                      hintStyle: TextStyle(color: c.textMuted, fontSize: 13),
+                      filled: true,
+                      fillColor: c.searchBar,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Email
+                  Text(
+                    'Email',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: c.textSecondary),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    style: TextStyle(color: c.textPrimary),
+                    decoration: InputDecoration(
+                      hintText: 'nama@example.com',
+                      hintStyle: TextStyle(color: c.textMuted, fontSize: 13),
+                      filled: true,
+                      fillColor: c.searchBar,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Password
+                  Text(
+                    'Password',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: c.textSecondary),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _passwordController,
+                    obscureText: true,
+                    style: TextStyle(color: c.textPrimary),
+                    decoration: InputDecoration(
+                      hintText: 'Minimal 6 karakter',
+                      hintStyle: TextStyle(color: c.textMuted, fontSize: 13),
+                      filled: true,
+                      fillColor: c.searchBar,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Role
+                  Text(
+                    'Peran',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: c.textSecondary),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: c.searchBar,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        isExpanded: true,
+                        dropdownColor: c.surface,
+                        value: _selectedNewRole,
+                        icon: Icon(Icons.keyboard_arrow_down, color: c.textSecondary),
+                        items: _roles.map((r) => DropdownMenuItem(
+                          value: r,
+                          child: Text(_getRoleLabel(r), style: TextStyle(color: c.textPrimary)),
+                        )).toList(),
+                        onChanged: (val) {
+                          if (val != null) setState(() => _selectedNewRole = val);
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: _isCreatingUser ? null : () => Navigator.pop(context),
+              child: Text(
+                'Batal',
+                style: TextStyle(color: c.textSecondary, fontWeight: FontWeight.w600),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: _isCreatingUser ? null : () => _createUser(setState),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: c.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              ),
+              child: _isCreatingUser
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
+                    )
+                  : const Text('Buat Akun', style: TextStyle(fontWeight: FontWeight.w700)),
+            ),
+          ],
+        ),
+      ),
     );
+  }
+
+  Future<void> _createUser(StateSetter dialogSetState) async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+    final name = _nameController.text.trim();
+    
+    if (email.isEmpty || password.isEmpty || name.isEmpty) {
+      AppNotifications.showNotification(context, title: 'Gagal', message: 'Semua field harus diisi', isError: true);
+      return;
+    }
+    
+    if (!email.contains('@')) {
+      AppNotifications.showNotification(context, title: 'Gagal', message: 'Format email tidak valid', isError: true);
+      return;
+    }
+    
+    if (password.length < 6) {
+      AppNotifications.showNotification(context, title: 'Gagal', message: 'Password minimal 6 karakter', isError: true);
+      return;
+    }
+    
+    dialogSetState(() => _isCreatingUser = true);
+    
+    try {
+      final newUserId = FirebaseFirestore.instance.collection('users').doc().id;
+      
+      await FirebaseFirestore.instance.collection('users').doc(newUserId).set({
+        'uid': newUserId,
+        'email': email,
+        'name': name,
+        'role': _selectedNewRole,
+        'phone_number': '',
+        'department': '',
+        'created_at': FieldValue.serverTimestamp(),
+        'updated_at': FieldValue.serverTimestamp(),
+        'password_temp': password,
+        'requires_password_change': true,
+      });
+      
+      await AuditService().logAction(
+        actionType: 'CREATE_USER',
+        targetId: newUserId,
+        description: 'Membuat pengguna baru: $name ($email) dengan peran $_selectedNewRole',
+      );
+      
+      if (!mounted) return;
+      
+      Navigator.pop(context); // Close dialog
+      
+      AppNotifications.showNotification(
+        context,
+        title: 'Sukses',
+        message: 'Pengguna "$name" berhasil dibuat.',
+        isError: false,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      AppNotifications.showNotification(context, title: 'Gagal', message: 'Terjadi kesalahan: $e', isError: true);
+    } finally {
+      dialogSetState(() => _isCreatingUser = false);
+    }
   }
 
   void _showEditUserDialog(UserModel user) {
