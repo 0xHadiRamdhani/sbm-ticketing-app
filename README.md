@@ -117,6 +117,24 @@ Berikut adalah beberapa tampilan utama dari aplikasi helpdesk:
 
 ---
 
+## Modul Web Responsif (Panel Admin & Operasional)
+
+Aplikasi SBM ITB Ticketing juga dilengkapi dengan modul berbasis web yang dioptimalkan untuk performa desktop, tablet, dan mobile. Halaman utama web dialihkan secara otomatis berdasarkan peran pengguna melalui `WebWrapper`.
+
+### Tata Letak Responsif (Breakpoints)
+*   **Desktop (`≥ 900px`)**: Sidebar navigasi persisten di sebelah kiri, toolbar atas dengan opsi ganti tema dan menu profil.
+*   **Tablet (`600px - 899px`)**: AppBar atas dilengkapi drawer navigasi geser kiri yang dinamis.
+*   **Mobile (`< 600px`)**: Bilah navigasi bawah (*Bottom Navigation Bar*) yang efisien.
+
+### Fitur Halaman Web
+1.  **Halaman Login Admin (`web_admin_login_screen.dart`)**: Proses masuk aman dengan pemeriksaan peran admin di Firestore, serta desain Glassmorphic biru premium.
+2.  **Dashboard Utama (`web_admin_dashboard_screen.dart`)**: Ringkasan performa sistem lewat kartu statistik, grafik tren bulanan (`fl_chart`), breakdown prioritas tiket, serta daftar 10 tiket terbaru.
+3.  **Manajemen Pengguna (`web_admin_users_screen.dart`)**: CRUD lengkap (Tambah, Edit Peran, Hapus) yang terintegrasi dengan Firestore database dan pencatatan audit log otomatis.
+4.  **Manajemen Tiket (`web_admin_tickets_screen.dart`)**: Pelacakan daftar pengaduan secara real-time dan penyaringan status tiket.
+5.  **Visualisasi SLA (`web_admin_stats_screen.dart`)**: Grafik kinerja target waktu penyelesaian pengaduan.
+
+---
+
 ## Struktur Direktori Utama
 
 ```text
@@ -144,6 +162,7 @@ lib/
     ├── auth/                          # Modul Otentikasi (Login, Phone Login, OTP)
     ├── requester/                     # Modul Pelapor (User End)
     ├── technician/                    # Modul Perbaikan (Worker End / Technician)
+    ├── web/                           # Modul Web Responsif (Admin Dashboard, Stats, Users, Tickets)
     └── shared/                        # Komponen Reusable UI (Dropdown, Impersonation Banner, Ticket Card)
 ```
 
